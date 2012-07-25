@@ -347,10 +347,10 @@ void multitraceplot (defs *d)
   cpgmtxt ("T", 1.0, 0.65, 0.0, string);
   
   sprintf(string,"%11s",d->glb->gl_pathv[d->currentdir]);
-  if (d->has) {
-    cpgsci(3);
-  } else {
+  if (d->needsave == 1) {
     cpgsci(2);
+  } else {
+    cpgsci(3);
   }
   cpgmtxt ("T", 1.0, 0.5, 0.5, string);
   cpgsci(1);
@@ -366,11 +366,12 @@ void writeout (tf * files, defs *d)
     f = &files[j];
     if (f != NULL && f->hz != NULL && f->filename != NULL)
       {
-	f->hz->user0 = d->lp;
-	f->hz->user1 = d->hp;
-	io_writeSacHead (f->filename, f->hz);
-      }
+      f->hz->user0 = d->lp;
+      f->hz->user1 = d->hp;
+      io_writeSacHead (f->filename, f->hz);
+    }
   }
+  d->needsave = 0;
   
   FILE *a;
   sprintf(string,"%s/HAS",d->glb->gl_pathv[d->currentdir]);
@@ -569,6 +570,7 @@ glob_t * saclist(defs *d){
     d->has = 0;
   }
 
+
   free(filepath);
   filepath = NULL;
   return glb;  
@@ -756,6 +758,7 @@ defs *newdefs(glob_t *glb) {
 
   d->ctl=NULL;
   d->files = NULL;
-
+  d->needsave = 0;
+  
   return d;
 }

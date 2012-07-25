@@ -800,17 +800,18 @@ void EXHIST_process(glob_t *glb){
         
         cpgsch(4);
         cpgmtxt("T",0.65,0.5,0.5,ss->slist[sta]->name);
-        cpgsch(2.5);
         
         // Clear
         if (plist != NULL) free(plist);
         plist = NULL;
+        cpgsch(2.5);
       }
     }
     fprintf(stderr,"Total of %ld picks considered.\n",totaln);
     fprintf(stderr,"Total of %ld outliars ( 0.0 to %f sigmas )\n", pCount - totaln, sigma);
     
     cpgsubp(1,1);
+    cpgsch(1.0);
     cpgsvp(0.0,1.0,0.0,1.0);
     cpgswin(0.0,10.0,0.0,8.0);
     ch = getonechar(&ax, &ay);
@@ -824,7 +825,6 @@ void EXHIST_process(glob_t *glb){
         makehistorgram(plist,n,-4,4,31,0);
         cpgsch(4);
         cpgmtxt("T",0.65,0.5,0.5,ss->slist[sta]->name);
-        cpgsch(2.5);
         getonechar(&ax, &ay);
       }
     }

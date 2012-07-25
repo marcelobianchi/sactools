@@ -90,6 +90,8 @@ typedef struct {
   // Processing parameters
   float searchsize;
   float insetsearchsize;
+  
+  int needsave;
 } defs;
 
 typedef struct {

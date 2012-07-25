@@ -181,6 +181,7 @@ void edit_tf(g_ctl *ctl, tf *f, defs* d)
 	case 'Z':	  
 	case 'Y':
 	  f->hz->f = (gravity)?minmaxrefine(f, d, ax, 2.):ax;
+	  d->needsave = 1;
 	break;
 	
 	case 'A':
@@ -203,6 +204,7 @@ void edit_tf(g_ctl *ctl, tf *f, defs* d)
 
 	case 'D':
 	  deletemark(f,ax);
+	  d->needsave = 1;
 	  break;
 
 	case 'L':

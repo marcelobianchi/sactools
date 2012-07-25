@@ -268,3 +268,25 @@ char getonechar(float *axx, float *ayy) {
    return ch;
  }
  
+int yesno(char *text) {
+  float ax, ay;
+  char c = 'U';
+
+  while (1) {
+    if ( (c == 'Y') || (c == 'y') ) {
+      return 1;
+    } else if ( (c == 'N') || (c == 'n') ) {
+      return 0;
+    } else {
+      cpgsubp(1,1);
+      cpgsvp(0.4,0.9,0.10,0.30);
+      cpgswin(0.0,1.0,0.0,1.0); 
+      cpgrect(0.0,1.0,0.0,1.0);
+      cpgsci(0);
+      cpgrect(0.01,.99,0.01,0.99);
+      cpgsci(1);
+      cpgmtxt("T",-1.0,0.02,.0,text);
+      c = getonechar(&ax, &ay);
+    }
+  }
+}

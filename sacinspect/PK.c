@@ -214,15 +214,21 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
       break;
 
     case ('r'):
-      {
-	glob_t *glbs = NULL;
-	glbs = saclist(d);
-	tffree(d->files, d->nfiles);
-	d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-	globfree(glbs);
-      }
-      sprintf(d->lastaction,"Data Reloaded.");      
-      break;
+  {
+    if (d->needsave == 1) {
+      if (yesno("Picks not saved, save?") == 1)
+        writeout (d->files,d);
+    }
+    
+    glob_t *glbs = NULL;
+    glbs = saclist(d);
+    tffree(d->files, d->nfiles);
+    d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
+    d->needsave = 0;
+    globfree(glbs);
+  }
+    sprintf(d->lastaction,"Data Reloaded.");      
+    break;
       
     case(' '):
       d->onlyselected=!d->onlyselected;
@@ -230,37 +236,43 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
       break;
 
     case(':'): 
-      {
-	char station[15];      
-	lerchar("Enter e/<Event name> for search for an event or <NAME> for hightlight a station by name", station, 25);
-	
-	if (station[1] == '/'){
-	  if (station[0] == 'e') {
-	    for(j=0;j<d->glb->gl_pathc;j++){
-	      if ( (i=strncmp(d->glb->gl_pathv[j], &station[2], strlen(&station[2]))) == 0){
-		glob_t *glbs = NULL;
-		d->currentdir = j;		
-		glbs = saclist(d);
-		tffree(d->files, d->nfiles);
-		d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-		globfree(glbs);		
-	      }
-	    }
-	  }
-	} else {
-	  for(j=0; j < d->nfiles; j++) {
-	    if (strlen(station) == 0)
-	      d->files[j].selected = 0;
-	    else
-	      if ( (i=strncasecmp(d->files[j].station, station, strlen(station))) == 0) {
-		d->files[j].selected = 1;
-		fprintf(stderr,"Hitted !");
-	      }
-	  }
-	}
+  {
+    char station[15];
+    lerchar("Enter e/<Event name> for search for an event or <NAME> for hightlight a station by name", station, 25);
+    
+    if (station[1] == '/'){
+      if (station[0] == 'e') {
+        if (d->needsave == 1) {
+          if (yesno("Picks not saved, save?") == 1)
+            writeout (d->files,d);
+        }
+        
+        for(j=0;j<d->glb->gl_pathc;j++){
+          if ( (i=strncmp(d->glb->gl_pathv[j], &station[2], strlen(&station[2]))) == 0){
+            glob_t *glbs = NULL;
+            d->currentdir = j;		
+            glbs = saclist(d);
+            tffree(d->files, d->nfiles);
+            d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
+            d->needsave = 0;
+            globfree(glbs);		
+          }
+        }
       }
-      sprintf(d->lastaction,"Searched complete.");
-      break;
+    } else {
+      for(j=0; j < d->nfiles; j++) {
+        if (strlen(station) == 0)
+          d->files[j].selected = 0;
+        else
+          if ( (i=strncasecmp(d->files[j].station, station, strlen(station))) == 0) {
+            d->files[j].selected = 1;
+            fprintf(stderr,"Hitted !");
+          }
+      }
+    }
+  }
+    sprintf(d->lastaction,"Searched complete.");
+    break;
 
     case('+'):
       killCTL(&d->ctl, d->max);
@@ -275,26 +287,31 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
       break;
 
     case('-'):
-      {
-	glob_t *glbs = NULL;
-	if (d->currentdir == d->glb->gl_pathc - 1) break;
+  {
+    glob_t *glbs = NULL;
+    if (d->currentdir == d->glb->gl_pathc - 1) break;
 
-	d->currentdir++;
-	while((d->currentdir) < (d->glb->gl_pathc - 1)) {
-	  glbs = saclist(d);
-	  if (d->has == 0) break;
-	  globfree(glbs);
-	  d->currentdir++;
-	}
-
-	tffree(d->files, d->nfiles);
-	glbs = saclist(d);
-	d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-	globfree(glbs);
-      }
-
-      sprintf(d->lastaction,"Switch to next un-readed data.");
-      break;
+    if (d->needsave == 1) {
+      if (yesno("Picks not saved, save?") == 1)
+        writeout (d->files,d);
+    }
+    
+    d->currentdir++;
+    while((d->currentdir) < (d->glb->gl_pathc - 1)) {
+      glbs = saclist(d);
+      if (d->has == 0) break;
+      globfree(glbs);
+      d->currentdir++;
+    }
+    
+    tffree(d->files, d->nfiles);
+    glbs = saclist(d);
+    d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
+    d->needsave = 0;
+    globfree(glbs);
+  }
+    sprintf(d->lastaction,"Switch to next un-readed data.");
+    break;
 
     case ('n'):
       d->offset += d->max;
@@ -315,37 +332,52 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
       break;
 	  
     case('N'):
-      {
-	glob_t *glbs = NULL;
-	d->currentdir++;
-	if (d->currentdir >= d->glb->gl_pathc) {
-	  d->currentdir = d->glb->gl_pathc - 1;
-	  sprintf(d->lastaction,"This is the last event.");
-	}
-	
-	glbs = saclist(d);
-	tffree(d->files, d->nfiles);
-	d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-	globfree(glbs);
-      }
-      sprintf(d->lastaction,"Switched to next event (directory).");
+  {
+    glob_t *glbs = NULL;
+    d->currentdir++;
+    sprintf(d->lastaction,"Switched to next event (directory).");
+
+    if (d->currentdir >= d->glb->gl_pathc) {
+      d->currentdir = d->glb->gl_pathc - 1;
+      sprintf(d->lastaction,"This is the last event.");
       break;
+    }
+    
+    if (d->needsave == 1) {
+      if (yesno("Picks not saved, save?") == 1)
+        writeout (d->files,d);
+    }
+    
+    glbs = saclist(d);
+    tffree(d->files, d->nfiles);
+    d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
+    d->needsave = 0;
+    globfree(glbs);
+  }
+    break;
 
     case('P'):
-      {
-	glob_t *glbs = NULL;
-	d->currentdir--;
-	sprintf(d->lastaction,"Switched to previous event (directory).");
-	if (d->currentdir < 0) {
-	  d->currentdir = 0;
-	  sprintf(d->lastaction,"This is the first event.");
-	}
-	
-	glbs = saclist(d);
-	tffree(d->files, d->nfiles);
-	d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-	globfree(glbs);
-      }
+  {
+    glob_t *glbs = NULL;
+    d->currentdir--;
+    sprintf(d->lastaction,"Switched to previous event (directory).");
+    if (d->currentdir < 0) {
+      d->currentdir = 0;
+      sprintf(d->lastaction,"This is the first event.");
+      break;
+    }
+    
+    if (d->needsave == 1) {
+      if (yesno("Picks not saved, save?") == 1)
+        writeout (d->files,d);
+    }
+    
+    glbs = saclist(d);
+    tffree(d->files, d->nfiles);
+    d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
+    d->needsave = 0;
+    globfree(glbs);
+  }
       break;
 	
     case ('?'):      
@@ -423,7 +455,6 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
       cpgclos();
       cpgslct(d->grID);	  
       sprintf(d->lastaction,"Saved plot-screen in file plot.ps");
-      // system("gv plot.ps");
       break;
 
     case ('d'):
@@ -432,6 +463,7 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
 	if (ctl_checkhit (d->ctl[j], ax, ay)) {
 	  deletemark(&d->files[d->offset+j],0.0);
 	  sprintf(d->lastaction,"Deleted mark F on trace %d",j);
+	  d->needsave = 1;
 	  break;
 	}
       }
@@ -442,20 +474,20 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
       for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max)); j++)
 	{
 	  tf *ts = &d->files[j];
-	  //	  if (ts->hz->unused25 != 1 ) continue;
 	  getminmax ((d->filter && ts->zf!=NULL)?ts->zf:ts->z, ts->hz, ts->hz->a - d->insetsearchsize,
 		     ts->hz->a + d->searchsize, &vmin, &vmax);
 	  ts->hz->f = vmax;
 	}
+      d->needsave = 1;
       sprintf(d->lastaction,"Searched for maximun between A %.2f adn %.2f seconds.", d->insetsearchsize, d->searchsize);
       break;
 
     case ('c'):
       for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max)); j++) {
-	tf *ts = &d->files[j];
-	//	if (ts->hz->unused25 != 1 ) continue;
-	ts->hz->f = -12345.0;
+        tf *ts = &d->files[j];
+        ts->hz->f = -12345.0;
       }
+      d->needsave = 1;
       sprintf(d->lastaction,"Cleaned pick phases.");
       break;
 
@@ -468,6 +500,7 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
 		     ts->hz->a + d->searchsize, &vmin, &vmax);
 	  ts->hz->f = vmin;
 	}
+      d->needsave = 1;
       sprintf(d->lastaction,"Searched for minimun between A %.2f adn %.2f seconds.", d->insetsearchsize, d->searchsize);
       break;
 
@@ -480,6 +513,7 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
 		     ts->hz->a + d->searchsize, &vmin, &vmax);
 	  ts->hz->f = vmax;
 	}
+      d->needsave = 1;
       sprintf(d->lastaction,"Searched for maximun for ALL betwen A %.2f adn %.2f seconds.", d->insetsearchsize, d->searchsize);
       break;
 	  
@@ -492,6 +526,7 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
 		     ts->hz->a + d->searchsize, &vmin, &vmax);
 	  ts->hz->f = vmin;
 	}
+      d->needsave = 1;
       sprintf(d->lastaction,"Searched for minimun for ALL betwen A %.2f adn %.2f seconds.", d->insetsearchsize, d->searchsize);
       break;
 
@@ -501,6 +536,7 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
 	// if (ts->hz->unused25 != 1 ) continue;
 	ts->hz->f = -12345.0;
       }
+      d->needsave = 1;
       sprintf(d->lastaction,"Cleaned ALL pick phases.");
       break;
 	  
@@ -537,6 +573,13 @@ void PK_checkoption(defs *d, char ch, float ax, float ay){
       }
       break;
       
+  case('Q'):
+    if (d->needsave == 1) {
+      if (yesno("Picks not saved, save?") == 1)
+        writeout (d->files, d);
+    }
+    break;
+
     default:
       sprintf(d->lastaction,"Cannot understand %c",ch);      
       break;
@@ -571,6 +614,7 @@ void PK_process(glob_t *glb) {
 
   /* Load first dir data */
   glob_t *glbs = saclist(d);
+  d->needsave = 0;
   d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
   globfree(glbs);
   glbs = NULL;
