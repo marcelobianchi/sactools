@@ -1,0 +1,45 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Date: 11/May/2012
+Version Sactool 0.5
+
+ * Moved from Makefile to CMake
+ * add a tool to converting sac files into gmt multi-segment file for
+ * plotting. Look on sac2gmt command folder for a sample script into the
+ * example folder.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Date: ??/Set/2010
+Version Sactool 0.2
+
+ * Changed SACHEADDEF struct to include the isMark field.
+ * Added the headutils methods.
+ * Added a sacpickmax program.
+ * Changed the method changeValueFromChar -> changeCharValueFromChar because
+   in headutils we create a method called changeValueFromChar &
+   getValueFromChar that works with real file types (float,int,char strings)
+ * Added documentation with doxygen for the library (sac and gr)
+ * Added the mblibgr graphical library based on PGPLOT. This incorporates
+   many old codes used by the newteste program writen during my doctor
+   degree.
+ * Added sacinpect
+ * Added tools for trending data and filtering (copied from PQL methods)
+
+TODO: 
+ * Fix the -v options on the commands. they should call a mblibsac version
+   method.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Date: 07/feb/2009
+Version: Sactool 0.1
+
+This is the initial release, not all tools are complete but the main idea is
+already operational.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Components:
+ mbLibSac	0.5 (sacio)
+ mbLibSac	0.7 (head)
+ mbLibSac	0.1 (headutils)
+ sacrename	0.5
+ sachinf	0.5
+ sacrgap	0.1
+ sacchhdr	0.5
+

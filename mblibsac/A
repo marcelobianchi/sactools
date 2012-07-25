@@ -1,0 +1,106 @@
+
+ LONG   maxauto: 27,  maxmem: 30,  maxfile: 200
+        info    storage   sh    qf
+        name       type  idx   num
+     -----------------------------
+      LENGTH  auto-load    1     1   nocopy   readonly
+       ALLOC   mem-only   27     -   nocopy   readonly
+      DSPFST   mem-only   28     -   nocopy
+      DSPCNT   mem-only   29     -   nocopy
+
+
+ INTEGER    maxauto: 26,  maxmem: 30,  maxfile: 500
+        info    storage   sh    qf
+        name       type  idx   num
+     -----------------------------
+       RECNO   mem-only   26     -   readonly
+      ATTRIB   mem-only   27     -
+   REDUCTION   mem-only   28     -
+        SIGN  auto-load    6    11
+     EVENTNO  auto-load    7    12
+        MARK  auto-load    8    14
+
+
+ BYTE (q-type INT)  maxauto: 20,  maxmem: 20,  maxfile: 500
+        info    storage   sh    qf
+        name       type  idx   num
+     -----------------------------
+
+
+ REAL   maxauto: 53,  maxmem: 60,  maxfile: 500
+        info    storage   sh    qf
+        name       type  idx   num
+     -----------------------------
+       DELTA  auto-load    0     0   nocopy   readonly
+      MAXVAL   mem-only   53     -   nocopy   readonly
+      MINVAL   mem-only   54     -   nocopy   readonly
+        NORM   mem-only   55     -   nocopy
+        ZOOM   mem-only   56     -
+    T-ORIGIN   mem-only   57     -
+    S-ORIGIN   mem-only   58     -   nocopy
+      WEIGHT   mem-only   59     -
+       CALIB  auto-load    1    26
+    DISTANCE  auto-load    2    11
+     AZIMUTH  auto-load    4    12
+    SLOWNESS  auto-load    3    18
+        INCI  auto-load   12    13
+       DEPTH  auto-load   13    14
+   MAGNITUDE  auto-load   14    15
+         LAT  auto-load   15    16
+         LON  auto-load   16    17
+    SIGNOISE  auto-load   17    22
+        PWDW  auto-load   18    23
+      DCVREG  auto-load   19    24
+     DCVINCI  auto-load   20    25
+        BWIN  auto-load    5     1
+   INCIANGLE  auto-load   23     3
+        EWIN  auto-load   22     2
+    DQUALITY  auto-load   24     4
+       SHIFT  auto-load   25     5
+
+
+ STRING    maxauto: 19,  maxmem: 20,  maxfile: 300
+        info    storage   sh    qf
+        name       type  idx   num
+     -----------------------------
+     COMMENT  auto-load    0     0
+     STATION  auto-load    1     1
+      OPINFO  auto-load    2     2   nocopy   readonly
+        FILE   mem-only   19     -   readonly
+      FILTER  auto-load   10    11
+     QUALITY  auto-load   11    12
+
+
+ CHAR   maxauto: 39,  maxmem: 40,  maxfile: 160
+        info    storage   sh    qf
+        name       type  idx   num
+     -----------------------------
+        COMP  auto-load    0     0
+       CHAN1  auto-load    1     1
+       CHAN2  auto-load    2     2
+
+
+ TIME (q-type STR)  maxauto: 15,  maxmem: 15,  maxfile: 300
+        info    storage   sh    qf
+        name       type  idx   num
+     -----------------------------
+       START  auto-load    0    21
+     P-ONSET  auto-load    1    22
+     S-ONSET  auto-load    2    23
+      ORIGIN  auto-load    3    24
+  SCS1-ONSET  auto-load    5    25
+  SCS2-ONSET  auto-load    6    26
+
+
+ FLAG (q-type CHAR)   maxauto: 4,  maxmem: 16,  maxfile: 160
+        info    storage   sh    qf
+        name       type  idx   num
+     -----------------------------
+        QUAL   mem-only    4     -   readonly
+     NOCALIB   mem-only    5     -   readonly
+       MODIF   mem-only    6     -   nocopy   readonly
+       FROMQ   mem-only    7     -   readonly
+     OVERLAY   mem-only    8     -   nocopy   readonly
+    AMPLICUT   mem-only    9     -
+      USFLG1   mem-only   10     -   nocopy
+      USFLG2   mem-only   11     -   nocopy

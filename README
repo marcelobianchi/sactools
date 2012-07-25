@@ -1,0 +1,25 @@
+This is a collection of utilities to manipulate sac files. These programs
+uses an independent library for better portability and are totally written
+in C languare.
+
+To compile it you will need:
+
+1) make
+2) cmake 
+
+-- Optionally
+
+3) ccmake is nice to help you configure
+4) X11 libraries
+5) pgplot libraries
+
+To compile it:
+
+% make
+(choose your options)
+press c-c-g
+% cd build
+% make
+% make install
+
+Marcelo Bianchi

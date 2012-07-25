@@ -1,0 +1,16 @@
+# GMT common arguments shelf
+-B3:Azimuth (deg):S
+-JX1.5/20
+-R322/328/0/57
+-Xc
+-x5.5
+-Yc
+-y-1.5
+-jX1.5/20
+EOF
+c
+-x5.5
+-Yc
+-y-1.5
+-jX5/20
+EOF
