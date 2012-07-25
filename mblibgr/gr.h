@@ -23,4 +23,3 @@
 
 #include <ctl.h>
 #include <interaction.h>
-

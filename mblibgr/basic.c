@@ -29,22 +29,20 @@
  */
 int opengr()
 {
- char aux[8];
- int i=5;
- int GRid;
- 
- cpgqinf ("STATE", aux, &i);
- if (strncmp (aux, "OPEN", i) != 0)
- {
-   GRid=cpgopen ("/xwindow");
-   cpgask (0);
-   resizemax(0.85);
-   return(GRid);
- } else
-    {
-     fprintf(stderr,"Device alredy open !!");
-     return -1;
-    }
+	char aux[8];
+	int i = 5;
+	int GRid;
+
+	cpgqinf("STATE", aux, &i);
+	if (strncmp(aux, "OPEN", i) != 0) {
+		GRid = cpgopen("/xwindow");
+		cpgask(0);
+		resizemax(0.85);
+		return (GRid);
+	} else {
+		fprintf(stderr, "Device alredy open !!");
+		return -1;
+	}
 }
 
 /** 
@@ -52,24 +50,25 @@ int opengr()
  * 
  * @param scale Porcentage (0-100) of the display width to use.
  */
-void resizemax(float scale) {
- Display *disp;
- float ax,ay;
- int X,Y;
- 
- /* Xlib code */
- disp = XOpenDisplay(NULL); 
- if (disp == NULL) {
-  fprintf(stderr,"No Display.\n");
-  exit (-1);
- } else {
-  Y = XDisplayHeightMM(disp, 0);
-  X = XDisplayWidthMM(disp,0);
- }
- /* End of Xlib code */
- 
- ay=(double)Y/(double)X;
- ax=X/25.4 * scale;
- cpgpap(ax,ay);
- cpgpage();
+void resizemax(float scale)
+{
+	Display *disp;
+	float ax, ay;
+	int X, Y;
+
+	/* Xlib code */
+	disp = XOpenDisplay(NULL);
+	if (disp == NULL) {
+		fprintf(stderr, "No Display.\n");
+		exit(-1);
+	} else {
+		Y = XDisplayHeightMM(disp, 0);
+		X = XDisplayWidthMM(disp, 0);
+	}
+	/* End of Xlib code */
+
+	ay = (double) Y / (double) X;
+	ax = X / 25.4 * scale;
+	cpgpap(ax, ay);
+	cpgpage();
 }

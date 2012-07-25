@@ -39,35 +39,35 @@
 #include <basic.h>
 
 /// Reset the ymin, ymax for a g_ctl based on input data and xmin, xmax limits from g_ctl
-void ctl_yupdate_ndb(g_ctl *ctl,float *y, int npts, float delta, float b);
+void ctl_yupdate_ndb(g_ctl * ctl, float *y, int npts, float delta,
+					 float b);
 
 /// Reset the xmin, xmax from g_ctl based on number of points, sampling and begin time for a time series
-void ctl_xreset_ndb(g_ctl *ctl, int npts, float delta, float b);
+void ctl_xreset_ndb(g_ctl * ctl, int npts, float delta, float b);
 
 /// Reset the xmin, xmax from g_ctl based on supplied xmin and xmax values
-void ctl_xreset_mm(g_ctl *ctl, float xmin, float xmax);
+void ctl_xreset_mm(g_ctl * ctl, float xmin, float xmax);
 
 /// Get a new ready to use g_ctl data structure
-g_ctl* ctl_newctl(float xpos, float ypos, float wsize, float ysize);
+g_ctl *ctl_newctl(float xpos, float ypos, float wsize, float ysize);
 
 /// Draw the axis based on the information of the g_ctl supplied
-void ctl_drawaxis(g_ctl *ctl);
+void ctl_drawaxis(g_ctl * ctl);
 
 /// Reposition and resizing the graphics panel
-void ctl_resizeview(g_ctl *ctl);
+void ctl_resizeview(g_ctl * ctl);
 
 /// Erase the full graphics pane
-void ctl_clean(g_ctl *ctl);
+void ctl_clean(g_ctl * ctl);
 
 /// Set normal (full) border and anotations
-void ctl_axisfull(g_ctl *ctl);
+void ctl_axisfull(g_ctl * ctl);
 
 /// Disable the axis and anotations
-void ctl_axisnone(g_ctl *ctl);
+void ctl_axisnone(g_ctl * ctl);
 
 /// Set only anotation on bottom of the g_ctl
-void ctl_axisbottom(g_ctl *ctl);
+void ctl_axisbottom(g_ctl * ctl);
 
 /// Check if global (from 0.0 to 1.0) ax and ay is inside the g_ctl supplied
-int ctl_checkhit(g_ctl *ctl, float ax, float ay);
-
+int ctl_checkhit(g_ctl * ctl, float ax, float ay);

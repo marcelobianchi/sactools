@@ -43,12 +43,13 @@
 #define IIRC
 /// Real and Imaginary c99 like struct of data for complex numbers.
 typedef struct {
-  /// The real part of the complex number
-  double          real;
-  /// The imaginary part of the comples number
-  double          imag;
+	/// The real part of the complex number
+	double real;
+	/// The imaginary part of the comples number
+	double imag;
 } iircomplex;
 #endif
 
 /// Filter the input data by a low pass and a high pass filter
-float * iir(float *as, int number , float dt, int NH, float FH, int NL, float FL);
+float *iir(float *as, int number, float dt, int NH, float FH, int NL,
+		   float FL);

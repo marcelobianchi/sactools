@@ -41,19 +41,20 @@
 #define TIME_PLAIN 2
 
 typedef struct {
-  struct tm fs; // Time of the trace
-  int ms;       // MS part of the time
-  float b;      // SAC begin time
+	struct tm fs;				// Time of the trace
+	int ms;						// MS part of the time
+	float b;					// SAC begin time
 } SACTIME;
 
-SACTIME * getTimeStructFromSAC(SACHEAD *h);
-SACTIME * getTimeStructFromJDNumbers(int y, int jd, int h, int m, int s, int ms);
-SACTIME * getTimeStructFromNumbers(int y, int mo, int d, int h, int mi, int s, int ms);
+SACTIME *getTimeStructFromSAC(SACHEAD * h);
+SACTIME *getTimeStructFromJDNumbers(int y, int jd, int h, int m, int s,
+									int ms);
+SACTIME *getTimeStructFromNumbers(int y, int mo, int d, int h, int mi,
+								  int s, int ms);
 
 int julday(int year, int mon, int day);
 int calday(int year, int yearday, int *mon, int *day);
-char* print_time (SACTIME *t, int format);
-double getValue(SACTIME *tr, SACTIME *t);
-char *marktime(SACHEAD *h, char *mark, int format);
+char *print_time(SACTIME * t, int format);
+double getValue(SACTIME * tr, SACTIME * t);
+char *marktime(SACHEAD * h, char *mark, int format);
 #endif
-      

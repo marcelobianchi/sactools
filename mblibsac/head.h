@@ -46,7 +46,7 @@ int getSacTypeFromChar(char *name);
 ///  Find the string size of a header variable of type char[] from its name
 int getSacCharsizeFromChar(char *name);
 ///  Change the value of a sac header from its name. The value should also be passed as a string
-int changeCharValueFromChar(SACHEAD *h, char *var, char *value);
+int changeCharValueFromChar(SACHEAD * h, char *var, char *value);
 
 /// Check if the name for the supplied SAC FIELD is a mark field for some phase 
 int isMarkField(char *name);
@@ -54,18 +54,21 @@ int isMarkField(char *name);
 /// Show the list of sac header elements know
 void showHeadElements(char *tab);
 /// Prepare a header variable for printing by its name
-char *hd_showValueFromChar(SACHEAD *h, char *var,char *fmtf, char *fmti,char *fmts);
+char *hd_showValueFromChar(SACHEAD * h, char *var, char *fmtf, char *fmti,
+						   char *fmts);
 
 /* headutils stuff */
 /// Get a value for a certain header variable defined by a string name
-int hdu_getValueFromChar(char *string, SACHEAD *hdr, float *Fvalue, int *Ivalue, char **str);
+int hdu_getValueFromChar(char *string, SACHEAD * hdr, float *Fvalue,
+						 int *Ivalue, char **str);
 /// Convert seconds to point index giving a SACHEAD header.
-int hdu_getNptsFromSeconds(SACHEAD *h, float picktime);
+int hdu_getNptsFromSeconds(SACHEAD * h, float picktime);
 /// Convert a point index to seconds giving a SACHEAD header
-float hdu_getSecondsFromNPTS(SACHEAD *h, int npts);
+float hdu_getSecondsFromNPTS(SACHEAD * h, int npts);
 /// Check if the point index value is contained in the data part related to the SACHEAD supplied
-int hdu_checkNPTS(SACHEAD *h, int value);
+int hdu_checkNPTS(SACHEAD * h, int value);
 /// Change the value for a certain header variable defined by a string name
-int hdu_changeValueFromChar(SACHEAD *h, char *string, float *Fvalue, int *Ivalue, char *Cvalue);
+int hdu_changeValueFromChar(SACHEAD * h, char *string, float *Fvalue,
+							int *Ivalue, char *Cvalue);
 /// Round the supplied sample value to the nearest real sample contained in the data
-int hdu_roundNPTS(SACHEAD *h, int value);
+int hdu_roundNPTS(SACHEAD * h, int value);

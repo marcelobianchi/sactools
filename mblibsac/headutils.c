@@ -26,110 +26,130 @@
 
 #include <head.h>
 
-const char *hdu_version="mbLibSac version 0.1 (headutils)";
+const char *hdu_version = "mbLibSac version 0.1 (headutils)";
 
-int hdu_changeValueFromChar(SACHEAD *h, char *string, float *Fvalue, int *Ivalue, char *Cvalue) {
-  char *pvar;
-  void *p;
-  int i;
-  SACHEADDEF *s;
+int
+hdu_changeValueFromChar(SACHEAD * h, char *string, float *Fvalue,
+						int *Ivalue, char *Cvalue)
+{
+	char *pvar;
+	void *p;
+	int i;
+	SACHEADDEF *s;
 
-  s = getSacHeadDefFromChar(string);
-  if (s == NULL) return -1;
+	s = getSacHeadDefFromChar(string);
+	if (s == NULL)
+		return -1;
 
-  p = &h->delta;
-  p+= s->offset;
+	p = &h->delta;
+	p += s->offset;
 
- switch(s->type){
-  case (TYPE_FLOAT):
-    if (Fvalue == NULL) return -1;
-    *(float *)p=*Fvalue;
-    break;
+	switch (s->type) {
+	case (TYPE_FLOAT):
+		if (Fvalue == NULL)
+			return -1;
+		*(float *) p = *Fvalue;
+		break;
 
-  case (TYPE_INT):
-    if (Ivalue == NULL) return -1;
-    *(int *)p=*Ivalue;
-    break;
+	case (TYPE_INT):
+		if (Ivalue == NULL)
+			return -1;
+		*(int *) p = *Ivalue;
+		break;
 
-  case (TYPE_CHAR):
-    pvar=(char *)p;
-    if (Cvalue == NULL) return -1;
-    
-    for (i=0;i<s->charsize;i++)
-      if (i<strlen(Cvalue)) 
-	pvar[i] = Cvalue[i];
-      else
-	pvar[i] = ' ';
-    break;
-  }
-  
-  return 0;  
+	case (TYPE_CHAR):
+		pvar = (char *) p;
+		if (Cvalue == NULL)
+			return -1;
+
+		for (i = 0; i < s->charsize; i++)
+			if (i < strlen(Cvalue))
+				pvar[i] = Cvalue[i];
+			else
+				pvar[i] = ' ';
+		break;
+	}
+
+	return 0;
 }
 
-int hdu_getValueFromChar(char *string, SACHEAD *hdr, float *Fvalue, int *Ivalue, char **str) {
-  char *pvar;
-  int i;
-  SACHEADDEF *s;
-  void *p;
-  
-  s = getSacHeadDefFromChar(string);
-  if (s == NULL) return -1;
-  
-  p= &hdr->delta;
-  p += s->offset;
-  
-  switch(s->type){
-  case (TYPE_FLOAT):
-    if (Fvalue != NULL) *Fvalue = *(float *)p;
-    break;
+int
+hdu_getValueFromChar(char *string, SACHEAD * hdr, float *Fvalue,
+					 int *Ivalue, char **str)
+{
+	char *pvar;
+	int i;
+	SACHEADDEF *s;
+	void *p;
 
-  case (TYPE_INT):
-    if (Ivalue != NULL) *Ivalue = *(int *)p;
-    break;
+	s = getSacHeadDefFromChar(string);
+	if (s == NULL)
+		return -1;
 
-  case (TYPE_CHAR):
-    pvar=(char *)(p);
-    if (str == NULL)  break;
-    
-    (*str) = malloc(sizeof(char)*s->charsize+1);
-    
-    for (i=0;i<s->charsize;i++) (*str)[i] = pvar[i];
-    (*str)[i]='\0';
-    
-    for (i=s->charsize;i>=0;i--) {
-      if ((*str)[i] == ' ' || (*str)[i] == '\0')
-	(*str)[i] = '\0';
-      else 
-	break;
-    }
-    
-    break;
-  }
-  
-  return s->type;
+	p = &hdr->delta;
+	p += s->offset;
+
+	switch (s->type) {
+	case (TYPE_FLOAT):
+		if (Fvalue != NULL)
+			*Fvalue = *(float *) p;
+		break;
+
+	case (TYPE_INT):
+		if (Ivalue != NULL)
+			*Ivalue = *(int *) p;
+		break;
+
+	case (TYPE_CHAR):
+		pvar = (char *) (p);
+		if (str == NULL)
+			break;
+
+		(*str) = malloc(sizeof(char) * s->charsize + 1);
+
+		for (i = 0; i < s->charsize; i++)
+			(*str)[i] = pvar[i];
+		(*str)[i] = '\0';
+
+		for (i = s->charsize; i >= 0; i--) {
+			if ((*str)[i] == ' ' || (*str)[i] == '\0')
+				(*str)[i] = '\0';
+			else
+				break;
+		}
+
+		break;
+	}
+
+	return s->type;
 }
 
-int hdu_getNptsFromSeconds(SACHEAD *h, float picktime) {
-  return (int)( 0.50 + ((picktime - h->b) / h->delta));
+int hdu_getNptsFromSeconds(SACHEAD * h, float picktime)
+{
+	return (int) (0.50 + ((picktime - h->b) / h->delta));
 }
 
-float hdu_getSecondsFromNPTS(SACHEAD *h, int npts) {
-  return (float)( h->delta * npts + h->b);
+float hdu_getSecondsFromNPTS(SACHEAD * h, int npts)
+{
+	return (float) (h->delta * npts + h->b);
 }
 
-int hdu_roundNPTS(SACHEAD *h, int value) {
-  if (value > h->npts) {
-    return h->npts;
-  } else if (value >= 0) {
-    return value;
-  } else {
-    return 0;
-  }
+int hdu_roundNPTS(SACHEAD * h, int value)
+{
+	if (value > h->npts) {
+		return h->npts;
+	} else if (value >= 0) {
+		return value;
+	} else {
+		return 0;
+	}
 }
 
-int hdu_checkNPTS(SACHEAD *h, int value) {
-   if (value < 0) return 1;
-   if (value >= h->npts) return 1;
-   return 0;
+int hdu_checkNPTS(SACHEAD * h, int value)
+{
+	if (value < 0)
+		return 1;
+	if (value >= h->npts)
+		return 1;
+	return 0;
 }
-

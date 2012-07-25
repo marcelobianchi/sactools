@@ -27,7 +27,7 @@
 #include <sachead.h>
 #include <sacheadEnums.h>
 
-const char *io_version="mbLibSac version 0.5 (sacio)";
+const char *io_version = "mbLibSac version 0.5 (sacio)";
 
 /** 
  * This method is responssible for freeing up memory allocated by io_readSacHead() and io_readSacData() methods.
@@ -37,13 +37,13 @@ const char *io_version="mbLibSac version 0.5 (sacio)";
  * @return 
  *  Always return NULL to be re-atributed to the pointer.
  */
-void* io_freeData(void *p)
+void *io_freeData(void *p)
 {
-  if (p != NULL) {	
-    //    fprintf(stderr,"Liberando . . . ");
-    free(p);
-    }	
-  return NULL;
+	if (p != NULL) {
+		//    fprintf(stderr,"Liberando . . . ");
+		free(p);
+	}
+	return NULL;
 }
 
 /** 
@@ -53,26 +53,29 @@ void* io_freeData(void *p)
  * 
  * @return A newly SACHEAD data for the given file
  */
-SACHEAD *io_readSacHead(char *filename){
-  FILE *ent;
-  int i;
-  SACHEAD *h;
+SACHEAD *io_readSacHead(char *filename)
+{
+	FILE *ent;
+	int i;
+	SACHEAD *h;
 
-  h=NULL;
-  h = malloc (sizeof(SACHEAD));
-  if (h == NULL) return NULL;
+	h = NULL;
+	h = malloc(sizeof(SACHEAD));
+	if (h == NULL)
+		return NULL;
 
-  ent=fopen(filename,"r");
-  if (ent == NULL) return NULL;
-  i = fread(h,sizeof(SACHEAD),1,ent);
-  fclose(ent);
+	ent = fopen(filename, "r");
+	if (ent == NULL)
+		return NULL;
+	i = fread(h, sizeof(SACHEAD), 1, ent);
+	fclose(ent);
 
-  if (i != 1 || h->nvhdr!=6) {
-    io_freeData(h);
-    return NULL;
-  } else {
-    return h;
-  }
+	if (i != 1 || h->nvhdr != 6) {
+		io_freeData(h);
+		return NULL;
+	} else {
+		return h;
+	}
 }
 
 /** 
@@ -84,61 +87,61 @@ SACHEAD *io_readSacHead(char *filename){
  * @return 
  *  The newly allocated vector of floating points for the data readed from the SAC file.
  */
-float *io_readSacData(char *filename, SACHEAD *h)
- {
-   FILE *ent;
-   float *y=NULL;
-   int i,dataspam;
+float *io_readSacData(char *filename, SACHEAD * h)
+{
+	FILE *ent;
+	float *y = NULL;
+	int i, dataspam;
 
-   switch(h->iftype)
-     {
-     case (ITIME):
-       if (h->leven == SAC_TRUE)
-	 dataspam=1;
-       else 
-	 dataspam=2;
-       break;
+	switch (h->iftype) {
+	case (ITIME):
+		if (h->leven == SAC_TRUE)
+			dataspam = 1;
+		else
+			dataspam = 2;
+		break;
 
-    case (IRLIM):
-	dataspam=2;
-      break;
+	case (IRLIM):
+		dataspam = 2;
+		break;
 
-    case (IAMPH):
-	dataspam=2;
-      break;
+	case (IAMPH):
+		dataspam = 2;
+		break;
 
-    case (IXY):
-      if (h->leven == SAC_TRUE)
-	dataspam=1;
-      else 
-	dataspam=2;
-      break;
+	case (IXY):
+		if (h->leven == SAC_TRUE)
+			dataspam = 1;
+		else
+			dataspam = 2;
+		break;
 
-    case (IXYZ):
-      fprintf(stderr,"Sac file type IXYZ is not supported.");
-      return NULL;
-      break;
-    }
-  
-  if (dataspam==0) return NULL;
+	case (IXYZ):
+		fprintf(stderr, "Sac file type IXYZ is not supported.");
+		return NULL;
+		break;
+	}
 
-  y=malloc(sizeof(float)*dataspam*h->npts);
-  if (y==NULL) return NULL;
+	if (dataspam == 0)
+		return NULL;
 
-  ent=fopen(filename,"r");
-  fseek(ent,SAC_HEADER_SIZE,0);
-  i=fread(y,sizeof(float),dataspam*h->npts,ent);
-  fclose(ent);
+	y = malloc(sizeof(float) * dataspam * h->npts);
+	if (y == NULL)
+		return NULL;
 
-  if (i!=dataspam*h->npts)
-    {
-      io_freeData(y);
-      return NULL;
-    } else {
-      return y;
-    }
- 
- }
+	ent = fopen(filename, "r");
+	fseek(ent, SAC_HEADER_SIZE, 0);
+	i = fread(y, sizeof(float), dataspam * h->npts, ent);
+	fclose(ent);
+
+	if (i != dataspam * h->npts) {
+		io_freeData(y);
+		return NULL;
+	} else {
+		return y;
+	}
+
+}
 
 /** 
  * Read the header and data part in one call. Use this to read the full file to memory.
@@ -148,22 +151,23 @@ float *io_readSacData(char *filename, SACHEAD *h)
  *  Note: This is an output parameter, you should pass in a pointer to a pointer in this parameter (like &h, where h is of type SACHEAD*).
  * @return The newly readed data part of the sac file.
  */
- float *io_readSac(char *filename, SACHEAD **h)
+float *io_readSac(char *filename, SACHEAD ** h)
 {
-  SACHEAD *ph=NULL;
-  float *py=NULL;
-  
-  ph=io_readSacHead(filename);
-  if (ph == NULL) return NULL;
-  
-  py=io_readSacData(filename,ph);
-  if (py==NULL){
-    io_freeData(ph);
-    return NULL;
-  }
+	SACHEAD *ph = NULL;
+	float *py = NULL;
 
-  (*h)=ph;
-  return py;
+	ph = io_readSacHead(filename);
+	if (ph == NULL)
+		return NULL;
+
+	py = io_readSacData(filename, ph);
+	if (py == NULL) {
+		io_freeData(ph);
+		return NULL;
+	}
+
+	(*h) = ph;
+	return py;
 }
 
 /** 
@@ -178,22 +182,22 @@ float *io_readSacData(char *filename, SACHEAD *h)
  * 
  * @return 0 on success, -1 on error.
  */
-int io_writeSacHead(char *filename, SACHEAD *h)
+int io_writeSacHead(char *filename, SACHEAD * h)
 {
-  FILE *sai;
-  int i;
+	FILE *sai;
+	int i;
 
-  if((sai=fopen(filename,"r+"))==NULL)
-    if ((sai=fopen(filename,"w"))==NULL) 
-      return -1;
-      
-  i=fwrite(h,sizeof(SACHEAD),1,sai);
-  fclose(sai);
+	if ((sai = fopen(filename, "r+")) == NULL)
+		if ((sai = fopen(filename, "w")) == NULL)
+			return -1;
 
-  if(i==1)
-    return 0;
-  else 
-    return -2;
+	i = fwrite(h, sizeof(SACHEAD), 1, sai);
+	fclose(sai);
+
+	if (i == 1)
+		return 0;
+	else
+		return -2;
 }
 
 /** 
@@ -209,55 +213,55 @@ int io_writeSacHead(char *filename, SACHEAD *h)
  * 
  * @return 0 on success, -1 on error
  */
-int io_writeSacData(char *filename, SACHEAD *h, float *y)
+int io_writeSacData(char *filename, SACHEAD * h, float *y)
 {
-  FILE *sai;
-  int i,dataspam;
+	FILE *sai;
+	int i, dataspam;
 
-  switch(h->iftype)
-    {
-    case (ITIME):
-      if (h->leven == SAC_TRUE)
-	dataspam=1;
-      else 
-	dataspam=2;
-      break;
-      
-    case (IRLIM):
-      dataspam=2;
-      break;
-      
-    case (IAMPH):
-      dataspam=2;
-      break;
-      
-    case (IXY):
-      if (h->leven == SAC_TRUE)
-	dataspam=1;
-      else 
-	dataspam=2;
-      break;
-      
-    case (IXYZ):
-      fprintf(stderr,"Sac file type IXYZ is not supported.");
-      return -1;
-      break;
-    }
-  
-  if (dataspam==0) return -1;
-  
-  if((sai=fopen(filename,"r+"))==NULL)
-    if ((sai=fopen(filename,"w"))==NULL) 
-      return -1;
-  
-  fseek(sai,SAC_HEADER_SIZE,0);
-  i=fwrite(y,sizeof(float),h->npts*dataspam,sai);
-  fclose(sai);
+	switch (h->iftype) {
+	case (ITIME):
+		if (h->leven == SAC_TRUE)
+			dataspam = 1;
+		else
+			dataspam = 2;
+		break;
 
-  if (i!=h->npts*dataspam)
-    return -1;
-  else 
-    return 0;
+	case (IRLIM):
+		dataspam = 2;
+		break;
+
+	case (IAMPH):
+		dataspam = 2;
+		break;
+
+	case (IXY):
+		if (h->leven == SAC_TRUE)
+			dataspam = 1;
+		else
+			dataspam = 2;
+		break;
+
+	case (IXYZ):
+		fprintf(stderr, "Sac file type IXYZ is not supported.");
+		return -1;
+		break;
+	}
+
+	if (dataspam == 0)
+		return -1;
+
+	if ((sai = fopen(filename, "r+")) == NULL)
+		if ((sai = fopen(filename, "w")) == NULL)
+			return -1;
+
+	fseek(sai, SAC_HEADER_SIZE, 0);
+	i = fwrite(y, sizeof(float), h->npts * dataspam, sai);
+	fclose(sai);
+
+	if (i != h->npts * dataspam)
+		return -1;
+	else
+		return 0;
 }
 
 /** 
@@ -269,20 +273,22 @@ int io_writeSacData(char *filename, SACHEAD *h, float *y)
  * 
  * @return 0 for success, -1 otherwise.
  */
-int io_writeSac(char *filename, SACHEAD *h, float *y)
+int io_writeSac(char *filename, SACHEAD * h, float *y)
 {
-  FILE *sai;
-  int i;
+	FILE *sai;
+	int i;
 
-  if ((sai=fopen(filename,"w"))==NULL){
-    fprintf(stderr,"No permission to write full new file.\n");
-    return -1;
-  } else {
-    fclose(sai);
-  }
+	if ((sai = fopen(filename, "w")) == NULL) {
+		fprintf(stderr, "No permission to write full new file.\n");
+		return -1;
+	} else {
+		fclose(sai);
+	}
 
-  if ((i=io_writeSacHead(filename,h))!=0) return -1;
-  if ((i=io_writeSacData(filename,h,y))!=0) return -2;
+	if ((i = io_writeSacHead(filename, h)) != 0)
+		return -1;
+	if ((i = io_writeSacData(filename, h, y)) != 0)
+		return -2;
 
-  return 0;      
+	return 0;
 }

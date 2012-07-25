@@ -61,53 +61,53 @@
  Keep in mind that the graphics panel coordinates (from the graphics panel) range from 0.0 to 1.0 on X and Y.
  */
 typedef struct {
-  /// X position of the ploting area defined this g_ctl (reference is bottom/left).
-  float xpos;
+	/// X position of the ploting area defined this g_ctl (reference is bottom/left).
+	float xpos;
 
-  /// Y position of the ploting area defined this g_ctl (reference is bottom/left).
-  float ypos;
+	/// Y position of the ploting area defined this g_ctl (reference is bottom/left).
+	float ypos;
 
-  /// Width of the ploting area.
-  float xsize;
+	/// Width of the ploting area.
+	float xsize;
 
-  /// height of the ploting area.
-  float ysize;
- 
-  /// Minimun value for the X-range of the ploting area.
-  float xmin;
+	/// height of the ploting area.
+	float ysize;
 
-  /// Maximun value for the X-range of the ploting area.
-  float xmax;
+	/// Minimun value for the X-range of the ploting area.
+	float xmin;
 
-  /// bottom value of the yaxis.
-  float ymin;
+	/// Maximun value for the X-range of the ploting area.
+	float xmax;
 
-  /// top value of the yaxis.
-  float ymax;
+	/// bottom value of the yaxis.
+	float ymin;
 
-  /// Width of the window (g_ctl::xmax - g_ctl::xmin).
-  float w;
+	/// top value of the yaxis.
+	float ymax;
 
-  /// Height of the window (g_ctl::ymax - g_ctl::ymin).
-  float h;
-  
-  /// Graph title.
-  char title[256];
+	/// Width of the window (g_ctl::xmax - g_ctl::xmin).
+	float w;
 
-  /// Label on the xaxis.
-  char xlabel[256];
+	/// Height of the window (g_ctl::ymax - g_ctl::ymin).
+	float h;
 
-  /// Label on the yaxis.
-  char ylabel[256];
-  
-  /// Anotation specification for the xaxis.
-  char xaxis[15];
+	/// Graph title.
+	char title[256];
 
-  /// Anotation specification for the yaxis.
-  char yaxis[15];
-  
-  /// Enable or disable 5% expanssion of the w and h.
-  int expand; 
+	/// Label on the xaxis.
+	char xlabel[256];
+
+	/// Label on the yaxis.
+	char ylabel[256];
+
+	/// Anotation specification for the xaxis.
+	char xaxis[15];
+
+	/// Anotation specification for the yaxis.
+	char yaxis[15];
+
+	/// Enable or disable 5% expanssion of the w and h.
+	int expand;
 } g_ctl;
 
 /// Open the graphic panel.

@@ -27,9 +27,10 @@
  * 
  * @param ctl The g_ctl area to erase (See description, it doesn't work).
  */
-void ctl_clean(g_ctl *ctl) {
-  //if (ctl == NULL) 
-  cpgeras();
+void ctl_clean(g_ctl * ctl)
+{
+	//if (ctl == NULL) 
+	cpgeras();
 }
 
 /** 
@@ -38,16 +39,16 @@ void ctl_clean(g_ctl *ctl) {
  *
  * @param ctl A g_ctl structure to label.
  */
-void ctl_drawaxis(g_ctl *ctl)
-{  
- cpgbox(ctl->xaxis,0.0,0,ctl->yaxis,0.0,0); 
-  
- if (strlen(ctl->xlabel)>0)
-    cpgmtxt("B",2.4,1.0,1.0,ctl->xlabel);
- if (strlen(ctl->ylabel)>0)
-    cpgmtxt("L",1.2,0.5,0.5,ctl->ylabel);
- if (strlen(ctl->title)>0)
-    cpgmtxt("R",1.2,0.5,0.5,ctl->title);
+void ctl_drawaxis(g_ctl * ctl)
+{
+	cpgbox(ctl->xaxis, 0.0, 0, ctl->yaxis, 0.0, 0);
+
+	if (strlen(ctl->xlabel) > 0)
+		cpgmtxt("B", 2.4, 1.0, 1.0, ctl->xlabel);
+	if (strlen(ctl->ylabel) > 0)
+		cpgmtxt("L", 1.2, 0.5, 0.5, ctl->ylabel);
+	if (strlen(ctl->title) > 0)
+		cpgmtxt("R", 1.2, 0.5, 0.5, ctl->title);
 }
 
 /** 
@@ -56,12 +57,15 @@ void ctl_drawaxis(g_ctl *ctl)
  * 
  * @param ctl The g_ctl structure that define the desired plotting area to switch to
  */
-void ctl_resizeview(g_ctl *ctl) {
- cpgsvp(ctl -> xpos, ctl -> xpos + ctl -> xsize, ctl -> ypos, ctl -> ypos + ctl -> ysize);
- if (ctl->expand)
-  cpgswin (ctl->xmin-ctl->w*0.05, ctl->xmax+ctl->w*0.05, ctl->ymin-ctl->h*0.05, ctl->ymax+ctl->h*0.05);
- else 
-  cpgswin (ctl->xmin, ctl->xmax, ctl->ymin, ctl->ymax); 
+void ctl_resizeview(g_ctl * ctl)
+{
+	cpgsvp(ctl->xpos, ctl->xpos + ctl->xsize, ctl->ypos,
+		   ctl->ypos + ctl->ysize);
+	if (ctl->expand)
+		cpgswin(ctl->xmin - ctl->w * 0.05, ctl->xmax + ctl->w * 0.05,
+				ctl->ymin - ctl->h * 0.05, ctl->ymax + ctl->h * 0.05);
+	else
+		cpgswin(ctl->xmin, ctl->xmax, ctl->ymin, ctl->ymax);
 }
 
 /** 
@@ -82,29 +86,30 @@ void ctl_resizeview(g_ctl *ctl) {
  *
  * @see ctl_xreset_mm(), ctl_xreset_ndb(), ctl_yupdate_ndb()
  */
-g_ctl* ctl_newctl(float xpos, float ypos, float xsize, float ysize) {
-  g_ctl *ctl;
-  ctl = malloc(sizeof(g_ctl));
+g_ctl *ctl_newctl(float xpos, float ypos, float xsize, float ysize)
+{
+	g_ctl *ctl;
+	ctl = malloc(sizeof(g_ctl));
 
-  ctl->xpos =  xpos;
-  ctl->ypos =  ypos;
-  ctl->xsize = xsize;
-  ctl->ysize = ysize;
+	ctl->xpos = xpos;
+	ctl->ypos = ypos;
+	ctl->xsize = xsize;
+	ctl->ysize = ysize;
 
-  ctl->xmin =  0.0;
-  ctl->xmax =  1.0;
-  ctl->ymin = 0.0;
-  ctl->ymax =  1.0;
-  ctl->w = 1.0;
-  ctl->h = 2.0;
-  
-  ctl->expand = 1;
-  
-  strncpy(ctl->xlabel, "", 255);
-  strncpy(ctl->ylabel, "", 255);
-  strncpy(ctl->title , "", 255);  
+	ctl->xmin = 0.0;
+	ctl->xmax = 1.0;
+	ctl->ymin = 0.0;
+	ctl->ymax = 1.0;
+	ctl->w = 1.0;
+	ctl->h = 2.0;
 
-  return ctl;
+	ctl->expand = 1;
+
+	strncpy(ctl->xlabel, "", 255);
+	strncpy(ctl->ylabel, "", 255);
+	strncpy(ctl->title, "", 255);
+
+	return ctl;
 }
 
 /** 
@@ -117,9 +122,10 @@ g_ctl* ctl_newctl(float xpos, float ypos, float xsize, float ysize) {
  * 
  * @param ctl The inputs g_ctl to change axis anotation style
  */
-void ctl_axisfull(g_ctl *ctl){
-  strncpy(ctl->xaxis,"BCNST",14);
-  strncpy(ctl->yaxis,"BCST",14);
+void ctl_axisfull(g_ctl * ctl)
+{
+	strncpy(ctl->xaxis, "BCNST", 14);
+	strncpy(ctl->yaxis, "BCST", 14);
 }
 
 /** 
@@ -127,9 +133,10 @@ void ctl_axisfull(g_ctl *ctl){
  * 
  * @param ctl The inputs g_ctl to change axis anotation style
  */
-void ctl_axisnone(g_ctl *ctl){
-  strncpy(ctl->xaxis,"",14);
-  strncpy(ctl->yaxis,"",14);
+void ctl_axisnone(g_ctl * ctl)
+{
+	strncpy(ctl->xaxis, "", 14);
+	strncpy(ctl->yaxis, "", 14);
 }
 
 /** 
@@ -139,9 +146,10 @@ void ctl_axisnone(g_ctl *ctl){
  *
  * @param ctl The inputs g_ctl to change axis anotation style
  */
-void ctl_axisbottom(g_ctl *ctl){
-  strncpy(ctl->xaxis,"BNST",14);
-  strncpy(ctl->yaxis,"",14);
+void ctl_axisbottom(g_ctl * ctl)
+{
+	strncpy(ctl->xaxis, "BNST", 14);
+	strncpy(ctl->yaxis, "", 14);
 }
 
 /** 
@@ -154,10 +162,11 @@ void ctl_axisbottom(g_ctl *ctl){
  * 
  * @see ctl_xreset_ndb, ctl_yupdate_ndb
  */
-void ctl_xreset_mm(g_ctl *ctl, float xmin, float xmax) {
- ctl -> xmin = xmin;  
- ctl -> xmax = xmax;  
- ctl->w=ctl->xmax-ctl->xmin;
+void ctl_xreset_mm(g_ctl * ctl, float xmin, float xmax)
+{
+	ctl->xmin = xmin;
+	ctl->xmax = xmax;
+	ctl->w = ctl->xmax - ctl->xmin;
 }
 
 /** 
@@ -174,8 +183,9 @@ void ctl_xreset_mm(g_ctl *ctl, float xmin, float xmax) {
  *
  * @see ctl_xreset_mm, ctl_yupdate_ndb
  */
-void ctl_xreset_ndb(g_ctl *ctl, int npts, float delta, float b) {
- ctl_xreset_mm(ctl, b, (float)npts * delta + b);
+void ctl_xreset_ndb(g_ctl * ctl, int npts, float delta, float b)
+{
+	ctl_xreset_mm(ctl, b, (float) npts * delta + b);
 }
 
 
@@ -201,28 +211,28 @@ void ctl_xreset_ndb(g_ctl *ctl, int npts, float delta, float b) {
  *
  * @see ctl_xreset_ndb, ctl_xreset_mm
  */
-void ctl_yupdate_ndb(g_ctl *ctl,float *y,int npts, float delta, float b)
+void ctl_yupdate_ndb(g_ctl * ctl, float *y, int npts, float delta, float b)
 {
- float x;
- int i;
- 
- ctl->ymin=ctl->ymax=y[0];
- for(i=1;i<npts;i++)
- {
-  x=i*delta + b;
-  if (x > ctl->xmin && x < ctl->xmax)
-  { 
-   if (y[i] > ctl->ymax) ctl->ymax=y[i];
-   if (y[i] < ctl->ymin) ctl->ymin=y[i];
-  }
- }
+	float x;
+	int i;
 
- if (ctl->ymin == ctl->ymax) {
-   ctl->ymin -= fabs(ctl->ymin)*0.10;
-   ctl->ymax += fabs(ctl->ymax)*0.10;
- }
+	ctl->ymin = ctl->ymax = y[0];
+	for (i = 1; i < npts; i++) {
+		x = i * delta + b;
+		if (x > ctl->xmin && x < ctl->xmax) {
+			if (y[i] > ctl->ymax)
+				ctl->ymax = y[i];
+			if (y[i] < ctl->ymin)
+				ctl->ymin = y[i];
+		}
+	}
 
- ctl->h=ctl->ymax-ctl->ymin;
+	if (ctl->ymin == ctl->ymax) {
+		ctl->ymin -= fabs(ctl->ymin) * 0.10;
+		ctl->ymax += fabs(ctl->ymax) * 0.10;
+	}
+
+	ctl->h = ctl->ymax - ctl->ymin;
 }
 
 /** 
@@ -234,11 +244,10 @@ void ctl_yupdate_ndb(g_ctl *ctl,float *y,int npts, float delta, float b)
  * 
  * @return 1 or 0 for true or false (respectively).
  */
-int ctl_checkhit(g_ctl *ctl, float ax, float ay) {
- if (ax >= ctl->xpos && ax <= (ctl->xpos+ctl->xsize) )
-   if (ay >= ctl->ypos && ay <= (ctl->ypos+ctl->ysize))
-   	return 1;   	
- return 0;
+int ctl_checkhit(g_ctl * ctl, float ax, float ay)
+{
+	if (ax >= ctl->xpos && ax <= (ctl->xpos + ctl->xsize))
+		if (ay >= ctl->ypos && ay <= (ctl->ypos + ctl->ysize))
+			return 1;
+	return 0;
 }
-
-

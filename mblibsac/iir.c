@@ -64,12 +64,12 @@
  */
 iircomplex add_c(iircomplex u, iircomplex v)
 {
-    iircomplex      w;
+	iircomplex w;
 
-    w.real = u.real + v.real;
-    w.imag = u.imag + v.imag;
+	w.real = u.real + v.real;
+	w.imag = u.imag + v.imag;
 
-    return (w);
+	return (w);
 }
 
 /**
@@ -84,12 +84,12 @@ iircomplex add_c(iircomplex u, iircomplex v)
  */
 iircomplex mul_c(iircomplex u, iircomplex v)
 {
-    iircomplex      w;
+	iircomplex w;
 
-    w.real = u.real * v.real - u.imag * v.imag;
-    w.imag = u.real * v.imag + u.imag * v.real;
+	w.real = u.real * v.real - u.imag * v.imag;
+	w.imag = u.real * v.imag + u.imag * v.real;
 
-    return (w);
+	return (w);
 }
 
 /**
@@ -106,12 +106,12 @@ iircomplex mul_c(iircomplex u, iircomplex v)
  */
 iircomplex cmul_c(double a, iircomplex u)
 {
-    iircomplex      w;
+	iircomplex w;
 
-    w.real = a * u.real;
-    w.imag = a * u.imag;
+	w.real = a * u.real;
+	w.imag = a * u.imag;
 
-    return (w);
+	return (w);
 }
 
 /**
@@ -126,11 +126,11 @@ iircomplex cmul_c(double a, iircomplex u)
  */
 iircomplex sub_c(iircomplex u, iircomplex v)
 {
-    iircomplex      w;
-    w.real = u.real - v.real;
-    w.imag = u.imag - v.imag;
+	iircomplex w;
+	w.real = u.real - v.real;
+	w.imag = u.imag - v.imag;
 
-    return (w);
+	return (w);
 }
 
 /**
@@ -145,22 +145,22 @@ iircomplex sub_c(iircomplex u, iircomplex v)
  */
 iircomplex div_c(iircomplex u, iircomplex v)
 {
-    iircomplex      w;
+	iircomplex w;
 
-    /*
-     * check for divide by 0 
-     */
-    if (v.real != 0 && v.imag != 0) {
-	w.real = ((u.real * v.real) + (u.imag * v.imag)) /
-	    ((v.real * v.real) + (v.imag * v.imag));
-	w.imag = ((u.imag * v.real) - (u.real * v.imag)) /
-	    ((v.real * v.real) + (v.imag * v.imag));
+	/*
+	 * check for divide by 0 
+	 */
+	if (v.real != 0 && v.imag != 0) {
+		w.real = ((u.real * v.real) + (u.imag * v.imag)) /
+			((v.real * v.real) + (v.imag * v.imag));
+		w.imag = ((u.imag * v.real) - (u.real * v.imag)) /
+			((v.real * v.real) + (v.imag * v.imag));
 
-	return (w);
-    } else {
-	fprintf(stderr, "ERROR: iircomplex division by 0 in div_c\n");
-	exit(1);
-    }
+		return (w);
+	} else {
+		fprintf(stderr, "ERROR: iircomplex division by 0 in div_c\n");
+		exit(1);
+	}
 }
 
 /**
@@ -174,12 +174,12 @@ iircomplex div_c(iircomplex u, iircomplex v)
  */
 iircomplex conj_c(iircomplex u)
 {
-    iircomplex      w;
+	iircomplex w;
 
-    w.real = u.real;
-    w.imag = -u.imag;
+	w.real = u.real;
+	w.imag = -u.imag;
 
-    return (w);
+	return (w);
 }
 
 /**
@@ -193,17 +193,15 @@ iircomplex conj_c(iircomplex u)
  */
 void sweep(double f1, double f0, int npts, double dt, double as[])
 {
-    double          tf,
-                    df,
-                    tt;
-    int             i;
+	double tf, df, tt;
+	int i;
 
-    tf = npts * dt; /* get final time */
-    df = 2. * PI * (f1 - f0) / (tf * 2); /* frequency increment */
-    for (i = 0; i < npts; i++) {
-	tt = i * dt;
-	as[i] = sin(f0 * tt + df * tt * tt);
-    }
+	tf = npts * dt;				/* get final time */
+	df = 2. * PI * (f1 - f0) / (tf * 2);	/* frequency increment */
+	for (i = 0; i < npts; i++) {
+		tt = i * dt;
+		as[i] = sin(f0 * tt + df * tt * tt);
+	}
 }
 
 /**
@@ -220,21 +218,19 @@ void sweep(double f1, double f0, int npts, double dt, double as[])
   * @param fo Output array
  */
 void filt(double a1, double a2, double b1, double b2, int npts, float *fi,
-     float *fo)
+		  float *fo)
 {
-    double          d1,
-                    d2,
-                    out;
-    int             i;
+	double d1, d2, out;
+	int i;
 
-    d1 = 0;
-    d2 = 0;
-    for (i = 0; i < npts; i++) {
-	out = fi[i] + d1;
-	d1 = b1 * fi[i] - a1 * out + d2;
-	d2 = b2 * fi[i] - a2 * out;
-	fo[i] = out;
-    }
+	d1 = 0;
+	d2 = 0;
+	for (i = 0; i < npts; i++) {
+		out = fi[i] + d1;
+		d1 = b1 * fi[i] - a1 * out + d2;
+		d2 = b2 * fi[i] - a2 * out;
+		fo[i] = out;
+	}
 
 }
 
@@ -259,60 +255,55 @@ void filt(double a1, double a2, double b1, double b2, int npts, float *fi,
  */
 void lowpass(double fc, double dt, int n, iircomplex p[], double *b)
 {
-    double          wcp,
-                    wc,
-                    b0;
-    int             i,
-                    i1;
-    iircomplex      one,
-                    x,
-                    y;
+	double wcp, wc, b0;
+	int i, i1;
+	iircomplex one, x, y;
 
-    /*
-     * Initialize variables 
-     */
-    wcp = 2 * fc * PI;
-    wc = (2. / dt) * tan(wcp * dt / 2.);
-    one.real = 1.;
-    one.imag = 0.;
-    for (i = 0; i < n; i += 2) {
 	/*
-	 * Calculate position of poles for continuous filter 
+	 * Initialize variables 
+	 */
+	wcp = 2 * fc * PI;
+	wc = (2. / dt) * tan(wcp * dt / 2.);
+	one.real = 1.;
+	one.imag = 0.;
+	for (i = 0; i < n; i += 2) {
+		/*
+		 * Calculate position of poles for continuous filter 
+		 */
+
+		i1 = i + 1;
+		p[i].real = -wc * cos(i1 * PI / (2 * n));
+		p[i].imag = wc * sin(i1 * PI / (2 * n));
+		p[i + 1] = conj_c(p[i]);
+	}
+	for (i = 0; i < n; i += 2) {
+		/*
+		 * Calculate position of poles for discrete filter using 
+		 */
+		/*
+		 * the bilinear transformation 
+		 */
+
+		p[i] = cmul_c(dt / 2, p[i]);
+		x = add_c(one, p[i]);
+		y = sub_c(one, p[i]);
+		p[i] = div_c(x, y);
+		p[i + 1] = conj_c(p[i]);
+	}
+
+	/*
+	 * calculate filter gain 
 	 */
 
-	i1 = i + 1;
-	p[i].real = -wc * cos(i1 * PI / (2 * n));
-	p[i].imag = wc * sin(i1 * PI / (2 * n));
-	p[i + 1] = conj_c(p[i]);
-    }
-    for (i = 0; i < n; i += 2) {
-	/*
-	 * Calculate position of poles for discrete filter using 
-	 */
-	/*
-	 * the bilinear transformation 
-	 */
-
-	p[i] = cmul_c(dt / 2, p[i]);
-	x = add_c(one, p[i]);
-	y = sub_c(one, p[i]);
-	p[i] = div_c(x, y);
-	p[i + 1] = conj_c(p[i]);
-    }
-
-    /*
-     * calculate filter gain 
-     */
-
-    b0 = 1.;
-    for (i = 0; i < n; i += 2) {
-	x = sub_c(one, p[i]);
-	y = sub_c(one, p[i + 1]);
-	x = mul_c(x, y);
-	b0 = b0 * 4. / x.real;
-    }
-    b0 = 1. / b0;
-    *b = b0;
+	b0 = 1.;
+	for (i = 0; i < n; i += 2) {
+		x = sub_c(one, p[i]);
+		y = sub_c(one, p[i + 1]);
+		x = mul_c(x, y);
+		b0 = b0 * 4. / x.real;
+	}
+	b0 = 1. / b0;
+	*b = b0;
 }
 
 /*
@@ -338,56 +329,51 @@ void lowpass(double fc, double dt, int n, iircomplex p[], double *b)
  */
 void highpass(double fc, double dt, int n, iircomplex p[], double *b)
 {
-    double          wcp,
-                    wc,
-                    alpha,
-                    b0;
-    int             i;
-    iircomplex      one,
-                    x,
-                    y;
+	double wcp, wc, alpha, b0;
+	int i;
+	iircomplex one, x, y;
 
-    /*
-     * Initialize variables 
-     */
-    wcp = 2 * fc * PI;
-    wc = (2. / dt) * tan(wcp * dt / 2.);
-    alpha = cos(wc * dt);
-    one.real = 1.;
-    one.imag = 0.;
+	/*
+	 * Initialize variables 
+	 */
+	wcp = 2 * fc * PI;
+	wc = (2. / dt) * tan(wcp * dt / 2.);
+	alpha = cos(wc * dt);
+	one.real = 1.;
+	one.imag = 0.;
 
-    /*
-     * get poles for low pass filter 
-     */
+	/*
+	 * get poles for low pass filter 
+	 */
 
-    lowpass(fc, dt, n, p, &b0);
+	lowpass(fc, dt, n, p, &b0);
 
-    /*
-     * now find poles for highpass filter 
-     */
+	/*
+	 * now find poles for highpass filter 
+	 */
 
-    for (i = 0; i < n; i += 2) {
-	x = cmul_c(alpha, one);
-	x = sub_c(x, p[i]);
-	y = cmul_c(alpha, p[i]);
-	y = sub_c(one, y);
-	p[i] = div_c(x, y);
-	p[i + 1] = conj_c(p[i]);
-    }
+	for (i = 0; i < n; i += 2) {
+		x = cmul_c(alpha, one);
+		x = sub_c(x, p[i]);
+		y = cmul_c(alpha, p[i]);
+		y = sub_c(one, y);
+		p[i] = div_c(x, y);
+		p[i + 1] = conj_c(p[i]);
+	}
 
-    /*
-     * Calculate gain for high pass filter 
-     */
+	/*
+	 * Calculate gain for high pass filter 
+	 */
 
-    b0 = 1.;
-    for (i = 0; i < n; i += 2) {
-	x = add_c(one, p[i]);
-	y = add_c(one, p[i + 1]);
-	x = mul_c(x, y);
-	b0 = b0 * 4. / x.real;
-    }
-    b0 = 1. / b0;
-    *b = b0;
+	b0 = 1.;
+	for (i = 0; i < n; i += 2) {
+		x = add_c(one, p[i]);
+		y = add_c(one, p[i + 1]);
+		x = mul_c(x, y);
+		b0 = b0 * 4. / x.real;
+	}
+	b0 = 1. / b0;
+	*b = b0;
 }
 
 /** 
@@ -398,15 +384,15 @@ void highpass(double fc, double dt, int n, iircomplex p[], double *b)
  */
 void rev(float *af, int npts)
 {
-    int             j = 0;
+	int j = 0;
 
-    float           temp;
+	float temp;
 
-    for (j = 0; j < npts / 2; j++) {
-	temp = af[j];
-	af[j] = af[npts - j - 1];
-	af[npts - j - 1] = temp;
-    }
+	for (j = 0; j < npts / 2; j++) {
+		temp = af[j];
+		af[j] = af[npts - j - 1];
+		af[npts - j - 1] = temp;
+	}
 }
 
 /** 
@@ -432,159 +418,161 @@ void rev(float *af, int npts)
  *
  * @see yu_rtrend, yu_rmean
  */
-float *iir(float *as, int number, float dt, int NH, float FH, int NL, float FL)
+float *iir(float *as, int number, float dt, int NH, float FH, int NL,
+		   float FL)
 {
-    /*
-     * Local variable definition 
-     */
-    int             i;
-    iircomplex      pl[12],
-                    ph[12];
-    double          b0l,
-                    b0h;
-    double          f1,
-                    f0;
-    double          a1,
-                    a2,
-                    b1,
-                    b2;
+	/*
+	 * Local variable definition 
+	 */
+	int i;
+	iircomplex pl[12], ph[12];
+	double b0l, b0h;
+	double f1, f0;
+	double a1, a2, b1, b2;
 
-    float          *af;
-    double          mean;
-    /*
-     * ptr to array of data to be filtered 
-     */
+	float *af;
+	double mean;
+	/*
+	 * ptr to array of data to be filtered 
+	 */
 
-    /*
-     * get input parameters from keyboard 
-     */
-    /*
-     * First get high pass filter parameters 
-     */
-    
-    if (NH != 0) {
-	if (FH <= 0.0) return NULL;
-	if (NH % 2 != 0) return NULL;
-	if (NH >= 13) return NULL;
-      }
+	/*
+	 * get input parameters from keyboard 
+	 */
+	/*
+	 * First get high pass filter parameters 
+	 */
 
-    if (NL != 0) {
-      if (FL >= (1 / (2 * dt))) return NULL;
-      if ((NL % 2) != 0) return NULL;
-      if (NL >= 13) return NULL;
-    }
-
-    if (NH != 0 && NL != 0) 
-      if (FL <= FH) return NULL;
-    
-    /*
-     * Get highpass filter poles if necessary 
-     */
-
-    if (NH != 0) {
-	highpass(FH, dt, NH, ph, &b0h);
-    }
-
-    /*
-     * Get low pass filter poles if necessary 
-     */
-
-    if (NL != 0) {
-	lowpass(FL, dt, NL, pl, &b0l);
-    }
-
-    /*
-     * Through with calculation of poles 
-     */
-    /*
-     * now calculate sweep for filtering 
-     */
-
-    f0 = 0.;			/* start frequency */
-    f1 = 1. / (dt * 2.);	/* stop frequency = nyquist */
-
-    if ((af = (float *) malloc(sizeof(float) * number)) == NULL) {
-	return NULL;
-    }
-
-    for (mean = 0.0, i = 0; i < number; i++)
-      mean += as[i];
-    mean = mean / number;
-
-    for (i = 0; i < number; i++) {
-	af[i] = as[i] - mean;
-    }
-
-    if (NH != 0) {
-	for (i = 0; i < NH; i += 2) {
-
-	    /*
-	     * get first set of second order filter coeficients 
-	     */
-	    /*
-	     * from each pair of poles 
-	     */
-	    a1 = -2 * ph[i].real;
-	    a2 = ph[i].real * ph[i].real + ph[i].imag * ph[i].imag;
-	    b1 = -2;
-	    b2 = 1;
-
-	    filt(a1, a2, b1, b2, number, af, af);
-	    /*
-	     * apply gain section 
-	     */
-	    for (i = 0; i < number; i++) {
-		af[i] = b0h * af[i];
-	    }
-
-	    rev(af, number);
-	    filt(a1, a2, b1, b2, number, af, af);
-	    /*
-	     * apply gain section 
-	     */
-	    for (i = 0; i < number; i++) {
-		af[i] = b0h * af[i];
-	    }
-	    rev(af, number);
+	if (NH != 0) {
+		if (FH <= 0.0)
+			return NULL;
+		if (NH % 2 != 0)
+			return NULL;
+		if (NH >= 13)
+			return NULL;
 	}
 
-    }
+	if (NL != 0) {
+		if (FL >= (1 / (2 * dt)))
+			return NULL;
+		if ((NL % 2) != 0)
+			return NULL;
+		if (NL >= 13)
+			return NULL;
+	}
 
-    /*
-     * apply low pass filter using poles pl 
-     */
-    /*
-     * Numerator polynomial is z**2 + 2*z + 1 
-     */
-    if (NL != 0) {
-	for (i = 0; i < NL; i += 2) {
+	if (NH != 0 && NL != 0)
+		if (FL <= FH)
+			return NULL;
 
-	    a1 = -2 * pl[i].real;
-	    a2 = pl[i].real * pl[i].real + pl[i].imag * pl[i].imag;
-	    b1 = 2;
-	    b2 = 1;
+	/*
+	 * Get highpass filter poles if necessary 
+	 */
 
-	    filt(a1, a2, b1, b2, number, af, af);
-	    /*
-	     * apply gain section 
-	     */
-	    for (i = 0; i < number; i++) {
-		af[i] = b0l * af[i];
-	    }
+	if (NH != 0) {
+		highpass(FH, dt, NH, ph, &b0h);
+	}
 
-	    rev(af, number);
-	    filt(a1, a2, b1, b2, number, af, af);
-	    /*
-	     * apply gain section 
-	     */
-	    for (i = 0; i < number; i++) {
-		af[i] = b0l * af[i];
-	    }
-	    rev(af, number);
+	/*
+	 * Get low pass filter poles if necessary 
+	 */
+
+	if (NL != 0) {
+		lowpass(FL, dt, NL, pl, &b0l);
+	}
+
+	/*
+	 * Through with calculation of poles 
+	 */
+	/*
+	 * now calculate sweep for filtering 
+	 */
+
+	f0 = 0.;					/* start frequency */
+	f1 = 1. / (dt * 2.);		/* stop frequency = nyquist */
+
+	if ((af = (float *) malloc(sizeof(float) * number)) == NULL) {
+		return NULL;
+	}
+
+	for (mean = 0.0, i = 0; i < number; i++)
+		mean += as[i];
+	mean = mean / number;
+
+	for (i = 0; i < number; i++) {
+		af[i] = as[i] - mean;
+	}
+
+	if (NH != 0) {
+		for (i = 0; i < NH; i += 2) {
+
+			/*
+			 * get first set of second order filter coeficients 
+			 */
+			/*
+			 * from each pair of poles 
+			 */
+			a1 = -2 * ph[i].real;
+			a2 = ph[i].real * ph[i].real + ph[i].imag * ph[i].imag;
+			b1 = -2;
+			b2 = 1;
+
+			filt(a1, a2, b1, b2, number, af, af);
+			/*
+			 * apply gain section 
+			 */
+			for (i = 0; i < number; i++) {
+				af[i] = b0h * af[i];
+			}
+
+			rev(af, number);
+			filt(a1, a2, b1, b2, number, af, af);
+			/*
+			 * apply gain section 
+			 */
+			for (i = 0; i < number; i++) {
+				af[i] = b0h * af[i];
+			}
+			rev(af, number);
+		}
 
 	}
 
-    }
+	/*
+	 * apply low pass filter using poles pl 
+	 */
+	/*
+	 * Numerator polynomial is z**2 + 2*z + 1 
+	 */
+	if (NL != 0) {
+		for (i = 0; i < NL; i += 2) {
 
-    return af;
+			a1 = -2 * pl[i].real;
+			a2 = pl[i].real * pl[i].real + pl[i].imag * pl[i].imag;
+			b1 = 2;
+			b2 = 1;
+
+			filt(a1, a2, b1, b2, number, af, af);
+			/*
+			 * apply gain section 
+			 */
+			for (i = 0; i < number; i++) {
+				af[i] = b0l * af[i];
+			}
+
+			rev(af, number);
+			filt(a1, a2, b1, b2, number, af, af);
+			/*
+			 * apply gain section 
+			 */
+			for (i = 0; i < number; i++) {
+				af[i] = b0l * af[i];
+			}
+			rev(af, number);
+
+		}
+
+	}
+
+	return af;
 }

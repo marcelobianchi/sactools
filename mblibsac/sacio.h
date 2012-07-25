@@ -34,22 +34,22 @@
 extern const char *io_version;
 
 /// Write a full SAC file, header and data
-int io_writeSac(char *filename, SACHEAD *h, float *y);
+int io_writeSac(char *filename, SACHEAD * h, float *y);
 
 /// Write only the data part of the SAC file
-int io_writeSacData(char *filename, SACHEAD *h, float *y);
+int io_writeSacData(char *filename, SACHEAD * h, float *y);
 
 /// Write only the header parat of the SAC file
-int io_writeSacHead(char *filename, SACHEAD *h);
+int io_writeSacHead(char *filename, SACHEAD * h);
 
 /// Read a full SAC file, header and data
-float *io_readSac(char *filename, SACHEAD **h);
+float *io_readSac(char *filename, SACHEAD ** h);
 
 /// Read the data part only of a SAC file
-float *io_readSacData(char *filename, SACHEAD *h);
+float *io_readSacData(char *filename, SACHEAD * h);
 
 /// Read the header part of the SAC file
 SACHEAD *io_readSacHead(char *filename);
 
 /// Properly free the memory allocated under the pointer p
-void* io_freeData(void *p);
+void *io_freeData(void *p);

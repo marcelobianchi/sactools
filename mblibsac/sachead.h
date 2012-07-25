@@ -51,7 +51,7 @@
 /// Size (in Bytes) of the number part of the header
 #define SAC_HEADER_SIZE_NUMBERS    440
 /// Size (in Bytes) of the header
-#define SAC_HEADER_SIZE            632 
+#define SAC_HEADER_SIZE            632
 #define SAC_HEADER_TMARK_POSITION  10
 #define SAC_HEADER_USERN_POSITION  40
 
@@ -84,10 +84,10 @@
  * @see getSacHeadDefFromChar, getSacOffsetFromChar, getSacTypeFromChar, getSacCharsizeFromChar, 2
  */
 typedef struct sac_head_def {
-  /// Name of the header field
-  char *name;			/**< Name of the SAC header variable */
-  /// Offset of the header field
-  /** 
+	/// Name of the header field
+	char *name;			/**< Name of the SAC header variable */
+	/// Offset of the header field
+	/** 
    * The offset for the variable inside the header structure. 
    * The header value can be acessed by: 
    *
@@ -101,13 +101,13 @@ typedef struct sac_head_def {
    * number = *(float *)p;
    * @endcode
    */
-  long offset;
-  /// The Type of the header field
-  int type;			/**< The type of variable can be one of: TYPE_FLOAT, TYPE_INT, TYPE_CHAR */
-  /// The lenght of the char header  field
-  int charsize;			/**< The number of characters that can be stored inside the variable. */
-  /// Indicates that this header can contain picks
-  int isMark;			/**< True if this variable can be used to store a pick mark. */
+	long offset;
+	/// The Type of the header field
+	int type;			/**< The type of variable can be one of: TYPE_FLOAT, TYPE_INT, TYPE_CHAR */
+	/// The lenght of the char header  field
+	int charsize;			/**< The number of characters that can be stored inside the variable. */
+	/// Indicates that this header can contain picks
+	int isMark;			/**< True if this variable can be used to store a pick mark. */
 } SACHEADDEF;
 
 /**
@@ -118,272 +118,272 @@ typedef struct sac_head_def {
  * @see SACHEADDEF
  */
 typedef struct sac_head {
-  ///  time increment, sec
-  float	delta;
-  /// minimum amplitude
-  float	depmin;
-  /// maximum amplitude
-  float	depmax;
-  /// amplitude scale factor 
-  float	scale;
-  /// observed time inc
-  float	odelta;
-  ///  initial time - wrt nz* 
-  float	b;
-  ///  end time 
-  float	e;
-  /// event start
-  float	o;
-  /// 1st arrival time 
-  float	a;
-  /// internal use 
-  float	fmt;
-  /// user-defined time pick 
-  float	t0;
-  /// user-defined time pick 
-  float	t1;
-  /// user-defined time pick 
-  float	t2;
-  /// user-defined time pick 
-  float	t3;
-  /// user-defined time pick 
-  float	t4;
-  /// user-defined time pick 
-  float	t5;
-  /// user-defined time pick 
-  float	t6;
-  /// user-defined time pick 
-  float	t7;
-  /// user-defined time pick 
-  float	t8;
-  /// user-defined time pick 
-  float	t9;
-  /// event end, sec > 0 
-  float	f;
-  /// instrument respnse parm
-  float	resp0;
-  /// instrument respnse parm
-  float	resp1;
-  /// instrument respnse parm
-  float	resp2;
-  /// instrument respnse parm
-  float	resp3;
-  /// instrument respnse parm
-  float	resp4;
-  /// instrument respnse parm
-  float	resp5;
-  /// instrument respnse parm
-  float	resp6;
-  /// instrument respnse parm
-  float	resp7;
-  /// instrument respnse parm
-  float	resp8;
-  /// instrument respnse parm
-  float	resp9;
-  /// station latititude 
-  float	stla;
-  /// station longitude
-  float	stlo;
-  /// station elevation, m 
-  float	stel;
-  /// station depth, m 
-  float	stdp;
-  /// event latitude 
-  float	evla;
-  /// event longitude
-  float	evlo;
-  /// event elevation
-  float	evel;
-  /// event depth
-  float	evdp;
-  /// magnitude value
-  float	mag;
-  /// available to user
-  float	user0;
-  /// available to user
-  float	user1;
-  /// available to user
-  float	user2;
-  /// available to user
-  float	user3;
-  /// available to user
-  float	user4;
-  /// available to user
-  float	user5;
-  /// available to user
-  float	user6;
-  /// available to user
-  float	user7;
-  /// available to user
-  float	user8;
-  /// available to user
-  float	user9;
-  /// stn-event distance, km 
-  float	dist;
-  /// event-stn azimuth
-  float	az;
-  /// stn-event azimuth
-  float	baz;
-  /// stn-event dist, degrees
-  float	gcarc;
-  /// saved b value
-  float	sb;
-  /// saved delta value
-  float	sdelta;
-  /// mean value, amplitude
-  float	depmen;
-  /// T component azimuth
-  float	cmpaz;
-  /// T component inclination
-  float	cmpinc;
-  /// XYZ X minimum value
-  float	xminimum;
-  /// XYZ X maximum value
-  float	xmaximum;
-  /// XYZ Y minimum value
-  float	yminimum;
-  /// XYZ Y maximum value
-  float	ymaximum;
-  /// reserved for future use
-  float	unused6;
-  /// reserved for future use
-  float	unused7;
-  /// reserved for future use
-  float	unused8;
-  /// reserved for future use
-  float	unused9;
-  /// reserved for future use
-  float	unused10;
-  /// reserved for future use
-  float	unused11;
-  /// reserved for future use
-  float	unused12;
-  /// zero time of file, yr
-  int	nzyear;
-  /// zero time of file, day 
-  int	nzjday;
-  /// zero time of file, hr
-  int	nzhour;
-  /// zero time of file, min 
-  int	nzmin;
-  /// zero time of file, sec 
-  int	nzsec;
-  /// zero time of file, msec
-  int	nzmsec;
-  /// header version number
-  int	nvhdr;
-  /// Origin ID
-  int	norid;
-  /// Event ID 
-  int	nevid;
-  /// number of samples
-  int	npts;
-  /// saved npts 
-  int	nsnpts;
-  /// Waveform ID
-  int	nwfid;
-  /// XYZ X size 
-  int	nxsize;
-  /// XYZ Y size 
-  int	nysize;
-  /// reserved for future use
-  int	unused15;
-  /// type of file
-  int	iftype;
-  /// type of amplitude
-  int	idep;
-  /// zero time equivalence
-  int	iztype;
-  /// reserved for future use
-  int	unused16;
-  /// recording instrument 
-  int	iinst;
-  /// stn geographic region
-  int	istreg;
-  /// event geographic region
-  int	ievreg;
-  /// event type 
-  int	ievtyp;
-  /// quality of data
-  int	iqual;
-  /// synthetic data flag
-  int	isynth;
-  /// magnitude type 
-  int	imagtyp;
-  /// magnitude source 
-  int	imagsrc;
-  /// reserved for future use
-  int	unused19;
-  /// reserved for future use
-  int	unused20;
-  /// reserved for future use
-  int	unused21;
-  /// reserved for future use
-  int	unused22;
-  /// reserved for future use
-  int	unused23;
-  /// reserved for future use
-  int	unused24;
-  /// reserved for future use
-  int	unused25;
-  /// reserved for future use
-  int	unused26;
-  ///  RA data-evenly-spaced flag
-  int	leven;
-  /// station polarity flag
-  int	lpspol;
-  /// overwrite permission 
-  int	lovrok;
-  /// calc distance, azimuth 
-  int	lcalda;
-  /// reserved for future use
-  int	unused27;
-  /// F station name 
-  char	kstnm[8];
-  /// event name 
-  char	kevnm[16];
-  /// man-made event name
-  char	khole[8];
-  /// event origin time id 
-  char	ko[8];
-  /// 1st arrival time ident 
-  char	ka[8];
-  /// time pick 0 ident
-  char	kt0[8];
-  /// time pick 1 ident
-  char	kt1[8];
-  /// time pick 2 ident
-  char	kt2[8];
-  /// time pick 3 ident
-  char	kt3[8];
-  /// time pick 4 ident
-  char	kt4[8];
-  /// time pick 5 ident
-  char	kt5[8];
-  /// time pick 6 ident
-  char	kt6[8];
-  /// time pick 7 ident
-  char	kt7[8];
-  /// time pick 8 ident
-  char	kt8[8];
-  /// time pick 9 ident
-  char	kt9[8];
-  /// end of event ident 
-  char	kf[8];
-  /// available to user
-  char	kuser0[8];
-  /// available to user
-  char	kuser1[8];
-  /// available to user
-  char	kuser2[8];
-  /// F component name 
-  char	kcmpnm[8];
-  /// network name 
-  char	knetwk[8];
-  /// date data read 
-  char	kdatrd[8];
-  /// instrument name
-  char	kinst[8];
+	///  time increment, sec
+	float delta;
+	/// minimum amplitude
+	float depmin;
+	/// maximum amplitude
+	float depmax;
+	/// amplitude scale factor 
+	float scale;
+	/// observed time inc
+	float odelta;
+	///  initial time - wrt nz* 
+	float b;
+	///  end time 
+	float e;
+	/// event start
+	float o;
+	/// 1st arrival time 
+	float a;
+	/// internal use 
+	float fmt;
+	/// user-defined time pick 
+	float t0;
+	/// user-defined time pick 
+	float t1;
+	/// user-defined time pick 
+	float t2;
+	/// user-defined time pick 
+	float t3;
+	/// user-defined time pick 
+	float t4;
+	/// user-defined time pick 
+	float t5;
+	/// user-defined time pick 
+	float t6;
+	/// user-defined time pick 
+	float t7;
+	/// user-defined time pick 
+	float t8;
+	/// user-defined time pick 
+	float t9;
+	/// event end, sec > 0 
+	float f;
+	/// instrument respnse parm
+	float resp0;
+	/// instrument respnse parm
+	float resp1;
+	/// instrument respnse parm
+	float resp2;
+	/// instrument respnse parm
+	float resp3;
+	/// instrument respnse parm
+	float resp4;
+	/// instrument respnse parm
+	float resp5;
+	/// instrument respnse parm
+	float resp6;
+	/// instrument respnse parm
+	float resp7;
+	/// instrument respnse parm
+	float resp8;
+	/// instrument respnse parm
+	float resp9;
+	/// station latititude 
+	float stla;
+	/// station longitude
+	float stlo;
+	/// station elevation, m 
+	float stel;
+	/// station depth, m 
+	float stdp;
+	/// event latitude 
+	float evla;
+	/// event longitude
+	float evlo;
+	/// event elevation
+	float evel;
+	/// event depth
+	float evdp;
+	/// magnitude value
+	float mag;
+	/// available to user
+	float user0;
+	/// available to user
+	float user1;
+	/// available to user
+	float user2;
+	/// available to user
+	float user3;
+	/// available to user
+	float user4;
+	/// available to user
+	float user5;
+	/// available to user
+	float user6;
+	/// available to user
+	float user7;
+	/// available to user
+	float user8;
+	/// available to user
+	float user9;
+	/// stn-event distance, km 
+	float dist;
+	/// event-stn azimuth
+	float az;
+	/// stn-event azimuth
+	float baz;
+	/// stn-event dist, degrees
+	float gcarc;
+	/// saved b value
+	float sb;
+	/// saved delta value
+	float sdelta;
+	/// mean value, amplitude
+	float depmen;
+	/// T component azimuth
+	float cmpaz;
+	/// T component inclination
+	float cmpinc;
+	/// XYZ X minimum value
+	float xminimum;
+	/// XYZ X maximum value
+	float xmaximum;
+	/// XYZ Y minimum value
+	float yminimum;
+	/// XYZ Y maximum value
+	float ymaximum;
+	/// reserved for future use
+	float unused6;
+	/// reserved for future use
+	float unused7;
+	/// reserved for future use
+	float unused8;
+	/// reserved for future use
+	float unused9;
+	/// reserved for future use
+	float unused10;
+	/// reserved for future use
+	float unused11;
+	/// reserved for future use
+	float unused12;
+	/// zero time of file, yr
+	int nzyear;
+	/// zero time of file, day 
+	int nzjday;
+	/// zero time of file, hr
+	int nzhour;
+	/// zero time of file, min 
+	int nzmin;
+	/// zero time of file, sec 
+	int nzsec;
+	/// zero time of file, msec
+	int nzmsec;
+	/// header version number
+	int nvhdr;
+	/// Origin ID
+	int norid;
+	/// Event ID 
+	int nevid;
+	/// number of samples
+	int npts;
+	/// saved npts 
+	int nsnpts;
+	/// Waveform ID
+	int nwfid;
+	/// XYZ X size 
+	int nxsize;
+	/// XYZ Y size 
+	int nysize;
+	/// reserved for future use
+	int unused15;
+	/// type of file
+	int iftype;
+	/// type of amplitude
+	int idep;
+	/// zero time equivalence
+	int iztype;
+	/// reserved for future use
+	int unused16;
+	/// recording instrument 
+	int iinst;
+	/// stn geographic region
+	int istreg;
+	/// event geographic region
+	int ievreg;
+	/// event type 
+	int ievtyp;
+	/// quality of data
+	int iqual;
+	/// synthetic data flag
+	int isynth;
+	/// magnitude type 
+	int imagtyp;
+	/// magnitude source 
+	int imagsrc;
+	/// reserved for future use
+	int unused19;
+	/// reserved for future use
+	int unused20;
+	/// reserved for future use
+	int unused21;
+	/// reserved for future use
+	int unused22;
+	/// reserved for future use
+	int unused23;
+	/// reserved for future use
+	int unused24;
+	/// reserved for future use
+	int unused25;
+	/// reserved for future use
+	int unused26;
+	///  RA data-evenly-spaced flag
+	int leven;
+	/// station polarity flag
+	int lpspol;
+	/// overwrite permission 
+	int lovrok;
+	/// calc distance, azimuth 
+	int lcalda;
+	/// reserved for future use
+	int unused27;
+	/// F station name 
+	char kstnm[8];
+	/// event name 
+	char kevnm[16];
+	/// man-made event name
+	char khole[8];
+	/// event origin time id 
+	char ko[8];
+	/// 1st arrival time ident 
+	char ka[8];
+	/// time pick 0 ident
+	char kt0[8];
+	/// time pick 1 ident
+	char kt1[8];
+	/// time pick 2 ident
+	char kt2[8];
+	/// time pick 3 ident
+	char kt3[8];
+	/// time pick 4 ident
+	char kt4[8];
+	/// time pick 5 ident
+	char kt5[8];
+	/// time pick 6 ident
+	char kt6[8];
+	/// time pick 7 ident
+	char kt7[8];
+	/// time pick 8 ident
+	char kt8[8];
+	/// time pick 9 ident
+	char kt9[8];
+	/// end of event ident 
+	char kf[8];
+	/// available to user
+	char kuser0[8];
+	/// available to user
+	char kuser1[8];
+	/// available to user
+	char kuser2[8];
+	/// F component name 
+	char kcmpnm[8];
+	/// network name 
+	char knetwk[8];
+	/// date data read 
+	char kdatrd[8];
+	/// instrument name
+	char kinst[8];
 } SACHEAD;
 
 #endif
