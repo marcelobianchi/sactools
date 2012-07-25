@@ -247,30 +247,6 @@ pick *loadPick(char *filename, stations *ss) {
   hdu_getValueFromChar ("KSTNM", h, NULL, NULL, &name);
   hdu_getValueFromChar ("KNETWK", h, NULL, NULL, &net);
 
-  if (strncmp(name,"BB23",4) == 0) {
-	fprintf(stderr,"Stations BB23 rejected. %s\n", filename);
-	h = io_freeData(h);
-	name = io_freeData(name);
-	net = io_freeData(net);
-	return p;
-  }
-
-  if (strncmp(name,"BB05",4) == 0) {
-	fprintf(stderr,"Stations BB05 rejected. %s\n", filename);
-	h = io_freeData(h);
-	name = io_freeData(name);
-	net = io_freeData(net);
-	return p;
-  }
-
-  if (strncmp(name,"BB02",4) == 0) {
-	fprintf(stderr,"Stations BB02 rejected.\n");
-	h = io_freeData(h);
-	name = io_freeData(name);
-	net = io_freeData(net);
-	return p;
-  }
-
   Id = getStationId(ss, name, net);
 
   if (Id == -1) {
@@ -772,12 +748,11 @@ void EXHIST_process(glob_t *glb){
   defs *d;
   stations *ss;
   events *evs;
-  int n;    
-  long totaln = 0;
+  int n;
   long pCount = 0;
   int panel, sta;
   
-  float ay;
+  float ay, ax;
   char ch;
   
   d = newdefs(glb);
@@ -794,61 +769,69 @@ void EXHIST_process(glob_t *glb){
   
   d->offset = 0;
   
-  // opengr();
-  cpgopen("/cps");
-
-  cpgsch(2.5);
-  cpgsubp(11,7);
-  d->max = 77;
-  for (panel=0; ((panel < d->max)) && ((panel + d->offset)) < ss->n; panel++) {
-    sta = d->offset + panel;
-
-    // Collect
-    pick **plist = collectpicksbystation(evs, ss, sta , &n, 0, 3.0);
-    totaln += n;
-    if (plist == NULL) continue;
-        
-    // Plot
-    if (v) fprintf(stderr,"Hist %d (%s %s)\n", sta, ss->slist[sta]->net, ss->slist[sta]->name);
-    makehistorgram(plist,n,-4,4,31,0);
-
-    cpgsch(3);
-    if (panel % 10 == 0)
-      cpgmtxt("L",2.5,0.5,0.5,"Count");
-    
-    if (panel >= 50 )
-      cpgmtxt("B",3.0,0.5,0.5,"Res");
-    
-    cpgsch(4);
-    cpgmtxt("T",0.65,0.5,0.5,ss->slist[sta]->name);
-    cpgsch(2.5);
-    
-
-    // Clear
-    if (plist != NULL) free(plist);
-    plist = NULL;
-  }
-  fprintf(stderr,"Total of %ld picks considered.\n",totaln);
-  fprintf(stderr,"Total of %ld outliars ( 0.0 to 3.0 sigmas )\n", pCount - totaln);
-
-  ch = getonechar(&ay, &ay);
-  cpgclos();
-
-  /* All stations histogram
   opengr();
-  pick **plist;
-  cpgsch(2.5);
-  cpgsubp(2,1);
 
-  plist = collectpicksbystation(evs, ss, -1, &n, 0, 3.5);
-  makehistorgram(plist, n, -4, 4, 31,0);
-
-  plist = collectpicksbystation(evs, ss, -1, &n, 3.01, 100.0);
-  makehistorgram(plist, n, 0, 10, 20,1);
-
-  ch = getonechar(&ay, &ay);
+  while (ch != 'q') {
+    float sigma = 3.0;
+    cpgsch(2.5);
+    cpgsubp(10,8);
+    d->max = 80;
+    long totaln = 0;
+    for (panel=0; ((panel < d->max)) && ((panel + d->offset)) < ss->n; panel++) {
+      sta = d->offset + panel;
+      
+      // Collect
+      pick **plist = collectpicksbystation(evs, ss, sta , &n, 0, sigma);
+      totaln += n;
+      if (plist == NULL) {
+        cpgenv(0.0, 1.0, 0.0, 1.0, 0 ,0 );
+        cpgmtxt("T",3.5,0.5,0.5, "No Data for Station");
+      } else {
+        // Plot
+        if (v) fprintf(stderr,"Hist %d (%s %s)\n", sta, ss->slist[sta]->net, ss->slist[sta]->name);
+        makehistorgram(plist,n,-4,4,31,0);
+        
+        cpgsch(3);
+        if (panel % 10 == 0)
+          cpgmtxt("L",2.5,0.5,0.5,"Count");
+        
+        if (panel >= 50 )
+          cpgmtxt("B",3.0,0.5,0.5,"Res");
+        
+        cpgsch(4);
+        cpgmtxt("T",0.65,0.5,0.5,ss->slist[sta]->name);
+        cpgsch(2.5);
+        
+        // Clear
+        if (plist != NULL) free(plist);
+        plist = NULL;
+      }
+    }
+    fprintf(stderr,"Total of %ld picks considered.\n",totaln);
+    fprintf(stderr,"Total of %ld outliars ( 0.0 to %f sigmas )\n", pCount - totaln, sigma);
+    
+    cpgsubp(1,1);
+    cpgsvp(0.0,1.0,0.0,1.0);
+    cpgswin(0.0,10.0,0.0,8.0);
+    ch = getonechar(&ax, &ay);
+    
+    if (ch != 'q') {
+      int col = (int)ax;
+      int line = 7 - (int)ay;
+      sta = (line*10+col);
+      pick **plist = collectpicksbystation(evs, ss, sta, &n, 0, sigma);
+      if (plist!= NULL) {
+        makehistorgram(plist,n,-4,4,31,0);
+        cpgsch(4);
+        cpgmtxt("T",0.65,0.5,0.5,ss->slist[sta]->name);
+        cpgsch(2.5);
+        getonechar(&ax, &ay);
+      }
+    }
+    
+  }
+  
   cpgclos();
-  */
 
   killStations(ss); 
   killEvents(evs);  
