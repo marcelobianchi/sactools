@@ -24,9 +24,9 @@
 #include <ftw.h>
 
 typedef struct files {
-  char *filename;
-  char *newfilename;
-  int ready;
+	char *filename;
+	char *newfilename;
+	int ready;
 } FILES;
 
 extern FILES *filelist;
@@ -40,4 +40,4 @@ void freefilelist(void);
 void showfilelist(void);
 int checkfilelist(void);
 int preparefilelistdirs(void);
-int createname(FILES *f);
+int createname(FILES * f);

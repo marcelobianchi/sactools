@@ -33,631 +33,707 @@ float col3 = 0.7;
 float col4 = 0.9;
 float spacing = 1.1;
 
-void PK_checkoption(defs *d, char ch, float ax, float ay);
+void PK_checkoption(defs * d, char ch, float ax, float ay);
 
-int booloption(int value, int pos, char *c, char *message) {
-  float line = pos*spacing;
+int booloption(int value, int pos, char *c, char *message)
+{
+	float line = pos * spacing;
 
-  cpgmtxt ("T", line, col4, 1.0, c);
-  cpgmtxt ("T", line, col1, 1.0, message);
+	cpgmtxt("T", line, col4, 1.0, c);
+	cpgmtxt("T", line, col1, 1.0, message);
 
-  if (value == 1) cpgsci(3); else cpgsci(14);
-  cpgmtxt ("T", line, col2, 0.0, "Enabled");
+	if (value == 1)
+		cpgsci(3);
+	else
+		cpgsci(14);
+	cpgmtxt("T", line, col2, 0.0, "Enabled");
 
-  if (value == 0) cpgsci(2); else cpgsci(14);
-  cpgmtxt ("T", line, col3, 0.0, "Disabled");
+	if (value == 0)
+		cpgsci(2);
+	else
+		cpgsci(14);
+	cpgmtxt("T", line, col3, 0.0, "Disabled");
 
-  cpgsci(1);
-  return (--pos);
+	cpgsci(1);
+	return (--pos);
 }
 
-int multoption(int value, int pos, char *c, char *message, char **option, int no) {  
-  float line;
-  int i;
+int multoption(int value, int pos, char *c, char *message, char **option,
+			   int no)
+{
+	float line;
+	int i;
 
-  line = pos*spacing;
+	line = pos * spacing;
 
-  cpgmtxt ("T", line, col4, 1.0, c);
-  cpgmtxt ("T", line, col1, 1.0, message);
+	cpgmtxt("T", line, col4, 1.0, c);
+	cpgmtxt("T", line, col1, 1.0, message);
 
-  for(i=0;i<no;i++){
-    if (value == i) cpgsci(3); else cpgsci(14);
-    cpgmtxt ("T", line, col2, 0.0, option[i]);
-    pos--;
-    line = pos * spacing;
-  }
-
-  cpgsci(1);
-  return --pos;
-}
-
-int valueoption(float value, int pos, char *c, char *message, float defaultv) {
-  float line = pos*spacing;
-  char cvalue[200];
-
-  cpgmtxt ("T", line, col4, 1.0, c);
-  cpgmtxt ("T", line, col1, 1.0, message);
-  
-  sprintf(cvalue,"%.4f",value);
-  if (value == defaultv) cpgsci(3); else cpgsci(2);
-  cpgmtxt ("T", line, col2, 0.0, cvalue);
-
-  sprintf(cvalue,"%.4f",defaultv);
-  cpgsci(14);
-  cpgmtxt ("T", line, col3, 0.0, cvalue);
-
-  cpgsci(1);
-  return --pos;
-}
-
-int titleoption(char *message, int pos){
-  float line;
-
-  pos--;
-  line = pos * spacing;
-  cpgsci(13);
-  cpgmtxt ("T", line, 0.5, 0.5, message);  
-  cpgsci(1);
-  pos--;
-
-  return --pos;
-}
-
-void Config(defs *d) {
-  g_ctl *Wd = NULL;
-  char ch;
-  float ax,ay;
-  int k = -1;
-  
-  /*  char *putname[20] = { "None", "Simple", "Complete" };
-  int nputname = 3;
-
-  char *alimode[20] = { "Theoretical", "Pick", "Origin Time" };
-  int nalimode = 3;
-
-  char *sormode[20] = { "Distance", "Back Azimuth" };
-  int nsormode = 2;
-  float aux;
-  */
-  Wd = ctl_newctl (0.2, 0.05, .6, .9);
-  Wd -> expand = 0;
-  
-  while (ch != 'Q' && ch != 'q') {
-    k = -1 ;
-    
-    ctl_resizeview (Wd);
-    ctl_clean(NULL);
-    k = titleoption("Global Defaults:", k);
-    k = valueoption(gg.lp, k, "l", "Default Low Pass filter for new events:", DEFAULT_LP); 
-    k = valueoption(gg.hp, k, "h", "Default High Pass filter for new events:", DEFAULT_HP); 
-    k = valueoption(gg.gpre, k, "a", "Show Window in global align mode (pre):", DEFAULT_PRE); 
-    k = valueoption(gg.gpost, k, "s", "Show Window in global align model (post):", DEFAULT_POST); 
-
-    k -= 12;
-    k = titleoption("Q - To Return !", k);
-
-    ch = getonechar (&ax, &ay);  
-    switch(ch){
-    case('l'):
-      gg.lp = lerfloat ("Low pass filter Hz?");
-      break;
-
-    case('h'):
-      gg.hp = lerfloat ("High pass filter Hz?");
-      break;
-
-    case('a'):
-      gg.gpre = fabs(lerfloat ("Time in seconds before the theoretical mark?"));
-      break;
-
-    case('s'):
-      gg.gpost = fabs(lerfloat ("Time in seconds after the theoretical mark?"));
-      break;
-
-    case('q'):
-    case('Q'):
-      if (gg.lp<=gg.hp) {
-	ch = 'E';
-	strcpy(message,"Low Pass should be larger than high pass.");
-	alert(WARNING);
-      }
-      break;
-    }
-  }
-}
-
-void PK_checkoption(defs *d, char ch, float ax, float ay){
-  int j,i;
-  float vmin, vmax, aux;
-
-  switch (ch)
-    {
-      
-    case('0'):
-      d->sortmode++;
-      if (d->sortmode > 1) d->sortmode = 0;
-      if (d->sortmode == 0) {
-	qsort(d->files, d->nfiles, sizeof(tf), sortDist);      
-	sprintf(d->lastaction,"Sort mode Distance.");
-      }	else {
-	qsort(d->files, d->nfiles, sizeof(tf), sortBaz);      
-	sprintf(d->lastaction,"Sort mode Back-Azimuth.");
-      }
-      break;
-
-    case('!'):
-      if (d->zoom == 1.0) {
-	d->zoom=3.0;
-	sprintf(d->lastaction,"Amplitude Zoom On.");
-      } else {
-	d->zoom=1.0;
-	sprintf(d->lastaction,"Amplitude Zoom Off.");
-      }
-      break;
-
-    case('*'):
-      if (d->prephase > 3000) {
-	sprintf(d->lastaction,"Cannot make it larger.");
-	break;
-      }
-      d->prephase *= 2;
-      d->postphase *= 2;
-      break;
-
-    case('/'):
-      if (d->prephase < 2) {
-	sprintf(d->lastaction,"Cannot make it smaller.");
-	break;
-      }
-      d->prephase /= 2;
-      d->postphase /=2;
-      break;
-
-    case ('r'):
-  {
-    if (d->needsave == 1) {
-      if (yesno("Picks not saved, save?") == 1)
-        writeout (d->files,d);
-    }
-    
-    glob_t *glbs = NULL;
-    glbs = saclist(d);
-    tffree(d->files, d->nfiles);
-    d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-    d->needsave = 0;
-    globfree(glbs);
-  }
-    sprintf(d->lastaction,"Data Reloaded.");      
-    break;
-      
-    case(' '):
-      d->onlyselected=!d->onlyselected;
-      sprintf(d->lastaction,"Activate/De-Activated only selected mode.");
-      break;
-
-    case(':'): 
-  {
-    char station[15];
-    lerchar("Enter e/<Event name> for search for an event or <NAME> for hightlight a station by name", station, 25);
-    
-    if (station[1] == '/'){
-      if (station[0] == 'e') {
-        if (d->needsave == 1) {
-          if (yesno("Picks not saved, save?") == 1)
-            writeout (d->files,d);
-        }
-        
-        for(j=0;j<d->glb->gl_pathc;j++){
-          if ( (i=strncmp(d->glb->gl_pathv[j], &station[2], strlen(&station[2]))) == 0){
-            glob_t *glbs = NULL;
-            d->currentdir = j;		
-            glbs = saclist(d);
-            tffree(d->files, d->nfiles);
-            d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-            d->needsave = 0;
-            globfree(glbs);		
-          }
-        }
-      }
-    } else {
-      for(j=0; j < d->nfiles; j++) {
-        if (strlen(station) == 0)
-          d->files[j].selected = 0;
-        else
-          if ( (i=strncasecmp(d->files[j].station, station, strlen(station))) == 0) {
-            d->files[j].selected = 1;
-            fprintf(stderr,"Hitted !");
-          }
-      }
-    }
-  }
-    sprintf(d->lastaction,"Searched complete.");
-    break;
-
-    case('+'):
-      killCTL(&d->ctl, d->max);
-      d->overlay = !d->overlay;
-      d->ctl = initCTL(d);
-      sprintf(d->lastaction,"Activate/De-Activated overlay mode.");
-      break;
-
-    case('#'):
-      d->hidephase=!d->hidephase;
-      sprintf(d->lastaction,"Hide/Un-Hide theoretical phase.");
-      break;
-
-    case('-'):
-  {
-    glob_t *glbs = NULL;
-    if (d->currentdir == d->glb->gl_pathc - 1) break;
-
-    if (d->needsave == 1) {
-      if (yesno("Picks not saved, save?") == 1)
-        writeout (d->files,d);
-    }
-    
-    d->currentdir++;
-    while((d->currentdir) < (d->glb->gl_pathc - 1)) {
-      glbs = saclist(d);
-      if (d->has == 0) break;
-      globfree(glbs);
-      d->currentdir++;
-    }
-    
-    tffree(d->files, d->nfiles);
-    glbs = saclist(d);
-    d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-    d->needsave = 0;
-    globfree(glbs);
-  }
-    sprintf(d->lastaction,"Switch to next un-readed data.");
-    break;
-
-    case ('n'):
-      d->offset += d->max;
-      sprintf(d->lastaction,"Advanced display by %d files",d->max);
-      if (d->offset >= d->nfiles) {
-	d->offset -= d->max;
-	sprintf(d->lastaction,"No more files to advance");
-      }
-      break;
-	  
-    case ('p'):
-      d->offset -= d->max;
-      sprintf(d->lastaction,"Showing %d previous files",d->max);
-      if (d->offset < 0){
-	d->offset = 0;
-	sprintf(d->lastaction,"We are already at the first file.");
-      }
-      break;
-	  
-    case('N'):
-  {
-    glob_t *glbs = NULL;
-    d->currentdir++;
-    sprintf(d->lastaction,"Switched to next event (directory).");
-
-    if (d->currentdir >= d->glb->gl_pathc) {
-      d->currentdir = d->glb->gl_pathc - 1;
-      sprintf(d->lastaction,"This is the last event.");
-      break;
-    }
-    
-    if (d->needsave == 1) {
-      if (yesno("Picks not saved, save?") == 1)
-        writeout (d->files,d);
-    }
-    
-    glbs = saclist(d);
-    tffree(d->files, d->nfiles);
-    d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-    d->needsave = 0;
-    globfree(glbs);
-  }
-    break;
-
-    case('P'):
-  {
-    glob_t *glbs = NULL;
-    d->currentdir--;
-    sprintf(d->lastaction,"Switched to previous event (directory).");
-    if (d->currentdir < 0) {
-      d->currentdir = 0;
-      sprintf(d->lastaction,"This is the first event.");
-      break;
-    }
-    
-    if (d->needsave == 1) {
-      if (yesno("Picks not saved, save?") == 1)
-        writeout (d->files,d);
-    }
-    
-    glbs = saclist(d);
-    tffree(d->files, d->nfiles);
-    d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-    d->needsave = 0;
-    globfree(glbs);
-  }
-      break;
-	
-    case ('?'):      
-      Config(d);
-      sprintf(d->lastaction,"Reconfiguration complete.");
-      break;
-
-    case ('e'):
-      sprintf(d->lastaction,"Sorry, no trace found on this position.");
-      for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
-	if (ctl_checkhit (d->ctl[j], ax, ay)) {
-	  //if (d->files[d->offset + j].h->unused25 != 1 ) continue;
-	  
-	  g_ctl *fullscreen = ctl_newctl (0.08, 0.15, 0.88, 0.7);
-	  fullscreen->expand = 1;
-	  ctl_axisfull(fullscreen);	  
-	  
-	  tf *this = &d->files[d->offset + j];
-	  edit_tf(fullscreen, this, d);
-
-	  free(fullscreen);
-	  fullscreen = NULL;
-	  sprintf(d->lastaction,"Edited file %d.",j);
-	  break;
+	for (i = 0; i < no; i++) {
+		if (value == i)
+			cpgsci(3);
+		else
+			cpgsci(14);
+		cpgmtxt("T", line, col2, 0.0, option[i]);
+		pos--;
+		line = pos * spacing;
 	}
-      }
-      break;
-	  
-    case ('.'):
-      if (d->alig == ALIGF) {
-	sprintf(d->lastaction,"Change aligment to phase A (theoretical).");
-	d->alig = ALIGA;
-      } else if (d->alig == ALIGA) {
-	sprintf(d->lastaction,"Change aligment to Origin Time (Origin Time = 0).");
-	d->alig = ALIGO;
-      } else if (d->alig == ALIGO) {
-	sprintf(d->lastaction,"Change aligment to phase F (pick).");
-	d->alig = ALIGF;
-      }
-      break;
 
-    case ('m'):
-      d->plotsearchsize = !d->plotsearchsize;
-      break;
-
-    case ('s'):
-      d->searchsize = fabs(lerfloat ("How many seconds post A mark to considerer in Min-Max search ?"));
-      break;
-
-    case ('i'):
-      d->insetsearchsize = fabs(lerfloat ("How many seconds pre A mark to considerer in Min-Max search ?"));
-      break;
-	  
-    case ('t'):
-      d->putname++;
-      if (d->putname == 3) d->putname = 0;
-      sprintf(d->lastaction,"Switch display of filename and station information.");
-      break;
-	  
-    case(','):
-      killCTL(&d->ctl, d->max);
-      d->max = lerint("How many traces (0 for all)?");
-      if (d->max == 0) d->max = d->nfiles;
-      d->ctl = initCTL(d);
-      sprintf(d->lastaction,"Changed to %d traces per screen.",d->max);
-      break;
-
-    case('o'):
-      cpgopen("plot.ps/CPS");
-      cpgsch (0.65);
-      cpgslw(2);
-      d->printout = 1;
-      multitraceplot (d);
-      d->printout = 0;	  
-      cpgclos();
-      cpgslct(d->grID);	  
-      sprintf(d->lastaction,"Saved plot-screen in file plot.ps");
-      break;
-
-    case ('d'):
-      sprintf(d->lastaction,"Sorry, no trace found on this position.");
-      for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
-	if (ctl_checkhit (d->ctl[j], ax, ay)) {
-	  deletemark(&d->files[d->offset+j],0.0);
-	  sprintf(d->lastaction,"Deleted mark F on trace %d",j);
-	  d->needsave = 1;
-	  break;
-	}
-      }
-      break;
-
-    case ('z'): // german changes y and z
-    case ('y'):
-      for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max)); j++)
-	{
-	  tf *ts = &d->files[j];
-	  getminmax ((d->filter && ts->zf!=NULL)?ts->zf:ts->z, ts->hz, ts->hz->a - d->insetsearchsize,
-		     ts->hz->a + d->searchsize, &vmin, &vmax);
-	  ts->hz->f = vmax;
-	}
-      d->needsave = 1;
-      sprintf(d->lastaction,"Searched for maximun between A %.2f adn %.2f seconds.", d->insetsearchsize, d->searchsize);
-      break;
-
-    case ('c'):
-      for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max)); j++) {
-        tf *ts = &d->files[j];
-        ts->hz->f = -12345.0;
-      }
-      d->needsave = 1;
-      sprintf(d->lastaction,"Cleaned pick phases.");
-      break;
-
-    case ('x'):
-      for (j = d->offset; (j < d->nfiles) && (j<(d->offset + d->max)); j++)
-	{
-	  tf *ts = &d->files[j];
-	  //	  if (ts->hz->unused25 != 1 ) continue;
-	  getminmax ((d->filter && ts->zf!=NULL)?ts->zf:ts->z, ts->hz, ts->hz->a - d->insetsearchsize,
-		     ts->hz->a + d->searchsize, &vmin, &vmax);
-	  ts->hz->f = vmin;
-	}
-      d->needsave = 1;
-      sprintf(d->lastaction,"Searched for minimun between A %.2f adn %.2f seconds.", d->insetsearchsize, d->searchsize);
-      break;
-
-    case ('1'):
-      for (j = 0; j < d->nfiles; j++)
-	{
-	  tf *ts = &d->files[j];
-	  //	  if (ts->hz->unused25 != 1 ) continue;
-	  getminmax ((d->filter && ts->zf!=NULL)?ts->zf:ts->z, ts->hz, ts->hz->a - d->insetsearchsize,
-		     ts->hz->a + d->searchsize, &vmin, &vmax);
-	  ts->hz->f = vmax;
-	}
-      d->needsave = 1;
-      sprintf(d->lastaction,"Searched for maximun for ALL betwen A %.2f adn %.2f seconds.", d->insetsearchsize, d->searchsize);
-      break;
-	  
-    case ('2'):
-      for (j = 0; j < d->nfiles; j++)
-	{
-	  tf *ts = &d->files[j];
-	  // if (ts->hz->unused25 != 1 ) continue;
-	  getminmax ((d->filter && ts->zf!=NULL)?ts->zf:ts->z, ts->hz, ts->hz->a - d->insetsearchsize,
-		     ts->hz->a + d->searchsize, &vmin, &vmax);
-	  ts->hz->f = vmin;
-	}
-      d->needsave = 1;
-      sprintf(d->lastaction,"Searched for minimun for ALL betwen A %.2f adn %.2f seconds.", d->insetsearchsize, d->searchsize);
-      break;
-
-    case ('3'):
-      for (j = 0; j < d->nfiles; j++) {
-	tf *ts = &d->files[j];
-	// if (ts->hz->unused25 != 1 ) continue;
-	ts->hz->f = -12345.0;
-      }
-      d->needsave = 1;
-      sprintf(d->lastaction,"Cleaned ALL pick phases.");
-      break;
-	  
-    case ('w'):
-      writeout (d->files,d);
-      sprintf(d->lastaction,"Files were writen to disk.");	  
-      break;
-	  
-    case ('f'):
-      d->filter = ! d->filter;
-      d->needfilter = 1;
-      sprintf(d->lastaction,"Switch filter %s",(d->filter)?"ON":"OFF");
-      break;
-	  
-    case ('l'):
-      aux = lerfloat ("Low pass filter?");
-      if ((aux >= d->hp) && (aux >= 0)) {
-	d->lp = aux;
-	sprintf(d->lastaction,"Low pass filter set to %.4f Hz",d->lp);
-	d->needfilter = 1;
-      } else {
-	sprintf(d->lastaction,"Invalid low pass filter %.4f Hz. Cannot be smaller than HP.",aux);
-      }
-      break;
-	  
-    case ('h'):
-      aux = lerfloat ("High pass filter?");      
-      if ((aux <= d->lp) && (aux >= 0)) {
-	d->hp = aux;
-	sprintf(d->lastaction,"High pass filter set to %.4f Hz",d->hp);
-	d->needfilter = 1;
-      } else {
-	sprintf(d->lastaction,"Invalid high pass filter %.4f Hz. Cannot be larger than LP.",aux);
-      }
-      break;
-      
-  case('Q'):
-    if (d->needsave == 1) {
-      if (yesno("Picks not saved, save?") == 1)
-        writeout (d->files, d);
-    }
-    break;
-
-    default:
-      sprintf(d->lastaction,"Cannot understand %c",ch);      
-      break;
-    }
+	cpgsci(1);
+	return --pos;
 }
 
-char PK_waitloop(defs *d) {
-  float ax, ay;
-  char ch;
-  g_ctl *ctlpick = NULL;
-  
-  ctlpick = ctl_newctl (0.0, 0.0, 1.0, 1.0);
-  ctlpick->expand = 0;  
-  ctl_resizeview (ctlpick);
-  ch = getonechar (&ax, &ay);
-  free(ctlpick);
-  ctlpick = NULL;
-  PK_checkoption(d, ch, ax, ay);
+int valueoption(float value, int pos, char *c, char *message,
+				float defaultv)
+{
+	float line = pos * spacing;
+	char cvalue[200];
 
-  return ch;
+	cpgmtxt("T", line, col4, 1.0, c);
+	cpgmtxt("T", line, col1, 1.0, message);
+
+	sprintf(cvalue, "%.4f", value);
+	if (value == defaultv)
+		cpgsci(3);
+	else
+		cpgsci(2);
+	cpgmtxt("T", line, col2, 0.0, cvalue);
+
+	sprintf(cvalue, "%.4f", defaultv);
+	cpgsci(14);
+	cpgmtxt("T", line, col3, 0.0, cvalue);
+
+	cpgsci(1);
+	return --pos;
 }
 
-void PK_process(glob_t *glb) {
-  char ch;
-  defs *d;
+int titleoption(char *message, int pos)
+{
+	float line;
 
-  d = newdefs(glb);
+	pos--;
+	line = pos * spacing;
+	cpgsci(13);
+	cpgmtxt("T", line, 0.5, 0.5, message);
+	cpgsci(1);
+	pos--;
 
-  /* Initialize PGplot subsystem */
-  d->grID = opengr ();
-  cpgsch (0.65);
+	return --pos;
+}
 
-  /* Load first dir data */
-  glob_t *glbs = saclist(d);
-  d->needsave = 0;
-  d->files = inputme (glbs->gl_pathc, glbs->gl_pathv, d);
-  globfree(glbs);
-  glbs = NULL;
-  
-  /* Get new CTLs for use */
-  d->ctl = initCTL(d);
+void Config(defs * d)
+{
+	g_ctl *Wd = NULL;
+	char ch;
+	float ax, ay;
+	int k = -1;
 
-  /* Main Loop */
-  while (ch != 'Q')
-    {
-      /* Plot Data */
-      multitraceplot (d);
+	/*  char *putname[20] = { "None", "Simple", "Complete" };
+	   int nputname = 3;
 
-      /* Wait for command */
-      ch = PK_waitloop(d);
-    }
-  
-  tffree(d->files, d->nfiles);
-  killCTL(&d->ctl, d->max);
+	   char *alimode[20] = { "Theoretical", "Pick", "Origin Time" };
+	   int nalimode = 3;
+
+	   char *sormode[20] = { "Distance", "Back Azimuth" };
+	   int nsormode = 2;
+	   float aux;
+	 */
+	Wd = ctl_newctl(0.2, 0.05, .6, .9);
+	Wd->expand = 0;
+
+	while (ch != 'Q' && ch != 'q') {
+		k = -1;
+
+		ctl_resizeview(Wd);
+		ctl_clean(NULL);
+		k = titleoption("Global Defaults:", k);
+		k = valueoption(gg.lp, k, "l",
+						"Default Low Pass filter for new events:",
+						DEFAULT_LP);
+		k = valueoption(gg.hp, k, "h",
+						"Default High Pass filter for new events:",
+						DEFAULT_HP);
+		k = valueoption(gg.gpre, k, "a",
+						"Show Window in global align mode (pre):",
+						DEFAULT_PRE);
+		k = valueoption(gg.gpost, k, "s",
+						"Show Window in global align model (post):",
+						DEFAULT_POST);
+
+		k -= 12;
+		k = titleoption("Q - To Return !", k);
+
+		ch = getonechar(&ax, &ay);
+		switch (ch) {
+		case ('l'):
+			gg.lp = lerfloat("Low pass filter Hz?");
+			break;
+
+		case ('h'):
+			gg.hp = lerfloat("High pass filter Hz?");
+			break;
+
+		case ('a'):
+			gg.gpre =
+				fabs(lerfloat
+					 ("Time in seconds before the theoretical mark?"));
+			break;
+
+		case ('s'):
+			gg.gpost =
+				fabs(lerfloat
+					 ("Time in seconds after the theoretical mark?"));
+			break;
+
+		case ('q'):
+		case ('Q'):
+			if (gg.lp <= gg.hp) {
+				ch = 'E';
+				strcpy(message,
+					   "Low Pass should be larger than high pass.");
+				alert(WARNING);
+			}
+			break;
+		}
+	}
+}
+
+void PK_checkoption(defs * d, char ch, float ax, float ay)
+{
+	int j, i;
+	float vmin, vmax, aux;
+
+	switch (ch) {
+
+	case ('0'):
+		d->sortmode++;
+		if (d->sortmode > 1)
+			d->sortmode = 0;
+		if (d->sortmode == 0) {
+			qsort(d->files, d->nfiles, sizeof(tf), sortDist);
+			sprintf(d->lastaction, "Sort mode Distance.");
+		} else {
+			qsort(d->files, d->nfiles, sizeof(tf), sortBaz);
+			sprintf(d->lastaction, "Sort mode Back-Azimuth.");
+		}
+		break;
+
+	case ('!'):
+		if (d->zoom == 1.0) {
+			d->zoom = 3.0;
+			sprintf(d->lastaction, "Amplitude Zoom On.");
+		} else {
+			d->zoom = 1.0;
+			sprintf(d->lastaction, "Amplitude Zoom Off.");
+		}
+		break;
+
+	case ('*'):
+		if (d->prephase > 3000) {
+			sprintf(d->lastaction, "Cannot make it larger.");
+			break;
+		}
+		d->prephase *= 2;
+		d->postphase *= 2;
+		break;
+
+	case ('/'):
+		if (d->prephase < 2) {
+			sprintf(d->lastaction, "Cannot make it smaller.");
+			break;
+		}
+		d->prephase /= 2;
+		d->postphase /= 2;
+		break;
+
+	case ('r'):
+		{
+			if (d->needsave == 1) {
+				if (yesno("Picks not saved, save?") == 1)
+					writeout(d->files, d);
+			}
+
+			glob_t *glbs = NULL;
+			glbs = saclist(d);
+			tffree(d->files, d->nfiles);
+			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+			d->needsave = 0;
+			globfree(glbs);
+		}
+		sprintf(d->lastaction, "Data Reloaded.");
+		break;
+
+	case (' '):
+		d->onlyselected = !d->onlyselected;
+		sprintf(d->lastaction,
+				"Activate/De-Activated only selected mode.");
+		break;
+
+	case (':'):
+		{
+			char station[15];
+			lerchar
+				("Enter e/<Event name> for search for an event or <NAME> for hightlight a station by name",
+				 station, 25);
+
+			if (station[1] == '/') {
+				if (station[0] == 'e') {
+					if (d->needsave == 1) {
+						if (yesno("Picks not saved, save?") == 1)
+							writeout(d->files, d);
+					}
+
+					for (j = 0; j < d->glb->gl_pathc; j++) {
+						if ((i =
+							 strncmp(d->glb->gl_pathv[j], &station[2],
+									 strlen(&station[2]))) == 0) {
+							glob_t *glbs = NULL;
+							d->currentdir = j;
+							glbs = saclist(d);
+							tffree(d->files, d->nfiles);
+							d->files =
+								inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+							d->needsave = 0;
+							globfree(glbs);
+						}
+					}
+				}
+			} else {
+				for (j = 0; j < d->nfiles; j++) {
+					if (strlen(station) == 0)
+						d->files[j].selected = 0;
+					else if ((i =
+							  strncasecmp(d->files[j].station, station,
+										  strlen(station))) == 0) {
+						d->files[j].selected = 1;
+						fprintf(stderr, "Hitted !");
+					}
+				}
+			}
+		}
+		sprintf(d->lastaction, "Searched complete.");
+		break;
+
+	case ('+'):
+		killCTL(&d->ctl, d->max);
+		d->overlay = !d->overlay;
+		d->ctl = initCTL(d);
+		sprintf(d->lastaction, "Activate/De-Activated overlay mode.");
+		break;
+
+	case ('#'):
+		d->hidephase = !d->hidephase;
+		sprintf(d->lastaction, "Hide/Un-Hide theoretical phase.");
+		break;
+
+	case ('-'):
+		{
+			glob_t *glbs = NULL;
+			if (d->currentdir == d->glb->gl_pathc - 1)
+				break;
+
+			if (d->needsave == 1) {
+				if (yesno("Picks not saved, save?") == 1)
+					writeout(d->files, d);
+			}
+
+			d->currentdir++;
+			while ((d->currentdir) < (d->glb->gl_pathc - 1)) {
+				glbs = saclist(d);
+				if (d->has == 0)
+					break;
+				globfree(glbs);
+				d->currentdir++;
+			}
+
+			tffree(d->files, d->nfiles);
+			glbs = saclist(d);
+			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+			d->needsave = 0;
+			globfree(glbs);
+		}
+		sprintf(d->lastaction, "Switch to next un-readed data.");
+		break;
+
+	case ('n'):
+		d->offset += d->max;
+		sprintf(d->lastaction, "Advanced display by %d files", d->max);
+		if (d->offset >= d->nfiles) {
+			d->offset -= d->max;
+			sprintf(d->lastaction, "No more files to advance");
+		}
+		break;
+
+	case ('p'):
+		d->offset -= d->max;
+		sprintf(d->lastaction, "Showing %d previous files", d->max);
+		if (d->offset < 0) {
+			d->offset = 0;
+			sprintf(d->lastaction, "We are already at the first file.");
+		}
+		break;
+
+	case ('N'):
+		{
+			glob_t *glbs = NULL;
+			d->currentdir++;
+			sprintf(d->lastaction, "Switched to next event (directory).");
+
+			if (d->currentdir >= d->glb->gl_pathc) {
+				d->currentdir = d->glb->gl_pathc - 1;
+				sprintf(d->lastaction, "This is the last event.");
+				break;
+			}
+
+			if (d->needsave == 1) {
+				if (yesno("Picks not saved, save?") == 1)
+					writeout(d->files, d);
+			}
+
+			glbs = saclist(d);
+			tffree(d->files, d->nfiles);
+			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+			d->needsave = 0;
+			globfree(glbs);
+		}
+		break;
+
+	case ('P'):
+		{
+			glob_t *glbs = NULL;
+			d->currentdir--;
+			sprintf(d->lastaction,
+					"Switched to previous event (directory).");
+			if (d->currentdir < 0) {
+				d->currentdir = 0;
+				sprintf(d->lastaction, "This is the first event.");
+				break;
+			}
+
+			if (d->needsave == 1) {
+				if (yesno("Picks not saved, save?") == 1)
+					writeout(d->files, d);
+			}
+
+			glbs = saclist(d);
+			tffree(d->files, d->nfiles);
+			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+			d->needsave = 0;
+			globfree(glbs);
+		}
+		break;
+
+	case ('?'):
+		Config(d);
+		sprintf(d->lastaction, "Reconfiguration complete.");
+		break;
+
+	case ('e'):
+		sprintf(d->lastaction, "Sorry, no trace found on this position.");
+		for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
+			if (ctl_checkhit(d->ctl[j], ax, ay)) {
+				//if (d->files[d->offset + j].h->unused25 != 1 ) continue;
+
+				g_ctl *fullscreen = ctl_newctl(0.08, 0.15, 0.88, 0.7);
+				fullscreen->expand = 1;
+				ctl_axisfull(fullscreen);
+
+				tf *this = &d->files[d->offset + j];
+				edit_tf(fullscreen, this, d);
+
+				free(fullscreen);
+				fullscreen = NULL;
+				sprintf(d->lastaction, "Edited file %d.", j);
+				break;
+			}
+		}
+		break;
+
+	case ('.'):
+		if (d->alig == ALIGF) {
+			sprintf(d->lastaction,
+					"Change aligment to phase A (theoretical).");
+			d->alig = ALIGA;
+		} else if (d->alig == ALIGA) {
+			sprintf(d->lastaction,
+					"Change aligment to Origin Time (Origin Time = 0).");
+			d->alig = ALIGO;
+		} else if (d->alig == ALIGO) {
+			sprintf(d->lastaction, "Change aligment to phase F (pick).");
+			d->alig = ALIGF;
+		}
+		break;
+
+	case ('m'):
+		d->plotsearchsize = !d->plotsearchsize;
+		break;
+
+	case ('s'):
+		d->searchsize =
+			fabs(lerfloat
+				 ("How many seconds post A mark to considerer in Min-Max search ?"));
+		break;
+
+	case ('i'):
+		d->insetsearchsize =
+			fabs(lerfloat
+				 ("How many seconds pre A mark to considerer in Min-Max search ?"));
+		break;
+
+	case ('t'):
+		d->putname++;
+		if (d->putname == 3)
+			d->putname = 0;
+		sprintf(d->lastaction,
+				"Switch display of filename and station information.");
+		break;
+
+	case (','):
+		killCTL(&d->ctl, d->max);
+		d->max = lerint("How many traces (0 for all)?");
+		if (d->max == 0)
+			d->max = d->nfiles;
+		d->ctl = initCTL(d);
+		sprintf(d->lastaction, "Changed to %d traces per screen.", d->max);
+		break;
+
+	case ('o'):
+		cpgopen("plot.ps/CPS");
+		cpgsch(0.65);
+		cpgslw(2);
+		d->printout = 1;
+		multitraceplot(d);
+		d->printout = 0;
+		cpgclos();
+		cpgslct(d->grID);
+		sprintf(d->lastaction, "Saved plot-screen in file plot.ps");
+		break;
+
+	case ('d'):
+		sprintf(d->lastaction, "Sorry, no trace found on this position.");
+		for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
+			if (ctl_checkhit(d->ctl[j], ax, ay)) {
+				deletemark(&d->files[d->offset + j], 0.0);
+				sprintf(d->lastaction, "Deleted mark F on trace %d", j);
+				d->needsave = 1;
+				break;
+			}
+		}
+		break;
+
+	case ('z'):				// german changes y and z
+	case ('y'):
+		for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max));
+			 j++) {
+			tf *ts = &d->files[j];
+			getminmax((d->filter
+					   && ts->zf != NULL) ? ts->zf : ts->z, ts->hz,
+					  ts->hz->a - d->insetsearchsize,
+					  ts->hz->a + d->searchsize, &vmin, &vmax);
+			ts->hz->f = vmax;
+		}
+		d->needsave = 1;
+		sprintf(d->lastaction,
+				"Searched for maximun between A %.2f adn %.2f seconds.",
+				d->insetsearchsize, d->searchsize);
+		break;
+
+	case ('c'):
+		for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max));
+			 j++) {
+			tf *ts = &d->files[j];
+			ts->hz->f = -12345.0;
+		}
+		d->needsave = 1;
+		sprintf(d->lastaction, "Cleaned pick phases.");
+		break;
+
+	case ('x'):
+		for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max));
+			 j++) {
+			tf *ts = &d->files[j];
+			//      if (ts->hz->unused25 != 1 ) continue;
+			getminmax((d->filter
+					   && ts->zf != NULL) ? ts->zf : ts->z, ts->hz,
+					  ts->hz->a - d->insetsearchsize,
+					  ts->hz->a + d->searchsize, &vmin, &vmax);
+			ts->hz->f = vmin;
+		}
+		d->needsave = 1;
+		sprintf(d->lastaction,
+				"Searched for minimun between A %.2f adn %.2f seconds.",
+				d->insetsearchsize, d->searchsize);
+		break;
+
+	case ('1'):
+		for (j = 0; j < d->nfiles; j++) {
+			tf *ts = &d->files[j];
+			//      if (ts->hz->unused25 != 1 ) continue;
+			getminmax((d->filter
+					   && ts->zf != NULL) ? ts->zf : ts->z, ts->hz,
+					  ts->hz->a - d->insetsearchsize,
+					  ts->hz->a + d->searchsize, &vmin, &vmax);
+			ts->hz->f = vmax;
+		}
+		d->needsave = 1;
+		sprintf(d->lastaction,
+				"Searched for maximun for ALL betwen A %.2f adn %.2f seconds.",
+				d->insetsearchsize, d->searchsize);
+		break;
+
+	case ('2'):
+		for (j = 0; j < d->nfiles; j++) {
+			tf *ts = &d->files[j];
+			// if (ts->hz->unused25 != 1 ) continue;
+			getminmax((d->filter
+					   && ts->zf != NULL) ? ts->zf : ts->z, ts->hz,
+					  ts->hz->a - d->insetsearchsize,
+					  ts->hz->a + d->searchsize, &vmin, &vmax);
+			ts->hz->f = vmin;
+		}
+		d->needsave = 1;
+		sprintf(d->lastaction,
+				"Searched for minimun for ALL betwen A %.2f adn %.2f seconds.",
+				d->insetsearchsize, d->searchsize);
+		break;
+
+	case ('3'):
+		for (j = 0; j < d->nfiles; j++) {
+			tf *ts = &d->files[j];
+			// if (ts->hz->unused25 != 1 ) continue;
+			ts->hz->f = -12345.0;
+		}
+		d->needsave = 1;
+		sprintf(d->lastaction, "Cleaned ALL pick phases.");
+		break;
+
+	case ('w'):
+		writeout(d->files, d);
+		sprintf(d->lastaction, "Files were writen to disk.");
+		break;
+
+	case ('f'):
+		d->filter = !d->filter;
+		d->needfilter = 1;
+		sprintf(d->lastaction, "Switch filter %s",
+				(d->filter) ? "ON" : "OFF");
+		break;
+
+	case ('l'):
+		aux = lerfloat("Low pass filter?");
+		if ((aux >= d->hp) && (aux >= 0)) {
+			d->lp = aux;
+			sprintf(d->lastaction, "Low pass filter set to %.4f Hz",
+					d->lp);
+			d->needfilter = 1;
+		} else {
+			sprintf(d->lastaction,
+					"Invalid low pass filter %.4f Hz. Cannot be smaller than HP.",
+					aux);
+		}
+		break;
+
+	case ('h'):
+		aux = lerfloat("High pass filter?");
+		if ((aux <= d->lp) && (aux >= 0)) {
+			d->hp = aux;
+			sprintf(d->lastaction, "High pass filter set to %.4f Hz",
+					d->hp);
+			d->needfilter = 1;
+		} else {
+			sprintf(d->lastaction,
+					"Invalid high pass filter %.4f Hz. Cannot be larger than LP.",
+					aux);
+		}
+		break;
+
+	case ('Q'):
+		if (d->needsave == 1) {
+			if (yesno("Picks not saved, save?") == 1)
+				writeout(d->files, d);
+		}
+		break;
+
+	default:
+		sprintf(d->lastaction, "Cannot understand %c", ch);
+		break;
+	}
+}
+
+char PK_waitloop(defs * d)
+{
+	float ax, ay;
+	char ch;
+	g_ctl *ctlpick = NULL;
+
+	ctlpick = ctl_newctl(0.0, 0.0, 1.0, 1.0);
+	ctlpick->expand = 0;
+	ctl_resizeview(ctlpick);
+	ch = getonechar(&ax, &ay);
+	free(ctlpick);
+	ctlpick = NULL;
+	PK_checkoption(d, ch, ax, ay);
+
+	return ch;
+}
+
+void PK_process(glob_t * glb)
+{
+	char ch;
+	defs *d;
+
+	d = newdefs(glb);
+
+	/* Initialize PGplot subsystem */
+	d->grID = opengr();
+	cpgsch(0.65);
+
+	/* Load first dir data */
+	glob_t *glbs = saclist(d);
+	d->needsave = 0;
+	d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+	globfree(glbs);
+	glbs = NULL;
+
+	/* Get new CTLs for use */
+	d->ctl = initCTL(d);
+
+	/* Main Loop */
+	while (ch != 'Q') {
+		/* Plot Data */
+		multitraceplot(d);
+
+		/* Wait for command */
+		ch = PK_waitloop(d);
+	}
+
+	tffree(d->files, d->nfiles);
+	killCTL(&d->ctl, d->max);
 }
 
 
-glob_t *collector(defs *d, char *net, char *station) {
-  glob_t *glb = NULL;
-  char *filepath = NULL;
-  char *path;
-  int i;
+glob_t *collector(defs * d, char *net, char *station)
+{
+	glob_t *glb = NULL;
+	char *filepath = NULL;
+	char *path;
+	int i;
 
-  glb = malloc(sizeof(glob_t));
-  glb->gl_pathc = 0;
-  glb->gl_pathv=NULL;
+	glb = malloc(sizeof(glob_t));
+	glb->gl_pathc = 0;
+	glb->gl_pathv = NULL;
 
-  for(i=0;i<d->glb->gl_pathc;i++){
-    filepath=malloc(sizeof(char)*(strlen(path)+500));
-    path = d->glb->gl_pathv[i];
-    sprintf(filepath,"%s/*%s*%s*SAC", path, net, station);
-    fprintf(stderr,"Searchin in: %s\n",filepath);
-    glob(filepath, GLOB_APPEND, NULL, glb);
-    free(filepath);
-    filepath = NULL;
-  }
+	for (i = 0; i < d->glb->gl_pathc; i++) {
+		filepath = malloc(sizeof(char) * (strlen(path) + 500));
+		path = d->glb->gl_pathv[i];
+		sprintf(filepath, "%s/*%s*%s*SAC", path, net, station);
+		fprintf(stderr, "Searchin in: %s\n", filepath);
+		glob(filepath, GLOB_APPEND, NULL, glb);
+		free(filepath);
+		filepath = NULL;
+	}
 
-  d->has = 0;
-  return glb;  
+	d->has = 0;
+	return glb;
 
 }

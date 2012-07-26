@@ -21,6 +21,6 @@
 
 #include <inspect.h>
 
-char PK_waitloop(defs *d);
-void PK_process(glob_t *glb);
-void PKSTATION_process(glob_t *glb, char *net, char *name);
+char PK_waitloop(defs * d);
+void PK_process(glob_t * glb);
+void PKSTATION_process(glob_t * glb, char *net, char *name);

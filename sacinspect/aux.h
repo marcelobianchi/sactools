@@ -19,21 +19,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-void multitraceplot (defs *d);
-void getminmax (float *data, SACHEAD * hdr, float start, float end, float *rmin, float *rmax);
-void filtertf(tf *f, defs *d);
-void writeout (tf * f, defs *d);
-void loadtf (tf * f);
-void synch(tf *f, defs *d);
-void killCTL(g_ctl ***c, int n);
-int  cmpstringp(const void *p1, const void *p2);
-glob_t * dirlist(char *pattern);
-glob_t * saclist(defs *d);
-tf *inputme (int argc, char **argv, defs *d);
-g_ctl **initCTL(defs *d);
-defs *newdefs(glob_t *glb);
-void tffree(tf *tf, int n);
-void plot (g_ctl * ctl, float *data, int npts, float delta, float b, int overlay);
+void multitraceplot(defs * d);
+void getminmax(float *data, SACHEAD * hdr, float start, float end,
+			   float *rmin, float *rmax);
+void filtertf(tf * f, defs * d);
+void writeout(tf * f, defs * d);
+void loadtf(tf * f);
+void synch(tf * f, defs * d);
+void killCTL(g_ctl *** c, int n);
+int cmpstringp(const void *p1, const void *p2);
+glob_t *dirlist(char *pattern);
+glob_t *saclist(defs * d);
+tf *inputme(int argc, char **argv, defs * d);
+g_ctl **initCTL(defs * d);
+defs *newdefs(glob_t * glb);
+void tffree(tf * tf, int n);
+void plot(g_ctl * ctl, float *data, int npts, float delta, float b,
+		  int overlay);
 
 int sortDist(const void *p1, const void *p2);
 int sortBaz(const void *p1, const void *p2);

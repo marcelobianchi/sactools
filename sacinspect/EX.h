@@ -21,6 +21,6 @@
 
 #include <glob.h>
 
-void EX_process(glob_t *glb, char *oldstationlist);
-void EXHIST_process(glob_t *glb);
-void EXAZ_process(glob_t *glb, char *name);
+void EX_process(glob_t * glb, char *oldstationlist);
+void EXHIST_process(glob_t * glb);
+void EXAZ_process(glob_t * glb, char *name);

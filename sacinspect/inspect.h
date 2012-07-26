@@ -40,68 +40,67 @@
 #define DEFAULT_POST 20.0
 
 typedef struct timefile {
-  double         reference;
-  char           *filename;
-  char           *station;
-  char           *net;
+	double reference;
+	char *filename;
+	char *station;
+	char *net;
 
-  SACHEAD        *hz,*hn,*he;
-  float          *z,*n,*e;
-  float          *zf,*nf,*ef;
+	SACHEAD *hz, *hn, *he;
+	float *z, *n, *e;
+	float *zf, *nf, *ef;
 
-  int             selected;
+	int selected;
 } tf;
 
 typedef struct {
-  // Plot Controls
-  int grID;
+	// Plot Controls
+	int grID;
 
-  g_ctl **ctl;
-  int hidephase;
-  int putname;
-  int printout;
-  int alig;
-  int offset;
-  int max;
-  float gpre;
-  float gpost;
-  float prephase;
-  float postphase;
-  int overlay;
-  char lastaction[1024];
-  int onlyselected;
-  int plotsearchsize;
-  float zoom;
-  int sortmode; 
+	g_ctl **ctl;
+	int hidephase;
+	int putname;
+	int printout;
+	int alig;
+	int offset;
+	int max;
+	float gpre;
+	float gpost;
+	float prephase;
+	float postphase;
+	int overlay;
+	char lastaction[1024];
+	int onlyselected;
+	int plotsearchsize;
+	float zoom;
+	int sortmode;
 
-  // Filters
-  float lp;
-  float hp;
-  int filter;
-  int needfilter;
+	// Filters
+	float lp;
+	float hp;
+	int filter;
+	int needfilter;
 
-  // Data
-  glob_t *glb;
-  int has;
-  tf *files;
-  int nfiles;
-  int currentdir;
+	// Data
+	glob_t *glb;
+	int has;
+	tf *files;
+	int nfiles;
+	int currentdir;
 
-  // Processing parameters
-  float searchsize;
-  float insetsearchsize;
-  
-  int needsave;
+	// Processing parameters
+	float searchsize;
+	float insetsearchsize;
+
+	int needsave;
 } defs;
 
 typedef struct {
-  float lp;
-  float hp;
-  float gpre;
-  float gpost;
+	float lp;
+	float hp;
+	float gpre;
+	float gpost;
 } globconf;
 
 extern globconf gg;
 
 #endif
-

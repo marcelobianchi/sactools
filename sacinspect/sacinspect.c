@@ -27,89 +27,94 @@
 #include <EX.h>
 
 globconf gg = {
-  DEFAULT_LP,
-  DEFAULT_HP,
-  DEFAULT_PRE,
-  DEFAULT_POST
+	DEFAULT_LP,
+	DEFAULT_HP,
+	DEFAULT_PRE,
+	DEFAULT_POST
 };
 
-int main (int argc, char **argv)
+int main(int argc, char **argv)
 {
-  glob_t * glb = NULL;
-  int compare;
-  
-  loaddefaults();
-  if (argc == 1) {
-    fprintf(stderr,"You must use one of:\n");
-    fprintf(stderr,"\t-pick [Dir Pattern]\n");
-    fprintf(stderr,"\t-onedir [Dir]\n");
-    fprintf(stderr,"\t-export [Dir Pattern] [Old Station List File]\n");
-    fprintf(stderr,"\t-histogram\n");
-    exit(-1);
-  }
-  
-  if ((compare=strncmp(argv[1],"-pick",5)) == 0) {
-    if (argc == 3)
-      glb = dirlist(argv[2]);
-    else 
-      glb = dirlist("??????_????");
+	glob_t *glb = NULL;
+	int compare;
+	char default_path[] = "??????_????";
+	
+	loaddefaults();
+	if (argc == 1) {
+		fprintf(stderr, "You must use one of:\n");
+		fprintf(stderr, "\t-pick [Dir Pattern]\n");
+		fprintf(stderr, "\t-onedir [Dir]\n");
+		fprintf(stderr,
+				"\t-export [Dir Pattern] [Old Station List File]\n");
+		fprintf(stderr, "\t-histogram\n");
+		exit(-1);
+	}
 
-    if (glb->gl_pathc == 0) {
-      fprintf(stderr,"No Directories found.\n");
-      return -1;
-    }
+	if ((compare = strncmp(argv[1], "-pick", 5)) == 0) {
+		if (argc == 3)
+			glb = dirlist(argv[2]);
+		else
+			glb = dirlist(default_path);
 
-    PK_process(glb);
-  } else if ((compare=strncmp(argv[1],"-export",7)) == 0) {
-    char *oldlist = NULL;
+		if (glb->gl_pathc == 0) {
+			fprintf(stderr, "No Directories found.\n");
+			return -1;
+		}
 
-    if (argc == 3)
-      glb = dirlist(argv[2]);
-    else 
-      glb = dirlist("??????_????");
-      
-    if (argc == 4) oldlist=argv[3];
-      
-    if (glb->gl_pathc == 0) {
-      fprintf(stderr,"No Directories found.\n");
-      return -1;
-    }
+		PK_process(glb);
+	} else if ((compare = strncmp(argv[1], "-export", 7)) == 0) {
+		char *oldlist = NULL;
 
-    EX_process(glb, oldlist);
-  } else if ((compare=strncmp(argv[1],"-onedir",7)) == 0) {
-    glb = malloc(sizeof(glob_t));
-    glb->gl_pathv = malloc(sizeof(char*));
-    glb->gl_pathc=1;
+		if (argc == 3)
+			glb = dirlist(argv[2]);
+		else
+			glb = dirlist(default_path);
 
-    if (argc == 3) {
-      glb->gl_pathv[0] = malloc(sizeof(char)*(strlen(argv[2])+1));
-      strcpy(glb->gl_pathv[0],argv[2]);
-    } else {
-      glb->gl_pathv[0] = malloc(sizeof(char)*4);
-      strcpy(glb->gl_pathv[0],"./");  
-    }
+		if (argc == 4)
+			oldlist = argv[3];
 
-    PK_process(glb);
-  } else if ((compare=strncmp(argv[1],"-az",10)) == 0) {
-    glb = dirlist("??????_????");
-    EXAZ_process(glb,argv[2]);    
+		if (glb->gl_pathc == 0) {
+			fprintf(stderr, "No Directories found.\n");
+			return -1;
+		}
 
-  } else if ((compare=strncmp(argv[1],"-histogram",10)) == 0) {
-    if (argc == 3)
-      glb = dirlist(argv[2]);
-    else 
-      glb = dirlist("??????_????");
-    
-    if (glb->gl_pathc == 0) {
-      fprintf(stderr,"No Directories found.\n");
-      return -1;
-    }
-    EXHIST_process(glb);
-  }
-  
-  /* Clean up */
-  if (glb != NULL) globfree(glb);
-  savedefaults();
-  
-  return 0;
+		EX_process(glb, oldlist);
+	} else if ((compare = strncmp(argv[1], "-onedir", 7)) == 0) {
+		glb = malloc(sizeof(glob_t));
+		glb->gl_pathv = malloc(sizeof(char *));
+		glb->gl_pathc = 1;
+
+		if (argc == 3) {
+			glb->gl_pathv[0] =
+				malloc(sizeof(char) * (strlen(argv[2]) + 1));
+			strcpy(glb->gl_pathv[0], argv[2]);
+		} else {
+			glb->gl_pathv[0] = malloc(sizeof(char) * 4);
+			strcpy(glb->gl_pathv[0], "./");
+		}
+
+		PK_process(glb);
+	} else if ((compare = strncmp(argv[1], "-az", 10)) == 0) {
+		glb = dirlist(default_path);
+		EXAZ_process(glb, argv[2]);
+
+	} else if ((compare = strncmp(argv[1], "-histogram", 10)) == 0) {
+		if (argc == 3)
+			glb = dirlist(argv[2]);
+		else
+			glb = dirlist(default_path);
+
+		if (glb->gl_pathc == 0) {
+			fprintf(stderr, "No Directories found.\n");
+			return -1;
+		}
+		EXHIST_process(glb);
+	}
+
+	/* Clean up */
+	if (glb != NULL)
+		globfree(glb);
+	savedefaults();
+
+	return 0;
 }

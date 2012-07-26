@@ -34,7 +34,7 @@ void showHelp()
 {
 	fprintf(stdout, "Usage:\n");
 	fprintf(stdout,
-		"\tsacpickmax\n\t\t[-h (Help)]\n\t\t[-nd (don't de-mean window)]\n\t\t[-min|-max (default is to mark the global (absolute) max amplitude value)]\n\t\t<-f sac filename>\n\t\t<-i reference field>\n\t\t<-o output mark field>\n\t\t<-w window size to consider from input field>\n");
+			"\tsacpickmax\n\t\t[-h (Help)]\n\t\t[-nd (don't de-mean window)]\n\t\t[-min|-max (default is to mark the global (absolute) max amplitude value)]\n\t\t<-f sac filename>\n\t\t<-i reference field>\n\t\t<-o output mark field>\n\t\t<-w window size to consider from input field>\n");
 }
 
 int main(int argc, char **argv)
@@ -50,11 +50,11 @@ int main(int argc, char **argv)
 	int markmode = ABS;
 	int picktype;
 
-	int filter=0;
-	int NH=0;
-	int NL=0;
+	int filter = 0;
+	int NH = 0;
+	int NL = 0;
 	float FH, FL;
-	
+
 	char *input = NULL, *output = NULL, *filename = NULL;
 	float size = -1.0;
 
@@ -78,14 +78,14 @@ int main(int argc, char **argv)
 		 */
 
 		if ((j = strncmp(argv[i], "-hp", 3)) == 0 && i < argc - 1) {
-		        NH=2;
+			NH = 2;
 			FH = atof(argv[i + 1]);
 			i++;
 			continue;
 		}
 
 		if ((j = strncmp(argv[i], "-lp", 3)) == 0 && i < argc - 1) {
-		        NL=2;
+			NL = 2;
 			FL = atof(argv[i + 1]);
 			i++;
 			continue;
@@ -136,8 +136,8 @@ int main(int argc, char **argv)
 		}
 
 		fprintf(stderr,
-			"Error on option %s (Unrecognized or not enough arguments.\n",
-			argv[i]);
+				"Error on option %s (Unrecognized or not enough arguments.\n",
+				argv[i]);
 		continue;
 	}
 
@@ -156,36 +156,36 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	filter = ((NH != 0) || (NL!=0));
-	
+	filter = ((NH != 0) || (NL != 0));
+
 	/* data input */
 	data = io_readSac(filename, &hdr);
 	if (data == NULL) {
 		fprintf(stderr, "Error reading file: %s\n", filename);
 		return -1;
 	}
-        
-        /* Filter data if necessary */
-        if (filter) {
-         float *temp = iir(data, hdr->npts, hdr->delta, NH, FH, NL, FL); 
-         if (temp != NULL) {
-           io_freeData(data);
-           data = temp;         
-         }
-       }
-       
+
+	/* Filter data if necessary */
+	if (filter) {
+		float *temp = iir(data, hdr->npts, hdr->delta, NH, FH, NL, FL);
+		if (temp != NULL) {
+			io_freeData(data);
+			data = temp;
+		}
+	}
+
 	/* Check pick variables */
 	err = 0;
 
 	if (!isMarkField(output)) {
 		fprintf(stderr,
-			"Variable indicated for output field is not valid for markers.\n");
+				"Variable indicated for output field is not valid for markers.\n");
 		err = 1;
 	}
 
 	if (!isMarkField(input)) {
 		fprintf(stderr,
-			"Variable indicated for input field is not valid.\n");
+				"Variable indicated for input field is not valid.\n");
 		err = 1;
 	}
 
@@ -196,8 +196,8 @@ int main(int argc, char **argv)
 	err = hdu_getValueFromChar(input, hdr, &picktime, NULL, NULL);
 	if ((err != TYPE_FLOAT) || (picktime == SAC_HEADER_FLOAT_UNDEFINED)) {
 		fprintf(stderr,
-			"Variable %s is undefined (%f) or other error.\n",
-			argv[2], picktime);
+				"Variable %s is undefined (%f) or other error.\n",
+				argv[2], picktime);
 		return -1;
 	}
 
@@ -260,8 +260,7 @@ int main(int argc, char **argv)
 		switch (markmode) {
 		case (ABS):
 			if (rmean == 0)
-				fprintf(stderr,
-					"W:> ABS mode without mean removal.\n");
+				fprintf(stderr, "W:> ABS mode without mean removal.\n");
 
 			if (fabs(min) > max) {
 				maxpicktime = hdu_getSecondsFromNPTS(hdr, minj);
@@ -286,14 +285,15 @@ int main(int argc, char **argv)
 
 	/* report */
 	fprintf(stdout,
-		"%s %s ( %d / %f ) [ %.1f ( %d ) -> %.1f ( %d ) ] = %f type %s\n",
-		filename, (filter==1)?"(F)":"(NF)", hdr->npts, hdr->delta, picktime, first,
-		picktime + size, last, maxpicktime,
-		(picktype == MAX) ? "max" : "min");
+			"%s %s ( %d / %f ) [ %.1f ( %d ) -> %.1f ( %d ) ] = %f type %s\n",
+			filename, (filter == 1) ? "(F)" : "(NF)", hdr->npts,
+			hdr->delta, picktime, first, picktime + size, last,
+			maxpicktime, (picktype == MAX) ? "max" : "min");
 
 	/* write back variable */
 	if ((err =
-	     hdu_changeValueFromChar(hdr, output, &maxpicktime, NULL, NULL)) != 0) {
+		 hdu_changeValueFromChar(hdr, output, &maxpicktime, NULL,
+								 NULL)) != 0) {
 		fprintf(stderr, "Could not save max amp pick to %s.", output);
 		return -1;
 	} else {
@@ -305,8 +305,8 @@ int main(int argc, char **argv)
 	/* write sac hdr */
 	io_writeSacHead(filename, hdr);
 
-        /* Write the filtered trace ? */
-        /* io_writeSac("lala.sac", hdr, data); */
+	/* Write the filtered trace ? */
+	/* io_writeSac("lala.sac", hdr, data); */
 
 	/* quit */
 	io_freeData(data);
