@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 	config = readConfig(filename);
 
 	/* Find the current folder pattern to use */
-	default_path = getConfigAsString(config,"folderPattern", "??????_????");
+	default_path = getConfigAsString(config, NAME_PATTERN, DEFAULT_PATTERN);
 
 	/* Choose module to run */
 	if ((compare = strncmp(argv[1], "-pick", 5)) == 0) {
@@ -63,12 +63,7 @@ int main(int argc, char **argv)
 			glb = dirlist(argv[2]);
 		else
 			glb = dirlist(default_path);
-
-		if (glb->gl_pathc > 1)
-			PK_process(glb);
-		else
-			fprintf(stderr, "No Directories found.\n");
-
+		PK_process(glb);
 	} else if ((compare = strncmp(argv[1], "-export", 7)) == 0) {
 		char *oldlist = NULL;
 
@@ -81,7 +76,7 @@ int main(int argc, char **argv)
 			oldlist = argv[3];
 
 		if (glb->gl_pathc == 0) {
-			fprintf(stderr, "No Directories found.\n");
+			fprintf(stderr, "No Directories found. Use option -pick and change the config options.\n");
 		} else {
 			EX_process(glb, oldlist);
 		}
@@ -112,7 +107,7 @@ int main(int argc, char **argv)
 			glb = dirlist(default_path);
 
 		if (glb->gl_pathc == 0) {
-			fprintf(stderr, "No Directories found.\n");
+			fprintf(stderr, "No Directories found. Use -pick -> config to change folder matching pattern.\n");
 			return -1;
 		}
 		EXHIST_process(glb);

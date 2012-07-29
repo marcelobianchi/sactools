@@ -83,8 +83,8 @@ int multoption(int value, int pos, char *c, char *message, char **option,
 	return --pos;
 }
 
-int valueoption(float value, int pos, char *c, char *message,
-				float defaultv)
+int valueoptionchar(char *value, int pos, char *c, char *message,
+				char *defaultv)
 {
 	float line = pos * spacing;
 	char cvalue[200];
@@ -92,19 +92,26 @@ int valueoption(float value, int pos, char *c, char *message,
 	cpgmtxt("T", line, col4, 1.0, c);
 	cpgmtxt("T", line, col1, 1.0, message);
 
-	sprintf(cvalue, "%.4f", value);
-	if (value == defaultv)
+	if (strlen(value) == strlen(defaultv) && strncmp(value, defaultv, strlen(value)) == 0)
 		cpgsci(3);
 	else
 		cpgsci(2);
-	cpgmtxt("T", line, col2, 0.0, cvalue);
+	cpgmtxt("T", line, col2, 0.0, value);
 
-	sprintf(cvalue, "%.4f", defaultv);
 	cpgsci(14);
-	cpgmtxt("T", line, col3, 0.0, cvalue);
+	cpgmtxt("T", line, col3, 0.0, defaultv);
 
 	cpgsci(1);
 	return --pos;
+}
+
+int valueoption(float value, int pos, char *c, char *message,
+				float defaultv)
+{
+	char cvalue[200], cdefaultv[200];
+	sprintf(cvalue, "%.4f", value);
+	sprintf(cdefaultv, "%.4f", defaultv);
+	return valueoptionchar(cvalue, pos, c, message, cdefaultv);
 }
 
 int titleoption(char *message, int pos)
@@ -128,6 +135,7 @@ void Config(defs * d)
 	float ax, ay;
 	int k = -1;
 	float value;
+	char aux[200];
 	
 	/*  char *putname[20] = { "None", "Simple", "Complete" };
 	   int nputname = 3;
@@ -148,18 +156,21 @@ void Config(defs * d)
 		ctl_resizeview(Wd);
 		ctl_clean(NULL);
 		k = titleoption("Global Defaults:", k);
-		k = valueoption(getConfigAsNumber(config, "lowPass", DEFAULT_LP), k, "l",
+		k = valueoption(getConfigAsNumber(config, NAME_LP, DEFAULT_LP), k, "l",
 						"Default Low Pass filter for new events:",
 						DEFAULT_LP);
-		k = valueoption(getConfigAsNumber(config, "highPass", DEFAULT_HP), k, "h",
+		k = valueoption(getConfigAsNumber(config, NAME_HP, DEFAULT_HP), k, "h",
 						"Default High Pass filter for new events:",
 						DEFAULT_HP);
-		k = valueoption(getConfigAsNumber(config, "preWindow", DEFAULT_PRE), k, "a",
+		k = valueoption(getConfigAsNumber(config, NAME_PRE, DEFAULT_PRE), k, "a",
 						"Show Window in global align mode (pre):",
 						DEFAULT_PRE);
-		k = valueoption(getConfigAsNumber(config, "postWindow", DEFAULT_POST), k, "s",
+		k = valueoption(getConfigAsNumber(config, NAME_POST, DEFAULT_POST), k, "s",
 						"Show Window in global align model (post):",
 						DEFAULT_POST);
+		k = valueoptionchar(getConfigAsString(config, NAME_PATTERN, DEFAULT_PATTERN), k, "f",
+						"Pattern used to search for folders (Need re-start):",
+						DEFAULT_PATTERN);
 
 		k -= 12;
 		k = titleoption("Q - To Return !", k);
@@ -168,28 +179,33 @@ void Config(defs * d)
 		switch (ch) {
 		case ('l'):
 			value = lerfloat("Low pass filter Hz?");
-			setConfigNumber(config, "lowPass", value);
+			setConfigNumber(config, NAME_LP, value);
 			break;
 
 		case ('h'):
 			value = lerfloat("High pass filter Hz?");
-			setConfigNumber(config, "highPass", value);
+			setConfigNumber(config, NAME_HP, value);
 			break;
 
 		case ('a'):
 			value = fabs(lerfloat("Time in seconds before the theoretical mark?"));
-			setConfigNumber(config, "preWindow", value);
+			setConfigNumber(config, NAME_PRE, value);
 			break;
 
 		case ('s'):
 			value = fabs(lerfloat("Time in seconds after the theoretical mark?"));
-			setConfigNumber(config, "postWindow", value);
+			setConfigNumber(config, NAME_POST, value);
+			break;
+
+		case ('f'):
+			lerchar("Enter a new folder pattern?", aux, 200);
+			setConfigString(config, NAME_PATTERN, aux);
 			break;
 
 		case ('q'):
 		case ('Q'):
-			ax = getConfigAsNumber(config, "lowPass", DEFAULT_LP);
-			ay = getConfigAsNumber(config, "highPass", DEFAULT_HP);
+			ax = getConfigAsNumber(config, NAME_LP, DEFAULT_LP);
+			ay = getConfigAsNumber(config, NAME_HP, DEFAULT_HP);
 			if (ax <= ay) {
 				ch = 'E';
 				strcpy(message,

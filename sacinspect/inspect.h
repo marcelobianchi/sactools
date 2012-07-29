@@ -35,6 +35,15 @@
 #define ALIGF 1
 #define ALIGO 2
 
+// Config variable names
+#define NAME_HP "highPass"
+#define NAME_LP "lowPass"
+#define NAME_PATTERN "folderPattern"
+#define NAME_PRE "preWindow"
+#define NAME_POST "postWindow"
+
+// Config default values
+#define DEFAULT_PATTERN "??????_????"
 #define DEFAULT_LP 2.0
 #define DEFAULT_HP 0.5
 #define DEFAULT_PRE 5.0

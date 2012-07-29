@@ -196,9 +196,19 @@ void multitraceplot(defs * d)
 
 	ctl_clean(NULL);
 
-	lastFile =
-		((d->offset + d->max) >=
-		 d->nfiles) ? (d->nfiles - 1) : (d->offset + d->max);
+	ctl_resizeview(ctl[0]);
+	plothelp(d);
+
+	// If no traces found give warning and return
+	if (d->nfiles <= 0) {
+		sprintf(string,
+				"No folders matching pattern found. Use ? to change folder pattern configuration !");
+		cpgmtxt("B", 2.5, 0.5, 0.5, string);
+		return;
+	}
+
+	lastFile = ((d->offset + d->max) >=
+				d->nfiles) ? (d->nfiles - 1) : (d->offset + d->max);
 	x1 = d->files[d->offset].hz->a + d->files[d->offset].reference -
 		d->gpre;
 	x2 = d->files[lastFile].hz->a + d->files[lastFile].reference +
@@ -339,7 +349,6 @@ void multitraceplot(defs * d)
 
 	}							// End of trace for loop
 
-
 	// basic information on the foot
 	ctl_resizeview(ctl[0]);
 	sprintf(string, "[%03d-%03d/%03d] [Filter %s (%.2f to %.2f hz)]",
@@ -351,8 +360,6 @@ void multitraceplot(defs * d)
 			d->searchsize, d->insetsearchsize, d->max,
 			(d->sortmode == 0) ? "DZ" : "BAZ");
 	cpgmtxt("B", 2.5, 1.0, 1.0, string);
-
-	plothelp(d);
 
 	ctl_resizeview(ctl[d->max - 1]);
 	sprintf(string, "%11s",
@@ -519,8 +526,9 @@ glob_t *dirlist(char *pattern)
 	glob_t *glb = NULL;
 
 	glb = malloc(sizeof(glob_t));
-
+	glb->gl_pathc = 0;
 	glob(pattern, GLOB_ONLYDIR, NULL, glb);
+
 	return glb;
 }
 
@@ -576,17 +584,20 @@ void checkTREF(tf * files, int nfiles)
 glob_t *saclist(defs * d)
 {
 	glob_t *glb = NULL;
-	char *filepath;
-	char *path = d->glb->gl_pathv[d->currentdir];
-	FILE *a;
+	char *filepath = NULL;
+	char *path = NULL;
+	FILE *a = NULL;
 
-	filepath = malloc(sizeof(char) * (strlen(path) + 10));
 	glb = malloc(sizeof(glob_t));
+	glb->gl_pathc = 0;
 
+	if (d->glb->gl_pathc == 0)
+		return glb;
+
+	path = d->glb->gl_pathv[d->currentdir];
+	filepath = malloc(sizeof(char) * (strlen(path) + 10));
 	sprintf(filepath, "%s/*SAC", path);
-
 	glob(filepath, 0, NULL, glb);
-
 
 	sprintf(filepath, "%s/HAS", path);
 	if ((a = fopen(filepath, "r")) != NULL) {
@@ -595,7 +606,6 @@ glob_t *saclist(defs * d)
 	} else {
 		d->has = 0;
 	}
-
 
 	free(filepath);
 	filepath = NULL;
@@ -607,15 +617,17 @@ tf *inputme(int argc, char **argv, defs * d)
 	tf *files = NULL;
 	int i;
 
-	files = malloc(sizeof(tf) * argc);
 	d->nfiles = 0;
 	d->offset = 0;
 
 	d->alig = (d->has) ? ALIGF : ALIGA;
-//  d->lp = gg.lp;
-	d->lp = getConfigAsNumber(config, "lowPass", DEFAULT_LP);
-//  d->hp = gg.hp;
-	d->hp = getConfigAsNumber(config, "highPass", DEFAULT_HP);
+	d->lp = getConfigAsNumber(config, NAME_LP, DEFAULT_LP);
+	d->hp = getConfigAsNumber(config, NAME_HP, DEFAULT_HP);
+
+	if (argc == 0)
+		return files;
+
+	files = malloc(sizeof(tf) * argc);
 
 	for (i = 0; i < argc; i++) {
 		d->nfiles++;
@@ -744,15 +756,15 @@ defs *newdefs(glob_t * glb)
 	d->alig = ALIGA;
 	d->offset = 0;
 
-	d->lp = getConfigAsNumber(config, "lowPass", DEFAULT_LP);
-	d->hp = getConfigAsNumber(config, "highPass", DEFAULT_HP);
+	d->lp = getConfigAsNumber(config, NAME_LP, DEFAULT_LP);
+	d->hp = getConfigAsNumber(config, NAME_HP, DEFAULT_HP);
 
 	d->searchsize = 10;
 	d->nfiles = 0;
 	d->filter = 1;
 
-	d->lp = getConfigAsNumber(config, "preWindow", DEFAULT_PRE);
-	d->hp = getConfigAsNumber(config, "postWindow", DEFAULT_POST);
+	d->lp = getConfigAsNumber(config, NAME_PRE, DEFAULT_PRE);
+	d->hp = getConfigAsNumber(config, NAME_POST, DEFAULT_POST);
 
 	d->prephase = 20;
 	d->postphase = 30;
