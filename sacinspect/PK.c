@@ -160,12 +160,20 @@ void Config(defs * d)
 		k = valueoptionchar(getConfigAsString(config, NAME_PATTERN, DEFAULT_PATTERN), k, "f",
 						"Pattern used to search for folders (Need re-start):",
 						DEFAULT_PATTERN);
+		k = valueoption(getConfigAsNumber(config, NAME__ZOOMGAIN, DEFAULT_ZOOMGAIN), k, "z",
+						"Gain multiplier when zoom is active:",
+						DEFAULT_ZOOMGAIN);
 
 		k -= 12;
 		k = titleoption("Q - To Return !", k);
 
 		ch = getonechar(&ax, &ay);
 		switch (ch) {
+		case ('z'):
+			value = lerfloat("Enter new zoom gain?");
+			setConfigNumber(config, NAME__ZOOMGAIN, value);
+			break;
+
 		case ('l'):
 			value = lerfloat("Low pass filter Hz?");
 			setConfigNumber(config, NAME_LP, value);
@@ -228,8 +236,11 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 	case ('!'):
 		if (d->zoom == 1.0) {
-			d->zoom = 3.0;
-			sprintf(d->lastaction, "Amplitude Zoom On.");
+			d->zoom = getConfigAsNumber(config, NAME__ZOOMGAIN, DEFAULT_ZOOMGAIN);
+			if (d->zoom < 0.01) {
+				d->zoom = 0.001;
+			}
+			sprintf(d->lastaction, "Amplitude Zoom On (Gain = %.2f).", d->zoom);
 		} else {
 			d->zoom = 1.0;
 			sprintf(d->lastaction, "Amplitude Zoom Off.");
@@ -718,7 +729,6 @@ void PK_process(glob_t * glb)
 	tffree(d->files, d->nfiles);
 	killCTL(&d->ctl, d->max);
 }
-
 
 glob_t *collector(defs * d, char *net, char *station)
 {

@@ -41,9 +41,11 @@
 #define NAME_PATTERN "folderPattern"
 #define NAME_PRE "preWindow"
 #define NAME_POST "postWindow"
+#define NAME__ZOOMGAIN "zoomGain"
 
 // Config default values
 #define DEFAULT_PATTERN "??????_????"
+#define DEFAULT_ZOOMGAIN 3.0
 #define DEFAULT_LP 2.0
 #define DEFAULT_HP 0.5
 #define DEFAULT_PRE 5.0
