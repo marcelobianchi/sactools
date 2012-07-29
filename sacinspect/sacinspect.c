@@ -31,8 +31,8 @@ CFG *config;
 int main(int argc, char **argv)
 {
 	glob_t *glb = NULL;
+	char *pathPattern = NULL;
 	int compare;
-	char *default_path = NULL;
 
 	char filename[5012];
 	char *home = getenv("HOME");
@@ -55,15 +55,15 @@ int main(int argc, char **argv)
 	config = readConfig(filename);
 
 	/* Find the current folder pattern to use */
-	default_path = getConfigAsString(config, NAME_PATTERN, DEFAULT_PATTERN);
+	pathPattern = getConfigAsString(config, NAME_PATTERN, DEFAULT_PATTERN);
 
 	/* Choose module to run */
 	if ((compare = strncmp(argv[1], "-pick", 5)) == 0) {
-		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(default_path);
+		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(pathPattern);
 		PK_process(glb);
 	} else if ((compare = strncmp(argv[1], "-export", 7)) == 0) {
 		char * oldlist = (argc >= 4) ? argv[3] : NULL;
-		glb = (argc >= 3) ? dirlist(argv[2]) : dirlist(default_path);
+		glb = (argc >= 3) ? dirlist(argv[2]) : dirlist(pathPattern);
 
 		if (glb->gl_pathc > 0) {
 			EX_process(glb, oldlist);
@@ -90,18 +90,18 @@ int main(int argc, char **argv)
 		free(glb);
 		glb = NULL;
 	} else if ((compare = strncmp(argv[1], "-az", 10)) == 0) {
-		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(default_path);
+		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(pathPattern);
 		if (glb->gl_pathc > 0)
 			EXAZ_process(glb, argv[2]);
 	} else if ((compare = strncmp(argv[1], "-histogram", 10)) == 0) {
-		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(default_path);
+		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(pathPattern);
 		if (glb->gl_pathc > 0)
 			EXHIST_process(glb);
 	}
 
 	if (glb != NULL && glb->gl_pathc == 0) {
 		fprintf(stderr, "No Directories found for pattern %s.\n",
-				(argc >= 3) ? argv[2] : default_path);
+				(argc >= 3) ? argv[2] : pathPattern);
 	}
 	
 	/* Save the config */
