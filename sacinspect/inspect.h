@@ -26,6 +26,7 @@
 #include <cpgplot.h>
 #include <gr.h>
 #include <string.h>
+#include <cfg.h>
 
 #ifndef _lala_
 #define _lala_
@@ -101,6 +102,5 @@ typedef struct {
 	float gpost;
 } globconf;
 
-extern globconf gg;
-
+extern CFG *config;
 #endif

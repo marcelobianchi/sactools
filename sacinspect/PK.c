@@ -127,7 +127,8 @@ void Config(defs * d)
 	char ch;
 	float ax, ay;
 	int k = -1;
-
+	float value;
+	
 	/*  char *putname[20] = { "None", "Simple", "Complete" };
 	   int nputname = 3;
 
@@ -147,16 +148,16 @@ void Config(defs * d)
 		ctl_resizeview(Wd);
 		ctl_clean(NULL);
 		k = titleoption("Global Defaults:", k);
-		k = valueoption(gg.lp, k, "l",
+		k = valueoption(getConfigAsNumber(config, "lowPass", DEFAULT_LP), k, "l",
 						"Default Low Pass filter for new events:",
 						DEFAULT_LP);
-		k = valueoption(gg.hp, k, "h",
+		k = valueoption(getConfigAsNumber(config, "highPass", DEFAULT_HP), k, "h",
 						"Default High Pass filter for new events:",
 						DEFAULT_HP);
-		k = valueoption(gg.gpre, k, "a",
+		k = valueoption(getConfigAsNumber(config, "preWindow", DEFAULT_PRE), k, "a",
 						"Show Window in global align mode (pre):",
 						DEFAULT_PRE);
-		k = valueoption(gg.gpost, k, "s",
+		k = valueoption(getConfigAsNumber(config, "postWindow", DEFAULT_POST), k, "s",
 						"Show Window in global align model (post):",
 						DEFAULT_POST);
 
@@ -166,28 +167,30 @@ void Config(defs * d)
 		ch = getonechar(&ax, &ay);
 		switch (ch) {
 		case ('l'):
-			gg.lp = lerfloat("Low pass filter Hz?");
+			value = lerfloat("Low pass filter Hz?");
+			setConfigNumber(config, "lowPass", value);
 			break;
 
 		case ('h'):
-			gg.hp = lerfloat("High pass filter Hz?");
+			value = lerfloat("High pass filter Hz?");
+			setConfigNumber(config, "highPass", value);
 			break;
 
 		case ('a'):
-			gg.gpre =
-				fabs(lerfloat
-					 ("Time in seconds before the theoretical mark?"));
+			value = fabs(lerfloat("Time in seconds before the theoretical mark?"));
+			setConfigNumber(config, "preWindow", value);
 			break;
 
 		case ('s'):
-			gg.gpost =
-				fabs(lerfloat
-					 ("Time in seconds after the theoretical mark?"));
+			value = fabs(lerfloat("Time in seconds after the theoretical mark?"));
+			setConfigNumber(config, "postWindow", value);
 			break;
 
 		case ('q'):
 		case ('Q'):
-			if (gg.lp <= gg.hp) {
+			ax = getConfigAsNumber(config, "lowPass", DEFAULT_LP);
+			ay = getConfigAsNumber(config, "highPass", DEFAULT_HP);
+			if (ax <= ay) {
 				ch = 'E';
 				strcpy(message,
 					   "Low Pass should be larger than high pass.");

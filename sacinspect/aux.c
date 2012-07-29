@@ -612,8 +612,10 @@ tf *inputme(int argc, char **argv, defs * d)
 	d->offset = 0;
 
 	d->alig = (d->has) ? ALIGF : ALIGA;
-	d->lp = gg.lp;
-	d->hp = gg.hp;
+//  d->lp = gg.lp;
+	d->lp = getConfigAsNumber(config, "lowPass", DEFAULT_LP);
+//  d->hp = gg.hp;
+	d->hp = getConfigAsNumber(config, "highPass", DEFAULT_HP);
 
 	for (i = 0; i < argc; i++) {
 		d->nfiles++;
@@ -732,38 +734,6 @@ g_ctl **initCTL(defs * d)
 	return ctl;
 }
 
-void loaddefaults()
-{
-	FILE *ent;
-	char *home, filename[2052];
-	extern globconf gg;
-
-	home = getenv("HOME");
-	if (home != NULL)
-		sprintf(filename, "%s/.sacinspectrc", home);
-	if (home != NULL && ((ent = fopen(filename, "r")) != NULL)) {
-		fscanf(ent, "%f %f %f %f", &gg.lp, &gg.hp, &gg.gpre, &gg.gpost);
-		//    fprintf(stderr,"Loaded: %f %f %f %f",gg.lp, gg.hp, gg.gpre, gg.gpost);
-		fclose(ent);
-	}
-}
-
-void savedefaults()
-{
-	FILE *ent;
-	char *home, filename[2052];
-	extern globconf gg;
-
-	home = getenv("HOME");
-	if (home != NULL)
-		sprintf(filename, "%s/.sacinspectrc", home);
-	if (home != NULL && ((ent = fopen(filename, "w")) != NULL)) {
-		fprintf(ent, "%f %f %f %f\n", gg.lp, gg.hp, gg.gpre, gg.gpost);
-		//    fprintf(stderr,"Defaults saved.");
-		fclose(ent);
-	}
-}
-
 defs *newdefs(glob_t * glb)
 {
 	defs *d;
@@ -774,15 +744,15 @@ defs *newdefs(glob_t * glb)
 	d->alig = ALIGA;
 	d->offset = 0;
 
-	d->lp = gg.lp;
-	d->hp = gg.hp;
+	d->lp = getConfigAsNumber(config, "lowPass", DEFAULT_LP);
+	d->hp = getConfigAsNumber(config, "highPass", DEFAULT_HP);
 
 	d->searchsize = 10;
 	d->nfiles = 0;
 	d->filter = 1;
 
-	d->gpre = gg.gpre;
-	d->gpost = gg.gpost;
+	d->lp = getConfigAsNumber(config, "preWindow", DEFAULT_PRE);
+	d->hp = getConfigAsNumber(config, "postWindow", DEFAULT_POST);
 
 	d->prephase = 20;
 	d->postphase = 30;

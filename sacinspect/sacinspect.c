@@ -26,20 +26,21 @@
 #include <PK.h>
 #include <EX.h>
 
-globconf gg = {
-	DEFAULT_LP,
-	DEFAULT_HP,
-	DEFAULT_PRE,
-	DEFAULT_POST
-};
+CFG *config;
 
 int main(int argc, char **argv)
 {
 	glob_t *glb = NULL;
 	int compare;
-	char default_path[] = "??????_????";
-	
-	loaddefaults();
+	char *default_path = NULL;
+
+	char filename[5012];
+	char *home = getenv("HOME");
+
+	sprintf(filename, ".sacinspectrc");
+	if (home != NULL)
+		sprintf(filename, "%s/.sacinspectrc", home);
+
 	if (argc == 1) {
 		fprintf(stderr, "You must use one of:\n");
 		fprintf(stderr, "\t-pick [Dir Pattern]\n");
@@ -50,18 +51,24 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
+	/* Initialize the configuration infrastructure */
+	config = readConfig(filename);
+
+	/* Find the current folder pattern to use */
+	default_path = getConfigAsString(config,"folderPattern", "??????_????");
+
+	/* Choose module to run */
 	if ((compare = strncmp(argv[1], "-pick", 5)) == 0) {
 		if (argc == 3)
 			glb = dirlist(argv[2]);
 		else
 			glb = dirlist(default_path);
 
-		if (glb->gl_pathc == 0) {
+		if (glb->gl_pathc > 1)
+			PK_process(glb);
+		else
 			fprintf(stderr, "No Directories found.\n");
-			return -1;
-		}
 
-		PK_process(glb);
 	} else if ((compare = strncmp(argv[1], "-export", 7)) == 0) {
 		char *oldlist = NULL;
 
@@ -75,10 +82,10 @@ int main(int argc, char **argv)
 
 		if (glb->gl_pathc == 0) {
 			fprintf(stderr, "No Directories found.\n");
-			return -1;
+		} else {
+			EX_process(glb, oldlist);
 		}
 
-		EX_process(glb, oldlist);
 	} else if ((compare = strncmp(argv[1], "-onedir", 7)) == 0) {
 		glb = malloc(sizeof(glob_t));
 		glb->gl_pathv = malloc(sizeof(char *));
@@ -111,10 +118,15 @@ int main(int argc, char **argv)
 		EXHIST_process(glb);
 	}
 
+	/* Save the config */
+	writeConfig(config);
+
+	/* Clean up the config structure */
+	config = killConfig(config);
+
 	/* Clean up */
 	if (glb != NULL)
 		globfree(glb);
-	savedefaults();
 
 	return 0;
 }

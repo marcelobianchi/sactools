@@ -39,5 +39,3 @@ void plot(g_ctl * ctl, float *data, int npts, float delta, float b,
 
 int sortDist(const void *p1, const void *p2);
 int sortBaz(const void *p1, const void *p2);
-void loaddefaults();
-void savedefaults();
