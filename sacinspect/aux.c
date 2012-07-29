@@ -209,11 +209,13 @@ void multitraceplot(defs * d)
 
 	lastFile = ((d->offset + d->max) >=
 				d->nfiles) ? (d->nfiles - 1) : (d->offset + d->max);
-	x1 = d->files[d->offset].hz->a + d->files[d->offset].reference -
-		d->gpre;
-	x2 = d->files[lastFile].hz->a + d->files[lastFile].reference +
-		d->gpost;
 
+	fprintf(stderr,"Last file is %d\n",lastFile);
+	// Those are used for min and max of the ALIGO mode
+	x1 = d->files[d->offset].hz->a + d->files[d->offset].reference -
+		2.5;
+	x2 = d->files[lastFile].hz->a + d->files[lastFile].reference +
+		d->postphase;
 	for (j = 0; j < d->max && (j + d->offset) < d->nfiles; j++) {
 
 		/* *********************************************************** */
@@ -231,14 +233,14 @@ void multitraceplot(defs * d)
 		/* Switch Aligment mode                                        */
 		/* *********************************************************** */
 
+		(j == 0) ? ctl_axisbottom(ctl[j]) : ctl_axisnone(ctl[j]);
 		switch (d->alig) {
 		case (ALIGO):
 			aligChar = 'O';
-			(j == 0) ? ctl_axisbottom(ctl[j]) : ctl_axisnone(ctl[j]);
 			if (d->files[0].hz->o != SAC_HEADER_FLOAT_UNDEFINED) {
 				start = this->reference - d->files[0].hz->o;
 				ctl_xreset_mm(ctl[j], x1 - d->files[d->offset].hz->o,
-							  x2 - d->files[lastFile].hz->o);
+							  x2 - d->files[d->offset].hz->o);
 			} else {
 				start = this->reference;
 				ctl_xreset_mm(ctl[j], x1, x2);
@@ -254,7 +256,6 @@ void multitraceplot(defs * d)
 
 		case (ALIGF):
 			aligChar = 'F';
-			(j == 0) ? ctl_axisbottom(ctl[j]) : ctl_axisnone(ctl[j]);
 			ctl_xreset_mm(ctl[j], -d->prephase, +d->postphase);
 			if (this->hz->f != SAC_HEADER_FLOAT_UNDEFINED) {
 				start = this->hz->b - this->hz->f;
@@ -265,7 +266,6 @@ void multitraceplot(defs * d)
 
 		case (ALIGA):
 			aligChar = 'A';
-			(j == 0) ? ctl_axisbottom(ctl[j]) : ctl_axisnone(ctl[j]);
 			ctl_xreset_mm(ctl[j], -d->prephase, +d->postphase);
 			if (this->hz->a != SAC_HEADER_FLOAT_UNDEFINED) {
 				start = this->hz->b - this->hz->a;
@@ -763,8 +763,8 @@ defs *newdefs(glob_t * glb)
 	d->nfiles = 0;
 	d->filter = 1;
 
-	d->lp = getConfigAsNumber(config, NAME_PRE, DEFAULT_PRE);
-	d->hp = getConfigAsNumber(config, NAME_POST, DEFAULT_POST);
+	d->gpre = getConfigAsNumber(config, NAME_PRE, DEFAULT_PRE);
+	d->gpost = getConfigAsNumber(config, NAME_POST, DEFAULT_POST);
 
 	d->prephase = 20;
 	d->postphase = 30;
