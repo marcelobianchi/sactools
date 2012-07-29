@@ -99,7 +99,6 @@ int main(int argc, char **argv)
 	} else if ((compare = strncmp(argv[1], "-az", 10)) == 0) {
 		glb = dirlist(default_path);
 		EXAZ_process(glb, argv[2]);
-
 	} else if ((compare = strncmp(argv[1], "-histogram", 10)) == 0) {
 		if (argc == 3)
 			glb = dirlist(argv[2]);
@@ -108,9 +107,9 @@ int main(int argc, char **argv)
 
 		if (glb->gl_pathc == 0) {
 			fprintf(stderr, "No Directories found. Use -pick -> config to change folder matching pattern.\n");
-			return -1;
+		} else {
+			EXHIST_process(glb);
 		}
-		EXHIST_process(glb);
 	}
 
 	/* Save the config */

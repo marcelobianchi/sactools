@@ -60,7 +60,7 @@ void plothelp(defs * d)
 
 		k--;
 		cpgmtxt("B", k--, where, how, "Post Sw s");
-		cpgmtxt("B", k--, where, how, "Pre Sw a");
+		cpgmtxt("B", k--, where, how, "Pre Sw i");
 		cpgmtxt("B", k--, where, how, "Config ?");
 		cpgsci(15);
 		cpgmtxt("B", k--, where, how, "Config:");
@@ -203,7 +203,7 @@ void multitraceplot(defs * d)
 	if (d->nfiles <= 0) {
 		sprintf(string,
 				"No folders matching pattern found. Use ? to change folder pattern configuration !");
-		cpgmtxt("B", 2.5, 0.5, 0.5, string);
+		cpgmtxt("B", 0.5, 0.5, 0.5, string);
 		return;
 	}
 

@@ -131,28 +131,17 @@ int titleoption(char *message, int pos)
 void Config(defs * d)
 {
 	g_ctl *Wd = NULL;
-	char ch;
+	char ch = 'c';
 	float ax, ay;
 	int k = -1;
 	float value;
 	char aux[200];
 	
-	/*  char *putname[20] = { "None", "Simple", "Complete" };
-	   int nputname = 3;
-
-	   char *alimode[20] = { "Theoretical", "Pick", "Origin Time" };
-	   int nalimode = 3;
-
-	   char *sormode[20] = { "Distance", "Back Azimuth" };
-	   int nsormode = 2;
-	   float aux;
-	 */
 	Wd = ctl_newctl(0.2, 0.05, .6, .9);
 	Wd->expand = 0;
 
 	while (ch != 'Q' && ch != 'q') {
 		k = -1;
-
 		ctl_resizeview(Wd);
 		ctl_clean(NULL);
 		k = titleoption("Global Defaults:", k);
@@ -754,5 +743,4 @@ glob_t *collector(defs * d, char *net, char *station)
 
 	d->has = 0;
 	return glb;
-
 }
