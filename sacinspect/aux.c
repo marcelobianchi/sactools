@@ -210,7 +210,6 @@ void multitraceplot(defs * d)
 	lastFile = ((d->offset + d->max) >=
 				d->nfiles) ? (d->nfiles - 1) : (d->offset + d->max);
 
-	fprintf(stderr,"Last file is %d\n",lastFile);
 	// Those are used for min and max of the ALIGO mode
 	x1 = d->files[d->offset].hz->a + d->files[d->offset].reference -
 		2.5;

@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "\t-onedir [Dir]\n");
 		fprintf(stderr,
 				"\t-export [Dir Pattern] [Old Station List File]\n");
-		fprintf(stderr, "\t-histogram\n");
+		fprintf(stderr, "\t-histogram [Dir Pattern]\n");
 		exit(-1);
 	}
 
@@ -59,25 +59,13 @@ int main(int argc, char **argv)
 
 	/* Choose module to run */
 	if ((compare = strncmp(argv[1], "-pick", 5)) == 0) {
-		if (argc == 3)
-			glb = dirlist(argv[2]);
-		else
-			glb = dirlist(default_path);
+		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(default_path);
 		PK_process(glb);
 	} else if ((compare = strncmp(argv[1], "-export", 7)) == 0) {
-		char *oldlist = NULL;
+		char * oldlist = (argc >= 4) ? argv[3] : NULL;
+		glb = (argc >= 3) ? dirlist(argv[2]) : dirlist(default_path);
 
-		if (argc == 3)
-			glb = dirlist(argv[2]);
-		else
-			glb = dirlist(default_path);
-
-		if (argc == 4)
-			oldlist = argv[3];
-
-		if (glb->gl_pathc == 0) {
-			fprintf(stderr, "No Directories found. Use option -pick and change the config options.\n");
-		} else {
+		if (glb->gl_pathc > 0) {
 			EX_process(glb, oldlist);
 		}
 
@@ -91,27 +79,31 @@ int main(int argc, char **argv)
 				malloc(sizeof(char) * (strlen(argv[2]) + 1));
 			strcpy(glb->gl_pathv[0], argv[2]);
 		} else {
-			glb->gl_pathv[0] = malloc(sizeof(char) * 4);
+			glb->gl_pathv[0] = malloc(sizeof(char) * 3);
 			strcpy(glb->gl_pathv[0], "./");
 		}
 
 		PK_process(glb);
-	} else if ((compare = strncmp(argv[1], "-az", 10)) == 0) {
-		glb = dirlist(default_path);
-		EXAZ_process(glb, argv[2]);
-	} else if ((compare = strncmp(argv[1], "-histogram", 10)) == 0) {
-		if (argc == 3)
-			glb = dirlist(argv[2]);
-		else
-			glb = dirlist(default_path);
 
-		if (glb->gl_pathc == 0) {
-			fprintf(stderr, "No Directories found. Use -pick -> config to change folder matching pattern.\n");
-		} else {
+		free (glb->gl_pathv);
+		glb->gl_pathv = NULL;
+		free(glb);
+		glb = NULL;
+	} else if ((compare = strncmp(argv[1], "-az", 10)) == 0) {
+		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(default_path);
+		if (glb->gl_pathc > 0)
+			EXAZ_process(glb, argv[2]);
+	} else if ((compare = strncmp(argv[1], "-histogram", 10)) == 0) {
+		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(default_path);
+		if (glb->gl_pathc > 0)
 			EXHIST_process(glb);
-		}
 	}
 
+	if (glb != NULL && glb->gl_pathc == 0) {
+		fprintf(stderr, "No Directories found for pattern %s.\n",
+				(argc >= 3) ? argv[2] : default_path);
+	}
+	
 	/* Save the config */
 	writeConfig(config);
 
