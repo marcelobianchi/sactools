@@ -23,6 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef _cfg_h
+#define _cfg_h
+
 typedef struct kp {
     char *key;
     char *value;
@@ -47,3 +50,5 @@ float  getConfigAsNumber(CFG *config, char *key, float defaultValue);
 // Sets
 int setConfigString(CFG *config, char *key, char *value);
 int setConfigNumber(CFG *config, char *key, float value);
+
+#endif
