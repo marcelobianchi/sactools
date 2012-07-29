@@ -36,6 +36,6 @@ defs *newdefs(glob_t * glb);
 void tffree(tf * tf, int n);
 void plot(g_ctl * ctl, float *data, int npts, float delta, float b,
 		  int overlay);
-
+void * killGlob(glob_t *glb);
 int sortDist(const void *p1, const void *p2);
 int sortBaz(const void *p1, const void *p2);

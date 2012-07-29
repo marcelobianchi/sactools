@@ -84,7 +84,7 @@ int multoption(int value, int pos, char *c, char *message, char **option,
 }
 
 int valueoptionchar(char *value, int pos, char *c, char *message,
-				char *defaultv)
+					char *defaultv)
 {
 	float line = pos * spacing;
 	char cvalue[200];
@@ -92,7 +92,8 @@ int valueoptionchar(char *value, int pos, char *c, char *message,
 	cpgmtxt("T", line, col4, 1.0, c);
 	cpgmtxt("T", line, col1, 1.0, message);
 
-	if (strlen(value) == strlen(defaultv) && strncmp(value, defaultv, strlen(value)) == 0)
+	if (strlen(value) == strlen(defaultv)
+		&& strncmp(value, defaultv, strlen(value)) == 0)
 		cpgsci(3);
 	else
 		cpgsci(2);
@@ -136,7 +137,7 @@ void Config(defs * d)
 	int k = -1;
 	float value;
 	char aux[200];
-	
+
 	Wd = ctl_newctl(0.2, 0.05, .6, .9);
 	Wd->expand = 0;
 
@@ -145,22 +146,26 @@ void Config(defs * d)
 		ctl_resizeview(Wd);
 		ctl_clean(NULL);
 		k = titleoption("Global Defaults:", k);
-		k = valueoption(getConfigAsNumber(config, NAME_LP, DEFAULT_LP), k, "l",
-						"Default Low Pass filter for new events:",
+		k = valueoption(getConfigAsNumber(config, NAME_LP, DEFAULT_LP), k,
+						"l", "Default Low Pass filter for new events:",
 						DEFAULT_LP);
-		k = valueoption(getConfigAsNumber(config, NAME_HP, DEFAULT_HP), k, "h",
-						"Default High Pass filter for new events:",
+		k = valueoption(getConfigAsNumber(config, NAME_HP, DEFAULT_HP), k,
+						"h", "Default High Pass filter for new events:",
 						DEFAULT_HP);
-		k = valueoption(getConfigAsNumber(config, NAME_PRE, DEFAULT_PRE), k, "a",
-						"Show Window in global align mode (pre):",
+		k = valueoption(getConfigAsNumber(config, NAME_PRE, DEFAULT_PRE),
+						k, "a", "Show Window in global align mode (pre):",
 						DEFAULT_PRE);
-		k = valueoption(getConfigAsNumber(config, NAME_POST, DEFAULT_POST), k, "s",
+		k = valueoption(getConfigAsNumber(config, NAME_POST, DEFAULT_POST),
+						k, "s",
 						"Show Window in global align model (post):",
 						DEFAULT_POST);
-		k = valueoptionchar(getConfigAsString(config, NAME_PATTERN, DEFAULT_PATTERN), k, "f",
-						"Pattern used to search for folders (Need re-start):",
-						DEFAULT_PATTERN);
-		k = valueoption(getConfigAsNumber(config, NAME__ZOOMGAIN, DEFAULT_ZOOMGAIN), k, "z",
+		k = valueoptionchar(getConfigAsString
+							(config, NAME_PATTERN, DEFAULT_PATTERN), k,
+							"f",
+							"Pattern used to search for folders (Need re-start):",
+							DEFAULT_PATTERN);
+		k = valueoption(getConfigAsNumber
+						(config, NAME__ZOOMGAIN, DEFAULT_ZOOMGAIN), k, "z",
 						"Gain multiplier when zoom is active:",
 						DEFAULT_ZOOMGAIN);
 
@@ -185,12 +190,16 @@ void Config(defs * d)
 			break;
 
 		case ('a'):
-			value = fabs(lerfloat("Time in seconds before the theoretical mark?"));
+			value =
+				fabs(lerfloat
+					 ("Time in seconds before the theoretical mark?"));
 			setConfigNumber(config, NAME_PRE, value);
 			break;
 
 		case ('s'):
-			value = fabs(lerfloat("Time in seconds after the theoretical mark?"));
+			value =
+				fabs(lerfloat
+					 ("Time in seconds after the theoretical mark?"));
 			setConfigNumber(config, NAME_POST, value);
 			break;
 
@@ -236,11 +245,14 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 	case ('!'):
 		if (d->zoom == 1.0) {
-			d->zoom = getConfigAsNumber(config, NAME__ZOOMGAIN, DEFAULT_ZOOMGAIN);
+			d->zoom =
+				getConfigAsNumber(config, NAME__ZOOMGAIN,
+								  DEFAULT_ZOOMGAIN);
 			if (d->zoom < 0.01) {
 				d->zoom = 0.001;
 			}
-			sprintf(d->lastaction, "Amplitude Zoom On (Gain = %.2f).", d->zoom);
+			sprintf(d->lastaction, "Amplitude Zoom On (Gain = %.2f).",
+					d->zoom);
 		} else {
 			d->zoom = 1.0;
 			sprintf(d->lastaction, "Amplitude Zoom Off.");
@@ -277,7 +289,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			tffree(d->files, d->nfiles);
 			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
 			d->needsave = 0;
-			globfree(glbs);
+			glbs = killGlob(glbs);
 		}
 		sprintf(d->lastaction, "Data Reloaded.");
 		break;
@@ -313,7 +325,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 							d->files =
 								inputme(glbs->gl_pathc, glbs->gl_pathv, d);
 							d->needsave = 0;
-							globfree(glbs);
+							glbs = killGlob(glbs);
 						}
 					}
 				}
@@ -359,9 +371,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			d->currentdir++;
 			while ((d->currentdir) < (d->glb->gl_pathc - 1)) {
 				glbs = saclist(d);
+				glbs = killGlob(glbs);
 				if (d->has == 0)
 					break;
-				globfree(glbs);
 				d->currentdir++;
 			}
 
@@ -369,9 +381,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			glbs = saclist(d);
 			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
 			d->needsave = 0;
-			globfree(glbs);
+			glbs = killGlob(glbs);
+			sprintf(d->lastaction, "Switch to next un-readed data.");
 		}
-		sprintf(d->lastaction, "Switch to next un-readed data.");
 		break;
 
 	case ('n'):
@@ -413,7 +425,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			tffree(d->files, d->nfiles);
 			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
 			d->needsave = 0;
-			globfree(glbs);
+			glbs = killGlob(glbs);
 		}
 		break;
 
@@ -438,7 +450,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			tffree(d->files, d->nfiles);
 			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
 			d->needsave = 0;
-			globfree(glbs);
+			glbs = killGlob(glbs);
 		}
 		break;
 
@@ -681,7 +693,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 char PK_waitloop(defs * d)
 {
-	float ax, ay;
+	float ax = 0.0, ay = 0.0;
 	char ch;
 	g_ctl *ctlpick = NULL;
 
@@ -698,7 +710,7 @@ char PK_waitloop(defs * d)
 
 void PK_process(glob_t * glb)
 {
-	char ch;
+	char ch = '\0';
 	defs *d;
 
 	d = newdefs(glb);
@@ -711,8 +723,7 @@ void PK_process(glob_t * glb)
 	glob_t *glbs = saclist(d);
 	d->needsave = 0;
 	d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
-	globfree(glbs);
-	glbs = NULL;
+	glbs = killGlob(glbs);
 
 	/* Get new CTLs for use */
 	d->ctl = initCTL(d);
@@ -728,6 +739,13 @@ void PK_process(glob_t * glb)
 
 	tffree(d->files, d->nfiles);
 	killCTL(&d->ctl, d->max);
+
+	if (d != NULL) free(d);
+	d = NULL;
+
+	cpgclos();
+
+	return;
 }
 
 glob_t *collector(defs * d, char *net, char *station)

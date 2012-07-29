@@ -91,7 +91,7 @@ int getmouse(int a, int b, int c, int d, char *message)
 /* read float number from PGPLOT */
 float lerfloat(char *text)
 {
-	float ax, ay;
+	float ax = 0.0, ay = 0.0;
 	char ch[2] = "0";
 	float num;
 	char retorno[128];
@@ -165,7 +165,7 @@ void lerchar(char *text, char *output, int max)
 	char ch[2] = "0";
 	char retorno[128];
 	int pos;
-	float ax, ay;
+	float ax = 0.0, ay = 0.0;
 
 	ch[1] = '\0';
 	pos = 0;
@@ -210,7 +210,7 @@ void lerchar(char *text, char *output, int max)
 /* read intnumber from PGPLOT */
 int lerint(char *text)
 {
-	float ax, ay;
+	float ax = 0.0, ay = 0.0;
 	char ch[2] = "0";
 	int num = 0;
 	char retorno[128];
@@ -253,8 +253,8 @@ int lerint(char *text)
 
 char getonechar(float *axx, float *ayy)
 {
-	char ch;
-	float ax, ay;
+	char ch = '\0';
+	float ax = 0.0, ay = 0.0;
 	cpgband(7, 0, 0, 0, &ax, &ay, &ch);
 	if (axx != NULL)
 		*axx = ax;
@@ -265,7 +265,7 @@ char getonechar(float *axx, float *ayy)
 
 int yesno(char *text)
 {
-	float ax, ay;
+	float ax = 0.0, ay = 0.0;
 	char c = 'U';
 
 	while (1) {

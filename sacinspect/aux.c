@@ -531,6 +531,13 @@ glob_t *dirlist(char *pattern)
 	return glb;
 }
 
+void * killGlob(glob_t *glb){
+	if (glb != NULL) {
+		globfree(glb);
+		free(glb);
+	}
+	return NULL;
+}
 
 void checkTREF(tf * files, int nfiles)
 {
@@ -748,7 +755,7 @@ g_ctl **initCTL(defs * d)
 defs *newdefs(glob_t * glb)
 {
 	defs *d;
-	d = malloc(sizeof(defs));
+	d = calloc(1,sizeof(defs));
 
 	d->printout = 0;
 	d->putname = 0;

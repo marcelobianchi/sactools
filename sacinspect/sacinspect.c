@@ -111,8 +111,7 @@ int main(int argc, char **argv)
 	config = killConfig(config);
 
 	/* Clean up */
-	if (glb != NULL)
-		globfree(glb);
+	glb = killGlob(glb);
 
 	return 0;
 }
