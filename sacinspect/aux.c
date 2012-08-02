@@ -211,8 +211,7 @@ void multitraceplot(defs * d)
 				d->nfiles) ? (d->nfiles - 1) : (d->offset + d->max);
 
 	// Those are used for min and max of the ALIGO mode
-	x1 = d->files[d->offset].hz->a + d->files[d->offset].reference -
-		2.5;
+	x1 = d->files[d->offset].hz->a + d->files[d->offset].reference - 2.5;
 	x2 = d->files[lastFile].hz->a + d->files[lastFile].reference +
 		d->postphase;
 	for (j = 0; j < d->max && (j + d->offset) < d->nfiles; j++) {
@@ -220,12 +219,12 @@ void multitraceplot(defs * d)
 		/* *********************************************************** */
 		/* Prepare the file to plot                                    */
 		/* *********************************************************** */
-		tf *this = &d->files[j + d->offset];
-		if (d->onlyselected && !this->selected)
+		tf *thistrace = &d->files[j + d->offset];
+		if (d->onlyselected && !thistrace->selected)
 			continue;
 
 		if (d->filter && d->needfilter) {
-			filtertf(this, d);
+			filtertf(thistrace, d);
 		}
 
 		/* *********************************************************** */
@@ -237,11 +236,11 @@ void multitraceplot(defs * d)
 		case (ALIGO):
 			aligChar = 'O';
 			if (d->files[0].hz->o != SAC_HEADER_FLOAT_UNDEFINED) {
-				start = this->reference - d->files[0].hz->o;
+				start = thistrace->reference - d->files[0].hz->o;
 				ctl_xreset_mm(ctl[j], x1 - d->files[d->offset].hz->o,
 							  x2 - d->files[d->offset].hz->o);
 			} else {
-				start = this->reference;
+				start = thistrace->reference;
 				ctl_xreset_mm(ctl[j], x1, x2);
 				aligChar = '!';
 
@@ -256,20 +255,20 @@ void multitraceplot(defs * d)
 		case (ALIGF):
 			aligChar = 'F';
 			ctl_xreset_mm(ctl[j], -d->prephase, +d->postphase);
-			if (this->hz->f != SAC_HEADER_FLOAT_UNDEFINED) {
-				start = this->hz->b - this->hz->f;
+			if (thistrace->hz->f != SAC_HEADER_FLOAT_UNDEFINED) {
+				start = thistrace->hz->b - thistrace->hz->f;
 			} else {
-				start = this->hz->b;
+				start = thistrace->hz->b;
 			}
 			break;
 
 		case (ALIGA):
 			aligChar = 'A';
 			ctl_xreset_mm(ctl[j], -d->prephase, +d->postphase);
-			if (this->hz->a != SAC_HEADER_FLOAT_UNDEFINED) {
-				start = this->hz->b - this->hz->a;
+			if (thistrace->hz->a != SAC_HEADER_FLOAT_UNDEFINED) {
+				start = thistrace->hz->b - thistrace->hz->a;
 			} else {
-				start = this->hz->b;
+				start = thistrace->hz->b;
 			}
 			break;
 		}
@@ -280,15 +279,18 @@ void multitraceplot(defs * d)
 
 		// Selected color
 		color = 14;				// Default trace color
-		if (this->selected == 1)
+		if (thistrace->selected == 1)
 			color = 2;			// If event Selected Color = Red
-		// if (this->hz->unused25 != 1) color = 14; // If we are in the restricted mode and trace is locked Color = Gray
+		// if (thistrace->hz->unused25 != 1) color = 14; // If we are in the restricted mode and trace is locked Color = Gray
 		if (d->overlay)
 			color = j + 1;
 
 		// Finally Plot
-		plot(ctl[j], (d->filter && this->zf != NULL) ? this->zf : this->z,
-			 this->hz->npts, this->hz->delta, start, 0, color, d->zoom);
+		plot(ctl[j],
+			 (d->filter
+			  && thistrace->zf != NULL) ? thistrace->zf : thistrace->z,
+			 thistrace->hz->npts, thistrace->hz->delta, start, 0, color,
+			 d->zoom);
 		/* *********************************************************** */
 
 		/* *********************************************************** */
@@ -296,35 +298,41 @@ void multitraceplot(defs * d)
 		/* *********************************************************** */
 
 		// F mark, the pick time
-		if (this->hz->f != SAC_HEADER_FLOAT_UNDEFINED)
-			mark(ctl[j], this->hz->f + start - this->hz->b, "f", 2);
+		if (thistrace->hz->f != SAC_HEADER_FLOAT_UNDEFINED)
+			mark(ctl[j], thistrace->hz->f + start - thistrace->hz->b, "f",
+				 2);
 
 		// IF OVERLAY MODE JUST PLOT THE TRACE AND RETURN.
 		if (d->overlay == 1)
 			continue;
 
 		// A Mark (Theoretical Model)
-		if (this->hz->a != SAC_HEADER_FLOAT_UNDEFINED && d->hidephase == 0) {
+		if (thistrace->hz->a != SAC_HEADER_FLOAT_UNDEFINED
+			&& d->hidephase == 0) {
 			char *label = NULL;
 
-			hdu_getValueFromChar("ka", this->hz, NULL, NULL, &label);
+			hdu_getValueFromChar("ka", thistrace->hz, NULL, NULL, &label);
 			if (label != NULL && strlen(label) > 0)
-				mark(ctl[j], this->hz->a + start - this->hz->b, label, 2);
+				mark(ctl[j], thistrace->hz->a + start - thistrace->hz->b,
+					 label, 2);
 			else
-				mark(ctl[j], this->hz->a + start - this->hz->b, "A", 2);
+				mark(ctl[j], thistrace->hz->a + start - thistrace->hz->b,
+					 "A", 2);
 
 			label = io_freeData(label);
 		}
 		// Mark the Window we perform the Min/Max Search in the trace
 		if (d->plotsearchsize) {
-			mark(ctl[j], this->hz->a + start - this->hz->b + d->searchsize,
-				 "", 3);
 			mark(ctl[j],
-				 this->hz->a + start - this->hz->b - d->insetsearchsize,
-				 "", 3);
+				 thistrace->hz->a + start - thistrace->hz->b +
+				 d->searchsize, "", 3);
+			mark(ctl[j],
+				 thistrace->hz->a + start - thistrace->hz->b -
+				 d->insetsearchsize, "", 3);
 		}
 
-		sprintf(string, "B: %.0f D: %.2f", this->hz->baz, this->hz->gcarc);
+		sprintf(string, "B: %.0f D: %.2f", thistrace->hz->baz,
+				thistrace->hz->gcarc);
 		if (d->putname == 2)
 			cpgmtxt("B", -2.00, 0.0, 0.0, string);
 		else
@@ -335,12 +343,13 @@ void multitraceplot(defs * d)
 		if (d->putname > 0) {
 			cpgsci(2);
 
-			cpgmtxt("R", 1.2, .5, .5, this->net);
+			cpgmtxt("R", 1.2, .5, .5, thistrace->net);
 			if (d->max <= 20)
-				cpgmtxt("R", 2.2, .5, .5, this->station);
+				cpgmtxt("R", 2.2, .5, .5, thistrace->station);
 
 			if (d->putname == 2) {
-				sprintf(string, "%02d] %s", d->offset + j, this->filename);
+				sprintf(string, "%02d] %s", d->offset + j,
+						thistrace->filename);
 				cpgmtxt("B", -0.70, 0.0, 0.0, string);
 			}
 			cpgsci(1);
@@ -375,9 +384,12 @@ void multitraceplot(defs * d)
 	sprintf(string, "%11s", d->glb->gl_pathv[d->currentdir]);
 	if (d->needsave == 1) {
 		cpgsci(2);
-	} else {
+	} else if (d->has == 1) {
 		cpgsci(3);
+	} else {
+		cpgsci(7);
 	}
+
 	cpgmtxt("T", 1.0, 0.5, 0.5, string);
 	cpgsci(1);
 }
@@ -385,7 +397,6 @@ void multitraceplot(defs * d)
 void writeout(tf * files, defs * d)
 {
 	tf *f;
-	char string[1025];
 	int j;
 
 	for (j = 0; j < d->nfiles; j++) {
@@ -397,11 +408,6 @@ void writeout(tf * files, defs * d)
 		}
 	}
 	d->needsave = 0;
-
-	FILE *a;
-	sprintf(string, "%s/HAS", d->glb->gl_pathv[d->currentdir]);
-	a = fopen(string, "w");
-	fclose(a);
 }
 
 void getminmax(float *data, SACHEAD * hdr, float start, float end,
@@ -531,7 +537,8 @@ glob_t *dirlist(char *pattern)
 	return glb;
 }
 
-void * killGlob(glob_t *glb){
+void *killGlob(glob_t * glb)
+{
 	if (glb != NULL) {
 		globfree(glb);
 		free(glb);
@@ -605,12 +612,16 @@ glob_t *saclist(defs * d)
 	sprintf(filepath, "%s/*SAC", path);
 	glob(filepath, 0, NULL, glb);
 
-	sprintf(filepath, "%s/HAS", path);
-	if ((a = fopen(filepath, "r")) != NULL) {
-		d->has = 1;
-		fclose(a);
-	} else {
-		d->has = 0;
+	//  We should check variable unused27 for filling up the HAS variable
+	d->has = 0;
+	if (glb->gl_pathc > 0) {
+		SACHEAD *hv = io_readSacHead(glb->gl_pathv[0]);
+		if (hv != NULL) {
+			if (hv->unused27 == 1)
+				d->has = 1;
+			free(hv);
+			hv = NULL;
+		}
 	}
 
 	free(filepath);
@@ -649,7 +660,13 @@ tf *inputme(int argc, char **argv, defs * d)
 	}
 
 	for (i = 0; i < argc; i++) {
-		if (files[i].hz->user0 != -12345.0
+		// We mark this file as visited
+		// If this get written on the disk 
+		// next time this folder is marked
+		// as processed
+		files[i].hz->unused27 = 1;
+
+		if (files[i].hz->user0 != -12345.0 && files[i].hz->user1 != -12345.0 
 			&& files[i].hz->user0 > files[i].hz->user1) {
 			d->lp = files[i].hz->user0;
 			d->hp = files[i].hz->user1;
@@ -755,7 +772,7 @@ g_ctl **initCTL(defs * d)
 defs *newdefs(glob_t * glb)
 {
 	defs *d;
-	d = calloc(1,sizeof(defs));
+	d = calloc(1, sizeof(defs));
 
 	d->printout = 0;
 	d->putname = 0;
