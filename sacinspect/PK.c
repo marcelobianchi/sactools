@@ -396,8 +396,13 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		
 		d->currentdir++;
 		while ((d->currentdir) < (d->glb->gl_pathc - 1)) {
-			if (d->has == 0)
+			glob_t *glb;
+			glb = filelist(d->glb->gl_pathv[d->currentdir], getConfigAsString(config, NAME_Z, DEFAULT_Z));
+			if (findHas(glb) == 0) {
+				glb = killGlob(glb);
 				break;
+			}
+			glb = killGlob(glb);
 			d->currentdir++;
 		}
 		
