@@ -24,13 +24,12 @@ void getminmax(float *data, SACHEAD * hdr, float start, float end,
 			   float *rmin, float *rmax);
 void filtertf(tf * f, defs * d);
 void writeout(tf * f, defs * d);
-void loadtf(tf * f);
 void synch(tf * f, defs * d);
 void killCTL(g_ctl *** c, int n);
 int cmpstringp(const void *p1, const void *p2);
 glob_t *dirlist(char *pattern);
-glob_t *saclist(defs * d);
-tf *inputme(int argc, char **argv, defs * d);
+glob_t *filelist(char *folder, char *fpattern);
+
 g_ctl **initCTL(defs * d);
 defs *newdefs(glob_t * glb);
 void tffree(tf * tf, int n);

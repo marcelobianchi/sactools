@@ -549,7 +549,7 @@ stations *newStationList(defs * d)
 	/* Prepare stations table */
 	for (j = 0; j < d->glb->gl_pathc; j++) {
 		d->currentdir = j;
-		glob_t *glbs = saclist(d);
+		glob_t *glbs = filelist(d->glb->gl_pathv[d->currentdir], "*Z.SAC");
 
 		for (file = 0; file < glbs->gl_pathc; file++) {
 			station *s = loadStation(glbs->gl_pathv[file]);
@@ -580,7 +580,7 @@ events *newEventList(defs * d, stations * ss)
 	/* Make event list */
 	for (j = 0; j < d->glb->gl_pathc; j++) {
 		d->currentdir = j;
-		glob_t *glbs = saclist(d);
+		glob_t *glbs = filelist(d->glb->gl_pathv[d->currentdir],"*Z.SAC");
 
 		if (v)
 			fprintf(stdout, "%s: [ ] [   ] ",

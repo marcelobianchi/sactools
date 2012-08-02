@@ -25,6 +25,7 @@
 #include <aux.h>
 #include <edit_tf.h>
 #include <string.h>
+#include <io.h>
 
 /* Config for plotting the config screen */
 float col1 = 0.45;
@@ -159,15 +160,36 @@ void Config(defs * d)
 						k, "s",
 						"Show Window in global align model (post):",
 						DEFAULT_POST);
+		k = valueoption(getConfigAsNumber
+						(config, NAME__ZOOMGAIN, DEFAULT_ZOOMGAIN), k, "z",
+						"Gain multiplier when zoom is active:",
+						DEFAULT_ZOOMGAIN);
+
+		// Jump a line
+		k--;
+
 		k = valueoptionchar(getConfigAsString
 							(config, NAME_PATTERN, DEFAULT_PATTERN), k,
 							"f",
 							"Pattern used to search for folders (Need re-start):",
 							DEFAULT_PATTERN);
-		k = valueoption(getConfigAsNumber
-						(config, NAME__ZOOMGAIN, DEFAULT_ZOOMGAIN), k, "z",
-						"Gain multiplier when zoom is active:",
-						DEFAULT_ZOOMGAIN);
+		k = valueoptionchar(getConfigAsString
+							(config, NAME_Z, DEFAULT_Z), k,
+							"1",
+							"Pattern used to search for files for the Z component:",
+							DEFAULT_Z);
+
+		k = valueoptionchar(getConfigAsString
+							(config, NAME_N, DEFAULT_N), k,
+							"2",
+							"Pattern used to search for files for the N component:",
+							DEFAULT_N);
+
+		k = valueoptionchar(getConfigAsString
+							(config, NAME_E, DEFAULT_E), k,
+							"3",
+							"Pattern used to search for files for the E component:",
+							DEFAULT_E);
 
 		k -= 12;
 		k = titleoption("Q - To Return !", k);
@@ -206,6 +228,21 @@ void Config(defs * d)
 		case ('f'):
 			lerchar("Enter a new folder pattern?", aux, 200);
 			setConfigString(config, NAME_PATTERN, aux);
+			break;
+
+		case ('1'):
+			lerchar("Enter a new file pattern?", aux, 200);
+			setConfigString(config, NAME_Z, (strlen(aux)>0)?aux:DEFAULT_Z);
+			break;
+
+		case ('2'):
+			lerchar("Enter a new file pattern?", aux, 200);
+			setConfigString(config, NAME_N, (strlen(aux)>0)?aux:DEFAULT_N);
+			break;
+
+		case ('3'):
+			lerchar("Enter a new file pattern?", aux, 200);
+			setConfigString(config, NAME_E, (strlen(aux)>0)?aux:DEFAULT_E);
 			break;
 
 		case ('q'):
@@ -284,12 +321,8 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 					writeout(d->files, d);
 			}
 
-			glob_t *glbs = NULL;
-			glbs = saclist(d);
-			tffree(d->files, d->nfiles);
-			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+			io_loadEv(d);
 			d->needsave = 0;
-			glbs = killGlob(glbs);
 		}
 		sprintf(d->lastaction, "Data Reloaded.");
 		break;
@@ -318,14 +351,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 						if ((i =
 							 strncmp(d->glb->gl_pathv[j], &station[2],
 									 strlen(&station[2]))) == 0) {
-							glob_t *glbs = NULL;
 							d->currentdir = j;
-							glbs = saclist(d);
-							tffree(d->files, d->nfiles);
-							d->files =
-								inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+							io_loadEv(d);
 							d->needsave = 0;
-							glbs = killGlob(glbs);
 						}
 					}
 				}
@@ -358,32 +386,24 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		break;
 
 	case ('-'):
-		{
-			glob_t *glbs = NULL;
-			if (d->currentdir == d->glb->gl_pathc - 1)
-				break;
-
-			if (d->needsave == 1) {
-				if (yesno("Picks not saved, save?") == 1)
-					writeout(d->files, d);
-			}
-
-			d->currentdir++;
-			while ((d->currentdir) < (d->glb->gl_pathc - 1)) {
-				glbs = saclist(d);
-				glbs = killGlob(glbs);
-				if (d->has == 0)
-					break;
-				d->currentdir++;
-			}
-
-			tffree(d->files, d->nfiles);
-			glbs = saclist(d);
-			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
-			d->needsave = 0;
-			glbs = killGlob(glbs);
-			sprintf(d->lastaction, "Switch to next un-readed data.");
+		if (d->currentdir == d->glb->gl_pathc - 1)
+			break;
+		
+		if (d->needsave == 1) {
+			if (yesno("Picks not saved, save?") == 1)
+				writeout(d->files, d);
 		}
+		
+		d->currentdir++;
+		while ((d->currentdir) < (d->glb->gl_pathc - 1)) {
+			if (d->has == 0)
+				break;
+			d->currentdir++;
+		}
+		
+		io_loadEv(d);
+		d->needsave = 0;
+		sprintf(d->lastaction, "Switch to next un-readed data.");
 		break;
 
 	case ('n'):
@@ -406,7 +426,6 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 	case ('N'):
 		{
-			glob_t *glbs = NULL;
 			d->currentdir++;
 			sprintf(d->lastaction, "Switched to next event (directory).");
 
@@ -421,17 +440,13 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 					writeout(d->files, d);
 			}
 
-			glbs = saclist(d);
-			tffree(d->files, d->nfiles);
-			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+			io_loadEv(d);
 			d->needsave = 0;
-			glbs = killGlob(glbs);
 		}
 		break;
 
 	case ('P'):
 		{
-			glob_t *glbs = NULL;
 			d->currentdir--;
 			sprintf(d->lastaction,
 					"Switched to previous event (directory).");
@@ -446,11 +461,8 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 					writeout(d->files, d);
 			}
 
-			glbs = saclist(d);
-			tffree(d->files, d->nfiles);
-			d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+			io_loadEv(d);
 			d->needsave = 0;
-			glbs = killGlob(glbs);
 		}
 		break;
 
@@ -720,11 +732,12 @@ void PK_process(glob_t * glb)
 	cpgsch(0.65);
 
 	/* Load first dir data */
-	glob_t *glbs = saclist(d);
-	d->needsave = 0;
-	d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
-	glbs = killGlob(glbs);
-
+	//	glob_t *glbs = saclist(d);
+	//	d->needsave = 0;
+	//	d->files = inputme(glbs->gl_pathc, glbs->gl_pathv, d);
+	//	glbs = killGlob(glbs);
+	io_loadEv(d);
+	
 	/* Get new CTLs for use */
 	d->ctl = initCTL(d);
 

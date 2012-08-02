@@ -456,28 +456,6 @@ void getminmax(float *data, SACHEAD * hdr, float start, float end,
 	*rmin = hdu_getSecondsFromNPTS(hdr, jmin);
 }
 
-void loadtf(tf * f)
-{
-	if (f->z != NULL) {
-		f->z = io_freeData(f->z);
-	}
-
-	if (f->zf != NULL) {
-		f->zf = io_freeData(f->zf);
-	}
-
-	f->z = io_readSac(f->filename, &f->hz);
-	if (f->z == NULL) {
-		fprintf(stderr, "Failed to load: %s\n", f->filename);
-		exit(0);
-	}
-
-	hdu_getValueFromChar("KSTNM", f->hz, NULL, NULL, &f->station);
-	hdu_getValueFromChar("KNETWK", f->hz, NULL, NULL, &f->net);
-
-	f->selected = 0;
-}
-
 void synch(tf * f, defs * d)
 {
 	tf *ref;
@@ -524,6 +502,23 @@ int sortBaz(const void *p1, const void *p2)
 	tf *t2 = (tf *) p2;
 
 	return (t1->hz->baz) > (t2->hz->baz);
+}
+
+glob_t *filelist(char *folder, char *fpattern) {
+	glob_t *glb = NULL;
+	char *pattern;
+	
+	pattern = malloc(sizeof(char) * (strlen(folder) + 1 + strlen(fpattern) + 1));
+	sprintf(pattern, "%s/%s",folder, fpattern);
+	
+	glb = malloc(sizeof(glob_t));
+	glb->gl_pathc = 0;
+	glob(pattern, 0, NULL, glb);
+
+	free(pattern);
+	pattern = NULL;
+	
+	return glb;
 }
 
 glob_t *dirlist(char *pattern)
@@ -594,115 +589,6 @@ void checkTREF(tf * files, int nfiles)
 	}
 }
 
-glob_t *saclist(defs * d)
-{
-	glob_t *glb = NULL;
-	char *filepath = NULL;
-	char *path = NULL;
-	FILE *a = NULL;
-
-	glb = malloc(sizeof(glob_t));
-	glb->gl_pathc = 0;
-
-	if (d->glb->gl_pathc == 0)
-		return glb;
-
-	path = d->glb->gl_pathv[d->currentdir];
-	filepath = malloc(sizeof(char) * (strlen(path) + 10));
-	sprintf(filepath, "%s/*SAC", path);
-	glob(filepath, 0, NULL, glb);
-
-	//  We should check variable unused27 for filling up the HAS variable
-	d->has = 0;
-	if (glb->gl_pathc > 0) {
-		SACHEAD *hv = io_readSacHead(glb->gl_pathv[0]);
-		if (hv != NULL) {
-			if (hv->unused27 == 1)
-				d->has = 1;
-			free(hv);
-			hv = NULL;
-		}
-	}
-
-	free(filepath);
-	filepath = NULL;
-	return glb;
-}
-
-tf *inputme(int argc, char **argv, defs * d)
-{
-	tf *files = NULL;
-	int i;
-
-	d->nfiles = 0;
-	d->offset = 0;
-
-	d->alig = (d->has) ? ALIGF : ALIGA;
-	d->lp = getConfigAsNumber(config, NAME_LP, DEFAULT_LP);
-	d->hp = getConfigAsNumber(config, NAME_HP, DEFAULT_HP);
-
-	if (argc == 0)
-		return files;
-
-	files = malloc(sizeof(tf) * argc);
-
-	for (i = 0; i < argc; i++) {
-		d->nfiles++;
-		files[i].z = NULL;
-		files[i].zf = NULL;
-
-		files[i].filename = malloc(sizeof(char) * (strlen(argv[i]) + 1));
-		strcpy(files[i].filename, argv[i]);
-
-		loadtf(&files[i]);
-		if (files[i].z == NULL)
-			return NULL;
-	}
-
-	for (i = 0; i < argc; i++) {
-		// We mark this file as visited
-		// If this get written on the disk 
-		// next time this folder is marked
-		// as processed
-		files[i].hz->unused27 = 1;
-
-		if (files[i].hz->user0 != -12345.0 && files[i].hz->user1 != -12345.0 
-			&& files[i].hz->user0 > files[i].hz->user1) {
-			d->lp = files[i].hz->user0;
-			d->hp = files[i].hz->user1;
-			d->filter = ((d->lp != 0.0) || (d->hp != 0.0));
-			break;
-		}
-	}
-
-	if (d->filter)
-		for (i = 0; i < argc; i++)
-			filtertf(&files[i], d);
-
-	/* Refine max */
-	/* for (i = 0; i < argc; i++){ */
-	/*   float pos; */
-	/*   pos = files[i].hz->f; */
-	/*   if (pos != SAC_HEADER_FLOAT_UNDEFINED){ */
-	/*     pos = minmaxrefine(&files[i], d, pos, 0.5); */
-	/*     fprintf(stderr,"%f\n", pos - files[i].hz->f); */
-	/*     if (fabs(pos - files[i].hz->f)<0.5) files[i].hz->f=pos; */
-	/*   } */
-	/* } */
-	/* fprintf(stderr,"\n"); */
-
-	// Check that we have picks
-	checkTREF(files, d->nfiles);
-
-	// Sort the files 
-	qsort(files, d->nfiles, sizeof(tf), sortDist);
-
-	// Synch Time
-	synch(files, d);
-
-	return files;
-}
-
 void tffree(tf * tf, int n)
 {
 	int i;
@@ -711,23 +597,26 @@ void tffree(tf * tf, int n)
 		return;
 
 	for (i = 0; i < n; i++) {
-		if (tf[i].filename != NULL)
-			free(tf[i].filename);
-		if (tf[i].zf != NULL)
-			free(tf[i].zf);
-		if (tf[i].z != NULL)
-			free(tf[i].z);
-		if (tf[i].hz != NULL)
-			free(tf[i].hz);
-		if (tf[i].station != NULL)
-			free(tf[i].station);
-		if (tf[i].net != NULL)
-			free(tf[i].net);
+		if (tf[i].filename != NULL) free(tf[i].filename);
+		if (tf[i].station != NULL)  free(tf[i].station);
+		if (tf[i].net != NULL) free(tf[i].net);
+
+		// Data
+		tf[i].z = io_freeData(tf[i].z);
+		tf[i].n = io_freeData(tf[i].n);
+		tf[i].e = io_freeData(tf[i].e);
+
+		// Filter Data
+		tf[i].zf = io_freeData(tf[i].zf);
+		tf[i].nf = io_freeData(tf[i].nf);
+		tf[i].ef = io_freeData(tf[i].ef);
+
+		// Head
+		tf[i].hz = io_freeData(tf[i].hz);
+		tf[i].hn = io_freeData(tf[i].hn);
+		tf[i].he = io_freeData(tf[i].he);
 
 		tf[i].filename = NULL;
-		tf[i].z = NULL;
-		tf[i].zf = NULL;
-		tf[i].hz = NULL;
 		tf[i].net = NULL;
 		tf[i].station = NULL;
 	}
