@@ -122,6 +122,14 @@ tf * io_loadZ (glob_t *glb, int *pnfiles) {
 	return files;
 }
 
+void io_loadN (glob_t *glb, tf *files, int *pnfiles){
+	return;
+}
+
+void io_loadE (glob_t *glb, tf *files, int *pnfiles){
+	return;
+}
+
 glob_t * io_loadEv(defs *d) {
 	// If data is loaded free it up
 	if (d->nfiles != 0) {
