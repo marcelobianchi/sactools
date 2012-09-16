@@ -227,7 +227,7 @@ void Config(defs * d)
 
 		case ('f'):
 			lerchar("Enter a new folder pattern?", aux, 200);
-			setConfigString(config, NAME_PATTERN, aux);
+			setConfigString(config, NAME_PATTERN, (strlen(aux)>0)?aux:DEFAULT_PATTERN);
 			break;
 
 		case ('1'):
