@@ -37,17 +37,17 @@ float minmaxrefine(tf * f, defs * d, float ax, float halfmaxdist)
 	float pos;
 
 	if (d->filter == 1) {
-		if (f->zf == NULL)
+		if (f->z->dataf == NULL)
 			return ax;
-		data = f->zf;
+		data = f->z->dataf;
 	} else {
-		data = f->z;
+		data = f->z->data;
 	}
 
 	status = 0;
 
 	step = (halfmaxdist / 50.0);
-	while (step < f->hz->delta)
+	while (step < f->z->head->delta)
 		step += (halfmaxdist / 50.0);
 
 	w = step;
@@ -55,15 +55,15 @@ float minmaxrefine(tf * f, defs * d, float ax, float halfmaxdist)
 		start = ax - w;
 		end = ax + w;
 
-		current = hdu_getNptsFromSeconds(f->hz, ax);
-		Nstart = hdu_getNptsFromSeconds(f->hz, start);
-		Nend = hdu_getNptsFromSeconds(f->hz, end);
+		current = hdu_getNptsFromSeconds(f->z->head, ax);
+		Nstart = hdu_getNptsFromSeconds(f->z->head, start);
+		Nend = hdu_getNptsFromSeconds(f->z->head, end);
 
-		if (hdu_checkNPTS(f->hz, current))
+		if (hdu_checkNPTS(f->z->head, current))
 			return ax;
-		if (hdu_checkNPTS(f->hz, Nstart))
+		if (hdu_checkNPTS(f->z->head, Nstart))
 			return ax;
-		if (hdu_checkNPTS(f->hz, Nend))
+		if (hdu_checkNPTS(f->z->head, Nend))
 			return ax;
 		if (Nend <= Nstart)
 			return ax;
@@ -78,7 +78,7 @@ float minmaxrefine(tf * f, defs * d, float ax, float halfmaxdist)
 		}
 	}
 
-	getminmax(data, f->hz, start, end, &min, &max);
+	getminmax(data, f->z->head, start, end, &min, &max);
 
 	if (status == 1)
 		pos = max;
@@ -93,7 +93,7 @@ float minmaxrefine(tf * f, defs * d, float ax, float halfmaxdist)
 
 void deletemark(tf * f, float ax)
 {
-	f->hz->f = SAC_HEADER_FLOAT_UNDEFINED;
+	f->z->head->f = SAC_HEADER_FLOAT_UNDEFINED;
 }
 
 void mark(g_ctl * ctl, float x, char *c, int color)
@@ -114,27 +114,27 @@ void timedraw(g_ctl * ctl, tf * f, defs * d, int gravity)
 	float *x = NULL;
 	int i;
 
-	x = malloc(sizeof(float) * f->hz->npts);
-	for (i = 0; i < f->hz->npts; i++)
-		x[i] = i * f->hz->delta + f->hz->b;
+	x = malloc(sizeof(float) * f->z->head->npts);
+	for (i = 0; i < f->z->head->npts; i++)
+		x[i] = i * f->z->head->delta + f->z->head->b;
 
 
-	float *y = (d->filter && f->zf != NULL) ? f->zf : f->z;
-	ctl_yupdate_ndb(ctl, y, f->hz->npts, f->hz->delta, f->hz->b);
+	float *y = (d->filter && f->z->dataf != NULL) ? f->z->dataf : f->z->data;
+	ctl_yupdate_ndb(ctl, y, f->z->head->npts, f->z->head->delta, f->z->head->b);
 	ctl_clean(NULL);
 	ctl_resizeview(ctl);
 	ctl_axisfull(ctl);
 	ctl->expand = 0;
 	ctl_drawaxis(ctl);
-	cpgline(f->hz->npts, x, y);
+	cpgline(f->z->head->npts, x, y);
 
 	free(x);
 	x = NULL;
 
-	if (f->hz->a != SAC_HEADER_FLOAT_UNDEFINED)
-		mark(ctl, f->hz->a, "a", 2);
-	if (f->hz->f != SAC_HEADER_FLOAT_UNDEFINED)
-		mark(ctl, f->hz->f, "f", 2);
+	if (f->z->head->a != SAC_HEADER_FLOAT_UNDEFINED)
+		mark(ctl, f->z->head->a, "a", 2);
+	if (f->z->head->f != SAC_HEADER_FLOAT_UNDEFINED)
+		mark(ctl, f->z->head->f, "f", 2);
 
 	if (d->filter) {
 		sprintf(txt, "%s [Filtering, bandpass from %.2f to %.2f]",
@@ -168,12 +168,12 @@ void edit_tf(g_ctl * ctl, tf * f, defs * d)
 	switch (d->alig) {
 	case (ALIGO):
 	case (ALIGA):
-		ctl->xmin = f->hz->a - d->prephase;
-		ctl->xmax = f->hz->a + d->postphase;
+		ctl->xmin = f->z->head->a - d->prephase;
+		ctl->xmax = f->z->head->a + d->postphase;
 		break;
 	case (ALIGF):
-		ctl->xmin = f->hz->f - d->prephase;
-		ctl->xmax = f->hz->f + d->postphase;
+		ctl->xmin = f->z->head->f - d->prephase;
+		ctl->xmax = f->z->head->f + d->postphase;
 		break;
 	}
 
@@ -195,7 +195,7 @@ void edit_tf(g_ctl * ctl, tf * f, defs * d)
 
 		case 'Z':
 		case 'Y':
-			f->hz->f = (gravity) ? minmaxrefine(f, d, ax, 2.) : ax;
+			f->z->head->f = (gravity) ? minmaxrefine(f, d, ax, 2.) : ax;
 			d->needsave = 1;
 			break;
 
@@ -206,8 +206,8 @@ void edit_tf(g_ctl * ctl, tf * f, defs * d)
 				ctl->xmin = aux;
 				ctl->xmax = ax;
 			} else {
-				ctl->xmin = hdu_getSecondsFromNPTS(f->hz, 0);
-				ctl->xmax = hdu_getSecondsFromNPTS(f->hz, f->hz->npts);
+				ctl->xmin = hdu_getSecondsFromNPTS(f->z->head, 0);
+				ctl->xmax = hdu_getSecondsFromNPTS(f->z->head, f->z->head->npts);
 			}
 			break;
 

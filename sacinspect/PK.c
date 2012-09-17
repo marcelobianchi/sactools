@@ -116,6 +116,14 @@ int valueoption(float value, int pos, char *c, char *message,
 	return valueoptionchar(cvalue, pos, c, message, cdefaultv);
 }
 
+int valueoptionbool(int value, int pos, char *c, char * message,
+				int defaultv) {
+	char cvalue[200], cdefaultv[200];
+	sprintf(cvalue, "%s", (value)?"true":"false");
+	sprintf(cdefaultv, "%s", (defaultv)?"true":"false");
+	return valueoptionchar(cvalue, pos, c, message, cdefaultv);
+}
+
 int titleoption(char *message, int pos)
 {
 	float line;
@@ -191,6 +199,15 @@ void Config(defs * d)
 							"Pattern used to search for files for the E component:",
 							DEFAULT_E);
 
+		// Jump a line
+		k--;
+
+		k = valueoptionbool(getConfigAsBoolean
+							(config, NAME_LOAD, DEFAULT_LOAD), k,
+							"c",
+							"Load All Components:",
+							DEFAULT_LOAD);
+
 		k -= 12;
 		k = titleoption("Q - To Return !", k);
 
@@ -245,6 +262,11 @@ void Config(defs * d)
 			setConfigString(config, NAME_E, (strlen(aux)>0)?aux:DEFAULT_E);
 			break;
 
+		case ('c'):
+			value = (getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) ? 0 : 1 ;
+			setConfigBoolean(config, NAME_LOAD, value);
+			break;
+
 		case ('q'):
 		case ('Q'):
 			ax = getConfigAsNumber(config, NAME_LP, DEFAULT_LP);
@@ -267,7 +289,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 	switch (ch) {
 
-	case ('0'):
+	case ('0'): {
 		d->sortmode++;
 		if (d->sortmode > 1)
 			d->sortmode = 0;
@@ -279,8 +301,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			sprintf(d->lastaction, "Sort mode Back-Azimuth.");
 		}
 		break;
+	}
 
-	case ('!'):
+	case ('!'): {
 		if (d->zoom == 1.0) {
 			d->zoom =
 				getConfigAsNumber(config, NAME__ZOOMGAIN,
@@ -295,8 +318,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			sprintf(d->lastaction, "Amplitude Zoom Off.");
 		}
 		break;
+	}
 
-	case ('*'):
+	case ('*'): {
 		if (d->prephase > 3000) {
 			sprintf(d->lastaction, "Cannot make it larger.");
 			break;
@@ -304,8 +328,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		d->prephase *= 2;
 		d->postphase *= 2;
 		break;
+	}
 
-	case ('/'):
+	case ('/'): {
 		if (d->prephase < 2) {
 			sprintf(d->lastaction, "Cannot make it smaller.");
 			break;
@@ -313,9 +338,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		d->prephase /= 2;
 		d->postphase /= 2;
 		break;
+	}
 
-	case ('r'):
-		{
+	case ('r'): {
 			if (d->needsave == 1) {
 				if (yesno("Picks not saved, save?") == 1)
 					writeout(d->files, d);
@@ -323,18 +348,18 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 			io_loadEv(d);
 			d->needsave = 0;
-		}
 		sprintf(d->lastaction, "Data Reloaded.");
 		break;
+	}
 
-	case (' '):
+	case (' '): {
 		d->onlyselected = !d->onlyselected;
 		sprintf(d->lastaction,
 				"Activate/De-Activated only selected mode.");
 		break;
+	}
 
-	case (':'):
-		{
+	case (':'): {
 			char station[15];
 			lerchar
 				("Enter e/<Event name> for search for an event or <NAME> for hightlight a station by name",
@@ -369,23 +394,25 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 					}
 				}
 			}
-		}
 		sprintf(d->lastaction, "Searched complete.");
 		break;
+	}
 
-	case ('+'):
+	case ('+'): {
 		killCTL(&d->ctl, d->max);
 		d->overlay = !d->overlay;
 		d->ctl = initCTL(d);
 		sprintf(d->lastaction, "Activate/De-Activated overlay mode.");
 		break;
+	}
 
-	case ('#'):
+	case ('#'): {
 		d->hidephase = !d->hidephase;
 		sprintf(d->lastaction, "Hide/Un-Hide theoretical phase.");
 		break;
+	}
 
-	case ('-'):
+	case ('-'): {
 		if (d->currentdir == d->glb->gl_pathc - 1)
 			break;
 		
@@ -410,8 +437,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		d->needsave = 0;
 		sprintf(d->lastaction, "Switch to next un-readed data.");
 		break;
+	}
 
-	case ('n'):
+	case ('n'): {
 		d->offset += d->max;
 		sprintf(d->lastaction, "Advanced display by %d files", d->max);
 		if (d->offset >= d->nfiles) {
@@ -419,8 +447,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			sprintf(d->lastaction, "No more files to advance");
 		}
 		break;
+	}
 
-	case ('p'):
+	case ('p'): {
 		d->offset -= d->max;
 		sprintf(d->lastaction, "Showing %d previous files", d->max);
 		if (d->offset < 0) {
@@ -428,9 +457,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			sprintf(d->lastaction, "We are already at the first file.");
 		}
 		break;
+	}
 
-	case ('N'):
-		{
+	case ('N'): {
 			d->currentdir++;
 			sprintf(d->lastaction, "Switched to next event (directory).");
 
@@ -447,11 +476,10 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 			io_loadEv(d);
 			d->needsave = 0;
-		}
 		break;
+	}
 
-	case ('P'):
-		{
+	case ('P'): {
 			d->currentdir--;
 			sprintf(d->lastaction,
 					"Switched to previous event (directory).");
@@ -468,15 +496,16 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 			io_loadEv(d);
 			d->needsave = 0;
-		}
 		break;
+	}
 
-	case ('?'):
+	case ('?'): {
 		Config(d);
 		sprintf(d->lastaction, "Reconfiguration complete.");
 		break;
+	}
 
-	case ('e'):
+	case ('e'): {
 		sprintf(d->lastaction, "Sorry, no trace found on this position.");
 		for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
 			if (ctl_checkhit(d->ctl[j], ax, ay)) {
@@ -496,8 +525,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			}
 		}
 		break;
+	}
 
-	case ('.'):
+	case ('.'): {
 		if (d->alig == ALIGF) {
 			sprintf(d->lastaction,
 					"Change aligment to phase A (theoretical).");
@@ -511,32 +541,37 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			d->alig = ALIGF;
 		}
 		break;
+	}
 
-	case ('m'):
+	case ('m'): {
 		d->plotsearchsize = !d->plotsearchsize;
 		break;
+	}
 
-	case ('s'):
+	case ('s'): {
 		d->searchsize =
 			fabs(lerfloat
 				 ("How many seconds post A mark to considerer in Min-Max search ?"));
 		break;
+	}
 
-	case ('i'):
+	case ('i'): {
 		d->insetsearchsize =
 			fabs(lerfloat
 				 ("How many seconds pre A mark to considerer in Min-Max search ?"));
 		break;
+	}
 
-	case ('t'):
+	case ('t'): {
 		d->putname++;
 		if (d->putname == 3)
 			d->putname = 0;
 		sprintf(d->lastaction,
 				"Switch display of filename and station information.");
 		break;
+	}
 
-	case (','):
+	case (','): {
 		killCTL(&d->ctl, d->max);
 		d->max = lerint("How many traces (0 for all)?");
 		if (d->max == 0)
@@ -544,8 +579,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		d->ctl = initCTL(d);
 		sprintf(d->lastaction, "Changed to %d traces per screen.", d->max);
 		break;
+	}
 
-	case ('o'):
+	case ('o'): {
 		cpgopen("plot.ps/CPS");
 		cpgsch(0.65);
 		cpgslw(2);
@@ -556,8 +592,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		cpgslct(d->grID);
 		sprintf(d->lastaction, "Saved plot-screen in file plot.ps");
 		break;
+	}
 
-	case ('d'):
+	case ('d'): {
 		sprintf(d->lastaction, "Sorry, no trace found on this position.");
 		for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
 			if (ctl_checkhit(d->ctl[j], ax, ay)) {
@@ -568,106 +605,115 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			}
 		}
 		break;
+	}
 
-	case ('z'):				// german changes y and z
-	case ('y'):
+	case ('z'): // german changes y and z
+	case ('y'): {
 		for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max));
 			 j++) {
 			tf *ts = &d->files[j];
 			getminmax((d->filter
-					   && ts->zf != NULL) ? ts->zf : ts->z, ts->hz,
-					  ts->hz->a - d->insetsearchsize,
-					  ts->hz->a + d->searchsize, &vmin, &vmax);
-			ts->hz->f = vmax;
+					   && ts->current->dataf != NULL) ? ts->current->dataf : ts->current->data, ts->current->head,
+					  ts->current->head->a - d->insetsearchsize,
+					  ts->current->head->a + d->searchsize, &vmin, &vmax);
+			ts->current->head->f = vmax;
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction,
 				"Searched for maximun between A %.2f adn %.2f seconds.",
 				d->insetsearchsize, d->searchsize);
 		break;
+	}
 
-	case ('c'):
+	case ('c'): {
 		for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max));
 			 j++) {
 			tf *ts = &d->files[j];
-			ts->hz->f = -12345.0;
+			ts->current->head->f = -12345.0;
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction, "Cleaned pick phases.");
 		break;
+	}
 
-	case ('x'):
+	case ('x'): {
 		for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max));
 			 j++) {
 			tf *ts = &d->files[j];
-			//      if (ts->hz->unused25 != 1 ) continue;
+			//      if (ts->current->head->unused25 != 1 ) continue;
 			getminmax((d->filter
-					   && ts->zf != NULL) ? ts->zf : ts->z, ts->hz,
-					  ts->hz->a - d->insetsearchsize,
-					  ts->hz->a + d->searchsize, &vmin, &vmax);
-			ts->hz->f = vmin;
+					   && ts->current->dataf != NULL) ? ts->current->dataf : ts->current->data, ts->current->head,
+					  ts->current->head->a - d->insetsearchsize,
+					  ts->current->head->a + d->searchsize, &vmin, &vmax);
+			ts->current->head->f = vmin;
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction,
 				"Searched for minimun between A %.2f adn %.2f seconds.",
 				d->insetsearchsize, d->searchsize);
 		break;
+	}
 
-	case ('1'):
+	case ('1'): {
 		for (j = 0; j < d->nfiles; j++) {
 			tf *ts = &d->files[j];
-			//      if (ts->hz->unused25 != 1 ) continue;
+			//      if (ts->current->head->unused25 != 1 ) continue;
 			getminmax((d->filter
-					   && ts->zf != NULL) ? ts->zf : ts->z, ts->hz,
-					  ts->hz->a - d->insetsearchsize,
-					  ts->hz->a + d->searchsize, &vmin, &vmax);
-			ts->hz->f = vmax;
+					   && ts->current->dataf != NULL) ? ts->current->dataf : ts->current->data, ts->current->head,
+					  ts->current->head->a - d->insetsearchsize,
+					  ts->current->head->a + d->searchsize, &vmin, &vmax);
+			ts->current->head->f = vmax;
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction,
 				"Searched for maximun for ALL betwen A %.2f adn %.2f seconds.",
 				d->insetsearchsize, d->searchsize);
 		break;
+	}
 
-	case ('2'):
+	case ('2'): {
 		for (j = 0; j < d->nfiles; j++) {
 			tf *ts = &d->files[j];
-			// if (ts->hz->unused25 != 1 ) continue;
+			// if (ts->current->head->unused25 != 1 ) continue;
 			getminmax((d->filter
-					   && ts->zf != NULL) ? ts->zf : ts->z, ts->hz,
-					  ts->hz->a - d->insetsearchsize,
-					  ts->hz->a + d->searchsize, &vmin, &vmax);
-			ts->hz->f = vmin;
+					   && ts->current->dataf != NULL) ? ts->current->data : ts->current->data, ts->current->head,
+					  ts->current->head->a - d->insetsearchsize,
+					  ts->current->head->a + d->searchsize, &vmin, &vmax);
+			ts->current->head->f = vmin;
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction,
 				"Searched for minimun for ALL betwen A %.2f adn %.2f seconds.",
 				d->insetsearchsize, d->searchsize);
 		break;
+	}
 
-	case ('3'):
+	case ('3'): {
 		for (j = 0; j < d->nfiles; j++) {
 			tf *ts = &d->files[j];
-			// if (ts->hz->unused25 != 1 ) continue;
-			ts->hz->f = -12345.0;
+			// if (ts->current->head->unused25 != 1 ) continue;
+			ts->current->head->f = -12345.0;
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction, "Cleaned ALL pick phases.");
 		break;
+	}
 
-	case ('w'):
+	case ('w'): {
 		writeout(d->files, d);
 		sprintf(d->lastaction, "Files were writen to disk.");
 		break;
+	}
 
-	case ('f'):
+	case ('f'): {
 		d->filter = !d->filter;
 		d->needfilter = 1;
 		sprintf(d->lastaction, "Switch filter %s",
 				(d->filter) ? "ON" : "OFF");
 		break;
+	}
 
-	case ('l'):
+	case ('l'): {
 		aux = lerfloat("Low pass filter?");
 		if ((aux >= d->hp) && (aux >= 0)) {
 			d->lp = aux;
@@ -680,8 +726,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 					aux);
 		}
 		break;
+	}
 
-	case ('h'):
+	case ('h'): {
 		aux = lerfloat("High pass filter?");
 		if ((aux <= d->lp) && (aux >= 0)) {
 			d->hp = aux;
@@ -694,17 +741,39 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 					aux);
 		}
 		break;
+	}
 
-	case ('Q'):
+	case ('Q'): {
 		if (d->needsave == 1) {
 			if (yesno("Picks not saved, save?") == 1)
 				writeout(d->files, d);
 		}
 		break;
+	}
 
-	default:
+	case ('<'):
+	case ('>'): {
+		if (!getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) {
+			sprintf(d->lastaction, "Only Z component loaded. Visit config for activate this option.");
+			break;
+		}
+		if (ch == '>')
+			d->zne++;
+		else
+			d->zne--;
+		
+		if (d->zne >= 3) d->zne = 0;
+		if (d->zne < 0) d->zne = 2;
+		io_AdjustCurrent(d);
+		
+		sprintf(d->lastaction, "Switched components to %s", (d->zne == 0)?"Z":(d->zne == 1)?"N":"E");
+		break;
+	}
+
+	default: {
 		sprintf(d->lastaction, "Cannot understand %c", ch);
 		break;
+	}
 	}
 }
 

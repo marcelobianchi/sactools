@@ -157,23 +157,22 @@ void plot(g_ctl * ctl, float *y, int npts, float delta, float b,
 	x = io_freeData(x);
 }
 
-
 void filtertf(tf * f, defs * d)
 {
-	if (f->z == NULL) {
-		f->zf = NULL;
+	if (f->current->data == NULL) {
+		f->current->dataf = NULL;
 		return;
 	}
 
-	f->zf = io_freeData(f->zf);
+	f->current->dataf = io_freeData(f->current->dataf);
 
 	if (d->filter) {
-		yu_rtrend(f->z, f->hz->npts);
-		f->zf = iir(f->z, f->hz->npts, f->hz->delta,
+		yu_rtrend(f->current->data, f->current->head->npts);
+		f->current->dataf = iir(f->current->data, f->current->head->npts, f->current->head->delta,
 					(d->hp > 0.0) ? 2 : 0, d->hp, (d->lp > 0.0) ? 2 : 0,
 					d->lp);
 
-		if (f->zf == NULL) {
+		if (f->current->dataf == NULL) {
 			strcpy(message, "Something wrong with the filter.");
 			alert(WARNING);
 		}
@@ -181,7 +180,6 @@ void filtertf(tf * f, defs * d)
 
 	return;
 }
-
 
 void multitraceplot(defs * d)
 {
@@ -211,15 +209,24 @@ void multitraceplot(defs * d)
 				d->nfiles) ? (d->nfiles - 1) : (d->offset + d->max);
 
 	// Those are used for min and max of the ALIGO mode
-	x1 = d->files[d->offset].hz->a + d->files[d->offset].reference - 2.5;
-	x2 = d->files[lastFile].hz->a + d->files[lastFile].reference +
-		d->postphase;
+	if (d->files[d->offset].current) {
+		x1 = d->files[d->offset].current->head->a + d->files[d->offset].current->reference - 2.5;
+		x2 = d->files[lastFile].current->head->a + d->files[lastFile].current->reference +
+				d->postphase;
+	} else {
+		x1 = 0.0;
+		x2 = 10.0;
+	}
+	
 	for (j = 0; j < d->max && (j + d->offset) < d->nfiles; j++) {
 
 		/* *********************************************************** */
 		/* Prepare the file to plot                                    */
 		/* *********************************************************** */
 		tf *thistrace = &d->files[j + d->offset];
+		if (thistrace->current == NULL) {
+			continue;
+		}
 		if (d->onlyselected && !thistrace->selected)
 			continue;
 
@@ -235,16 +242,16 @@ void multitraceplot(defs * d)
 		switch (d->alig) {
 		case (ALIGO):
 			aligChar = 'O';
-			if (d->files[0].hz->o != SAC_HEADER_FLOAT_UNDEFINED) {
-				start = thistrace->reference - d->files[0].hz->o;
-				ctl_xreset_mm(ctl[j], x1 - d->files[d->offset].hz->o,
-							  x2 - d->files[d->offset].hz->o);
+			if (d->files[0].current->head->o != SAC_HEADER_FLOAT_UNDEFINED) {
+				start = thistrace->current->reference - d->files[0].current->head->o;
+				ctl_xreset_mm(ctl[j], x1 - d->files[d->offset].current->head->o,
+							  x2 - d->files[d->offset].current->head->o);
 			} else {
-				start = thistrace->reference;
+				start = thistrace->current->reference;
 				ctl_xreset_mm(ctl[j], x1, x2);
 				aligChar = '!';
 
-				SACTIME *time = getTimeStructFromSAC(d->files[0].hz);
+				SACTIME *time = getTimeStructFromSAC(d->files[0].current->head);
 				char *stime = print_time(time, TIME_ISO);
 				sprintf(d->lastaction, "Reference is: %s", stime);
 				stime = io_freeData(stime);
@@ -255,20 +262,20 @@ void multitraceplot(defs * d)
 		case (ALIGF):
 			aligChar = 'F';
 			ctl_xreset_mm(ctl[j], -d->prephase, +d->postphase);
-			if (thistrace->hz->f != SAC_HEADER_FLOAT_UNDEFINED) {
-				start = thistrace->hz->b - thistrace->hz->f;
+			if (thistrace->current->head->f != SAC_HEADER_FLOAT_UNDEFINED) {
+				start = thistrace->current->head->b - thistrace->current->head->f;
 			} else {
-				start = thistrace->hz->b;
+				start = thistrace->current->head->b;
 			}
 			break;
 
 		case (ALIGA):
 			aligChar = 'A';
 			ctl_xreset_mm(ctl[j], -d->prephase, +d->postphase);
-			if (thistrace->hz->a != SAC_HEADER_FLOAT_UNDEFINED) {
-				start = thistrace->hz->b - thistrace->hz->a;
+			if (thistrace->current->head->a != SAC_HEADER_FLOAT_UNDEFINED) {
+				start = thistrace->current->head->b - thistrace->current->head->a;
 			} else {
-				start = thistrace->hz->b;
+				start = thistrace->current->head->b;
 			}
 			break;
 		}
@@ -281,15 +288,15 @@ void multitraceplot(defs * d)
 		color = 14;				// Default trace color
 		if (thistrace->selected == 1)
 			color = 2;			// If event Selected Color = Red
-		// if (thistrace->hz->unused25 != 1) color = 14; // If we are in the restricted mode and trace is locked Color = Gray
+		// if (thistrace->current->head->unused25 != 1) color = 14; // If we are in the restricted mode and trace is locked Color = Gray
 		if (d->overlay)
 			color = j + 1;
 
 		// Finally Plot
 		plot(ctl[j],
 			 (d->filter
-			  && thistrace->zf != NULL) ? thistrace->zf : thistrace->z,
-			 thistrace->hz->npts, thistrace->hz->delta, start, 0, color,
+			  && thistrace->current->dataf != NULL) ? thistrace->current->dataf : thistrace->current->data,
+			 thistrace->current->head->npts, thistrace->current->head->delta, start, 0, color,
 			 d->zoom);
 		/* *********************************************************** */
 
@@ -298,8 +305,8 @@ void multitraceplot(defs * d)
 		/* *********************************************************** */
 
 		// F mark, the pick time
-		if (thistrace->hz->f != SAC_HEADER_FLOAT_UNDEFINED)
-			mark(ctl[j], thistrace->hz->f + start - thistrace->hz->b, "f",
+		if (thistrace->current->head->f != SAC_HEADER_FLOAT_UNDEFINED)
+			mark(ctl[j], thistrace->current->head->f + start - thistrace->current->head->b, "f",
 				 2);
 
 		// IF OVERLAY MODE JUST PLOT THE TRACE AND RETURN.
@@ -307,16 +314,16 @@ void multitraceplot(defs * d)
 			continue;
 
 		// A Mark (Theoretical Model)
-		if (thistrace->hz->a != SAC_HEADER_FLOAT_UNDEFINED
+		if (thistrace->current->head->a != SAC_HEADER_FLOAT_UNDEFINED
 			&& d->hidephase == 0) {
 			char *label = NULL;
 
-			hdu_getValueFromChar("ka", thistrace->hz, NULL, NULL, &label);
+			hdu_getValueFromChar("ka", thistrace->current->head, NULL, NULL, &label);
 			if (label != NULL && strlen(label) > 0)
-				mark(ctl[j], thistrace->hz->a + start - thistrace->hz->b,
+				mark(ctl[j], thistrace->current->head->a + start - thistrace->current->head->b,
 					 label, 2);
 			else
-				mark(ctl[j], thistrace->hz->a + start - thistrace->hz->b,
+				mark(ctl[j], thistrace->current->head->a + start - thistrace->current->head->b,
 					 "A", 2);
 
 			label = io_freeData(label);
@@ -324,15 +331,15 @@ void multitraceplot(defs * d)
 		// Mark the Window we perform the Min/Max Search in the trace
 		if (d->plotsearchsize) {
 			mark(ctl[j],
-				 thistrace->hz->a + start - thistrace->hz->b +
+				 thistrace->current->head->a + start - thistrace->current->head->b +
 				 d->searchsize, "", 3);
 			mark(ctl[j],
-				 thistrace->hz->a + start - thistrace->hz->b -
+				 thistrace->current->head->a + start - thistrace->current->head->b -
 				 d->insetsearchsize, "", 3);
 		}
 
-		sprintf(string, "B: %.0f D: %.2f", thistrace->hz->baz,
-				thistrace->hz->gcarc);
+		sprintf(string, "B: %.0f D: %.2f", thistrace->current->head->baz,
+				thistrace->current->head->gcarc);
 		if (d->putname == 2)
 			cpgmtxt("B", -2.00, 0.0, 0.0, string);
 		else
@@ -349,7 +356,7 @@ void multitraceplot(defs * d)
 
 			if (d->putname == 2) {
 				sprintf(string, "%02d] %s", d->offset + j,
-						thistrace->filename);
+						thistrace->current->filename);
 				cpgmtxt("B", -0.70, 0.0, 0.0, string);
 			}
 			cpgsci(1);
@@ -401,10 +408,10 @@ void writeout(tf * files, defs * d)
 
 	for (j = 0; j < d->nfiles; j++) {
 		f = &files[j];
-		if (f != NULL && f->hz != NULL && f->filename != NULL) {
-			f->hz->user0 = d->lp;
-			f->hz->user1 = d->hp;
-			io_writeSacHead(f->filename, f->hz);
+		if (f != NULL && f->current->head != NULL && f->current->filename != NULL) {
+			f->current->head->user0 = d->lp;
+			f->current->head->user1 = d->hp;
+			io_writeSacHead(f->current->filename, f->current->head);
 		}
 	}
 	d->needsave = 0;
@@ -456,35 +463,57 @@ void getminmax(float *data, SACHEAD * hdr, float start, float end,
 	*rmin = hdu_getSecondsFromNPTS(hdr, jmin);
 }
 
-void synch(tf * f, defs * d)
+void synch(tf * f, int nfiles)
 {
 	tf *ref;
 	int j;
-
 
 	//    c<-b2>d------/
 	//  a<---b1-->b----/--
 	// REF = a to c + b2
 	// for the first trace (reference one) is a to a + b1
 
+	// Set the reference
 	ref = &f[0];
-	ref->reference = ref->hz->b;
+	if (ref->z != NULL) ref->z->reference = ref->z->head->b;
+	if (ref->n != NULL) ref->n->reference = ref->n->head->b;
+	if (ref->e != NULL) ref->e->reference = ref->e->head->b;
 
-	for (j = 1; j < d->nfiles; j++) {
+	for (j = 1; j < nfiles; j++) {
 		tf *t = &f[j];
-
-		if (ref->hz->nzyear != t->hz->nzyear) {
-			t->reference = 0.0;
-			continue;
+		
+		// Z
+		if ((ref->z != NULL )&&(t->z != NULL)&&(ref->z->head->nzyear == t->z->head->nzyear)) {
+			double val = (t->z->head->nzjday - ref->z->head->nzjday) * 24 * 60 * 60 +
+				(t->z->head->nzhour - ref->z->head->nzhour) * 60 * 60 +
+				(t->z->head->nzmin  - ref->z->head->nzmin) * 60 +
+				(t->z->head->nzsec  - ref->z->head->nzsec) +
+				(t->z->head->nzmsec - ref->z->head->nzmsec) / 1000.0 + t->z->head->b;
+	
+			t->z->reference = val;
 		}
-
-		double val = (t->hz->nzjday - ref->hz->nzjday) * 24 * 60 * 60 +
-			(t->hz->nzhour - ref->hz->nzhour) * 60 * 60 +
-			(t->hz->nzmin - ref->hz->nzmin) * 60 +
-			(t->hz->nzsec - ref->hz->nzsec) +
-			(t->hz->nzmsec - ref->hz->nzmsec) / 1000.0 + t->hz->b;
-
-		t->reference = val;
+		
+		// N
+		if ( (ref->n != NULL ) && (t->n != NULL) && (t->n != NULL && ref->n->head->nzyear == t->n->head->nzyear)) {
+			double val = (t->n->head->nzjday - ref->n->head->nzjday) * 24 * 60 * 60 +
+				(t->n->head->nzhour - ref->n->head->nzhour) * 60 * 60 +
+				(t->n->head->nzmin  - ref->n->head->nzmin) * 60 +
+				(t->n->head->nzsec  - ref->n->head->nzsec) +
+				(t->n->head->nzmsec - ref->n->head->nzmsec) / 1000.0 + t->n->head->b;
+	
+			t->n->reference = val;
+		}
+		
+		// E
+		if ((ref->e != NULL ) && (t->e != NULL) && (t->e != NULL && ref->e->head->nzyear == t->e->head->nzyear)) {
+			double val = (t->e->head->nzjday - ref->e->head->nzjday) * 24 * 60 * 60 +
+				(t->e->head->nzhour - ref->e->head->nzhour) * 60 * 60 +
+				(t->e->head->nzmin  - ref->e->head->nzmin) * 60 +
+				(t->e->head->nzsec  - ref->e->head->nzsec) +
+				(t->e->head->nzmsec - ref->e->head->nzmsec) / 1000.0 + t->e->head->b;
+	
+			t->e->reference = val;
+		}
 	}
 }
 
@@ -493,7 +522,7 @@ int sortDist(const void *p1, const void *p2)
 	tf *t1 = (tf *) p1;
 	tf *t2 = (tf *) p2;
 
-	return (t1->hz->gcarc) > (t2->hz->gcarc);
+	return (t1->z->head->gcarc) > (t2->z->head->gcarc);
 }
 
 int sortBaz(const void *p1, const void *p2)
@@ -501,7 +530,7 @@ int sortBaz(const void *p1, const void *p2)
 	tf *t1 = (tf *) p1;
 	tf *t2 = (tf *) p2;
 
-	return (t1->hz->baz) > (t2->hz->baz);
+	return (t1->z->head->baz) > (t2->z->head->baz);
 }
 
 glob_t *filelist(char *folder, char *fpattern) {
@@ -549,32 +578,32 @@ void checkTREF(tf * files, int nfiles)
 	int i;
 
 	for (i = 0; i < nfiles; i++)
-		if (files[i].hz->a == SAC_HEADER_FLOAT_UNDEFINED)
+		if (files[i].z->head->a == SAC_HEADER_FLOAT_UNDEFINED)
 			has = 0;
-
+	
 	if (has == 1)
 		return;
 
 	lerchar
-		("Not all your files has a pick, enter the name of header to import picks or none to quit?",
-		 phase, 4);
-
+			("Not all your files has a pick, enter the name of header to import picks or none to quit?",
+			 phase, 4);
+	
 	SACHEADDEF *hdef = getSacHeadDefFromChar(phase);
 	if (hdef == NULL || hdef->isMark != 1) {
 		strcpy(message, "Okay. Skipping the import of reference phases.");
 		alert(WARNING);
 		return;
 	}
-
+	
 	sprintf(kphase, "K%s", phase);
-
+	
 	for (i = 0; i < nfiles; i++) {
 		float val;
 		char *name = NULL;
-
+		
 		// Get
-		hdu_getValueFromChar(phase, files[i].hz, &val, NULL, NULL);
-		hdu_getValueFromChar(kphase, files[i].hz, NULL, NULL, &name);
+		hdu_getValueFromChar(phase, files[i].z->head, &val, NULL, NULL);
+		hdu_getValueFromChar(kphase, files[i].z->head, NULL, NULL, &name);
 
 		// Check
 		if (val == SAC_HEADER_FLOAT_UNDEFINED) {
@@ -584,9 +613,20 @@ void checkTREF(tf * files, int nfiles)
 			continue;
 		}
 		// Set
-		files[i].hz->a = val;
-		changeCharValueFromChar(files[i].hz, kphase, name);
+		files[i].z->head->a = val;
+		changeCharValueFromChar(files[i].z->head, kphase, name);
 	}
+}
+
+void *otffree(otf *otf) {
+	if (otf != NULL) {
+		if (otf->filename != NULL) free(otf->filename);
+		otf->filename = NULL;
+		otf->data  = io_freeData(otf->data);
+		otf->dataf = io_freeData(otf->dataf);
+		otf->head  = io_freeData(otf->head);
+	}
+	return NULL;
 }
 
 void tffree(tf * tf, int n)
@@ -597,28 +637,16 @@ void tffree(tf * tf, int n)
 		return;
 
 	for (i = 0; i < n; i++) {
-		if (tf[i].filename != NULL) free(tf[i].filename);
 		if (tf[i].station != NULL)  free(tf[i].station);
 		if (tf[i].net != NULL) free(tf[i].net);
-
-		// Data
-		tf[i].z = io_freeData(tf[i].z);
-		tf[i].n = io_freeData(tf[i].n);
-		tf[i].e = io_freeData(tf[i].e);
-
-		// Filter Data
-		tf[i].zf = io_freeData(tf[i].zf);
-		tf[i].nf = io_freeData(tf[i].nf);
-		tf[i].ef = io_freeData(tf[i].ef);
-
-		// Head
-		tf[i].hz = io_freeData(tf[i].hz);
-		tf[i].hn = io_freeData(tf[i].hn);
-		tf[i].he = io_freeData(tf[i].he);
-
-		tf[i].filename = NULL;
 		tf[i].net = NULL;
 		tf[i].station = NULL;
+		
+		tf[i].z = otffree(tf[i].z);
+		tf[i].n = otffree(tf[i].n);
+		tf[i].e = otffree(tf[i].e);
+
+		tf[i].current = NULL;
 	}
 
 	free(tf);
@@ -693,6 +721,8 @@ defs *newdefs(glob_t * glb)
 	d->zoom = 1.0;
 	d->sortmode = 0;
 
+	d->zne = 0;
+	d->has3 = 0;
 	d->ctl = NULL;
 	d->files = NULL;
 	d->needsave = 0;

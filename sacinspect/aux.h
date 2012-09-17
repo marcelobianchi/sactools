@@ -18,13 +18,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+void checkTREF(tf * files, int nfiles);
 void multitraceplot(defs * d);
 void getminmax(float *data, SACHEAD * hdr, float start, float end,
 			   float *rmin, float *rmax);
 void filtertf(tf * f, defs * d);
 void writeout(tf * f, defs * d);
-void synch(tf * f, defs * d);
+void synch(tf * f, int nfiles);
 void killCTL(g_ctl *** c, int n);
 int cmpstringp(const void *p1, const void *p2);
 glob_t *dirlist(char *pattern);

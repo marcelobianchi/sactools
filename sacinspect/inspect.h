@@ -45,6 +45,7 @@
 #define NAME_Z "zfilePattern"
 #define NAME_N "nfilePattern"
 #define NAME_E "efilePattern"
+#define NAME_LOAD "loadAll"
 
 // Config default values
 #define DEFAULT_PATTERN "??????_????"
@@ -56,17 +57,26 @@
 #define DEFAULT_Z "*Z.SAC"
 #define DEFAULT_N "*N.SAC"
 #define DEFAULT_E "*E.SAC"
+#define DEFAULT_LOAD 0
 
-typedef struct timefile {
+typedef struct onetimefile {
 	double reference;
 	char *filename;
+	SACHEAD *head;
+	float *data;
+	float *dataf;
+} otf;
+
+typedef struct timefile {
 	char *station;
 	char *net;
 
-	SACHEAD *hz, *hn, *he;
-	float *z, *n, *e;
-	float *zf, *nf, *ef;
-
+	otf *z;
+	otf *n;
+	otf *e;
+	
+	otf *current;
+	
 	int selected;
 } tf;
 
@@ -101,9 +111,11 @@ typedef struct {
 	// Data
 	glob_t *glb;
 	int has;
+	int has3;
 	tf *files;
 	int nfiles;
 	int currentdir;
+	int zne;
 
 	// Processing parameters
 	float searchsize;
