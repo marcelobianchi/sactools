@@ -90,10 +90,13 @@ void io_AdjustCurrent(defs *d) {
 	for(i = 0; i < d->nfiles; i++) {
 		if (d->zne == 0)
 			d->files[i].current = d->files[i].z;
+		
 		else if (d->zne == 1 && d->has3)
-			d->files[i].current = d->files[i].z;
+			d->files[i].current = d->files[i].n;
+		
 		else if (d->zne == 2 && d->has3)
 			d->files[i].current = d->files[i].e;
+		
 		else // Default is Z, for safety
 			d->files[i].current = d->files[i].z;
 	}
@@ -333,37 +336,6 @@ void io_loadE (glob_t *glb, tf *files, int nfiles){
 	}
 }
 
-void io_loadNE(defs *d) {
-	//Check that Z is loaded
-	if (d->nfiles == 0) return;
-	
-	// Prepare the pathname for the current event
-	char *path = d->glb->gl_pathv[d->currentdir];
-	
-	// Prepare a new glob
-	glob_t *glbn = filelist(path, getConfigAsString(config, NAME_N, DEFAULT_N));
-	
-	// Load N
-	io_loadN(glbn, d->files, d->nfiles);
-	
-	// Clean the glob
-	killGlob(glbn);
-
-	// Prepare a new glob
-	glob_t *glbe = filelist(path, getConfigAsString(config, NAME_E, DEFAULT_E));
-	
-	// Load E
-	io_loadE(glbe, d->files, d->nfiles);
-	
-	// Clean the glob
-	killGlob(glbe);
-	
-	// Set as loaded
-	d->has3 = 1;
-	
-	return;
-}
-
 glob_t * io_loadEv(defs *d) {
 	// If data is loaded free it up
 	if (d->nfiles != 0) {
@@ -375,23 +347,35 @@ glob_t * io_loadEv(defs *d) {
 
 	// Prepare the pathname for the current event
 	char *path = d->glb->gl_pathv[d->currentdir];
-	
+
 	// Prepare a new glob
 	glob_t *glb = filelist(path, getConfigAsString(config, NAME_Z, DEFAULT_Z));
-	
+
 	// Set HAS to 0
 	d->has = findHas(glb);
 	
 	// Find the filters in use for this event
 	d->filter = findFilters(glb, &d->lp, &d->hp);
-	
+
 	// Load the Z components
 	int nfiles = 0;
 	tf *files = io_loadZ(glb, &nfiles);
-	
-	// Clean the glob
 	killGlob(glb);
-	
+
+	if (getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) {
+		// Load N components
+		glob_t *glbn = filelist(path, getConfigAsString(config, NAME_N, DEFAULT_N));
+		io_loadN(glbn, files, nfiles);
+		killGlob(glbn);
+		
+		// Load E
+		glob_t *glbe = filelist(path, getConfigAsString(config, NAME_E, DEFAULT_E));
+		io_loadE(glbe, files, nfiles);
+		killGlob(glbe);
+		
+		d->has3 = 1;
+	}
+
 	// Check the files
 	if (nfiles != 0) {
 		// Check that we have picks
@@ -417,11 +401,6 @@ glob_t * io_loadEv(defs *d) {
 	// Prepare to return
 	d->files  = files;
 	d->nfiles = nfiles;
-
-	// Should we load the 3 components
-	if (getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) {
-		io_loadNE(d);
-	}
 
 	// Adjust the curent pointer
 	io_AdjustCurrent(d);

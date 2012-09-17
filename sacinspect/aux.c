@@ -489,7 +489,7 @@ void synch(tf * f, int nfiles)
 				(t->z->head->nzmin  - ref->z->head->nzmin) * 60 +
 				(t->z->head->nzsec  - ref->z->head->nzsec) +
 				(t->z->head->nzmsec - ref->z->head->nzmsec) / 1000.0 + t->z->head->b;
-	
+			fprintf(stderr,"Reference Z == %d\n",val);
 			t->z->reference = val;
 		}
 		
@@ -500,7 +500,7 @@ void synch(tf * f, int nfiles)
 				(t->n->head->nzmin  - ref->n->head->nzmin) * 60 +
 				(t->n->head->nzsec  - ref->n->head->nzsec) +
 				(t->n->head->nzmsec - ref->n->head->nzmsec) / 1000.0 + t->n->head->b;
-	
+			fprintf(stderr,"Reference N == %d\n",val);
 			t->n->reference = val;
 		}
 		
@@ -511,7 +511,7 @@ void synch(tf * f, int nfiles)
 				(t->e->head->nzmin  - ref->e->head->nzmin) * 60 +
 				(t->e->head->nzsec  - ref->e->head->nzsec) +
 				(t->e->head->nzmsec - ref->e->head->nzmsec) / 1000.0 + t->e->head->b;
-	
+			fprintf(stderr,"Reference E == %d\n",val);
 			t->e->reference = val;
 		}
 	}
