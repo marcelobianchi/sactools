@@ -187,6 +187,19 @@ float getConfigAsNumber(CFG *config, char *key, float defaultValue) {
     return atof(config->kps[kn].value);
 }
 
+int getConfigAsBoolean(CFG *config, char *key, int defaultValue) {
+    int kn = _key2index(config, key);
+    
+    if (kn == -1) {
+        char aux[256];
+		sprintf(aux,"%s",(defaultValue == 1)?"true":"false");
+        _addKP(config, key, aux);
+        return defaultValue;
+    }
+
+	return (strcasecmp(config->kps[kn].value,"true") == 0)?1:0;
+}
+
 char * getConfigAsString(CFG *config, char *key, char *defaultValue) {
     int kn = _key2index(config, key);
     
@@ -197,8 +210,6 @@ char * getConfigAsString(CFG *config, char *key, char *defaultValue) {
     
     return config->kps[kn].value;
 }
-
-
 
 int setConfigString(CFG *config, char *key, char *value) {
     int kn = _key2index(config, key);
@@ -218,6 +229,19 @@ int setConfigNumber(CFG *config, char *key, float value) {
     int kn = _key2index(config, key);
 
     sprintf(aux, "%f", value);
+    if (kn == -1) {
+        _addKP(config, key, aux);
+        return 0;
+    }
+    _updateKP(&config->kps[kn], aux);
+    return 0;
+}
+
+int setConfigBoolean(CFG *config, char *key, int value) {
+    char aux[256];
+    int kn = _key2index(config, key);
+
+	sprintf(aux, "%s", (value)?"true":"false");
     if (kn == -1) {
         _addKP(config, key, aux);
         return 0;

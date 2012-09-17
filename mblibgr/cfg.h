@@ -46,9 +46,11 @@ void * killConfig (CFG * config);
 int    getConfigValueSize(CFG *config, char *key);
 char * getConfigAsString(CFG *config, char *key, char *defaultValue);
 float  getConfigAsNumber(CFG *config, char *key, float defaultValue);
+int    getConfigAsBoolean(CFG *config, char *key, int defaultValue);
 
 // Sets
 int setConfigString(CFG *config, char *key, char *value);
 int setConfigNumber(CFG *config, char *key, float value);
+int setConfigBoolean(CFG *config, char *key, int value);
 
 #endif
