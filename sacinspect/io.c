@@ -145,6 +145,8 @@ tf * io_loadZ (glob_t *glb, int *pnfiles) {
 		}
 		
 		// Zero all
+		files[nfiles].net = NULL;
+		files[nfiles].station = NULL;
 		files[nfiles].z = NULL;
 		files[nfiles].n = NULL;
 		files[nfiles].e = NULL;

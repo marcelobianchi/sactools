@@ -667,6 +667,7 @@ void *otffree(otf *otf) {
 		otf->dataf = io_freeData(otf->dataf);
 		otf->head  = io_freeData(otf->head);
 	}
+	free(otf);
 	return NULL;
 }
 
@@ -674,20 +675,22 @@ void tffree(tf * tf, int n)
 {
 	int i;
 
-	if (tf == NULL)
+	if (tf == NULL) {
 		return;
+	}
 
 	for (i = 0; i < n; i++) {
 		if (tf[i].station != NULL)  free(tf[i].station);
+		tf[i].station = NULL;
+
 		if (tf[i].net != NULL) free(tf[i].net);
 		tf[i].net = NULL;
-		tf[i].station = NULL;
+
+		tf[i].current = NULL;
 
 		tf[i].z = otffree(tf[i].z);
 		tf[i].n = otffree(tf[i].n);
 		tf[i].e = otffree(tf[i].e);
-
-		tf[i].current = NULL;
 	}
 
 	free(tf);
