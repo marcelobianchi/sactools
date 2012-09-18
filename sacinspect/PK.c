@@ -28,10 +28,10 @@
 #include <io.h>
 
 /* Config for plotting the config screen */
-float col1 = 0.45;
-float col2 = 0.5;
-float col3 = 0.7;
-float col4 = 0.9;
+float col1 = 0.35;
+float col2 = 0.37;
+float col3 = 0.90;
+float col4 = 0.95;
 float spacing = 1.1;
 
 void PK_checkoption(defs * d, char ch, float ax, float ay);
@@ -90,7 +90,6 @@ int valueoptionchar(char *value, int pos, char *c, char *message,
 	float line = pos * spacing;
 	char cvalue[200];
 
-	cpgmtxt("T", line, col4, 1.0, c);
 	cpgmtxt("T", line, col1, 1.0, message);
 
 	if (strlen(value) == strlen(defaultv)
@@ -101,9 +100,11 @@ int valueoptionchar(char *value, int pos, char *c, char *message,
 	cpgmtxt("T", line, col2, 0.0, value);
 
 	cpgsci(14);
-	cpgmtxt("T", line, col3, 0.0, defaultv);
+	cpgmtxt("T", line, col3, 1.0, defaultv);
 
 	cpgsci(1);
+	cpgmtxt("T", line, col4, 1.0, c);
+
 	return --pos;
 }
 
@@ -138,6 +139,20 @@ int titleoption(char *message, int pos)
 	return --pos;
 }
 
+int subtitleoption(char *message, int pos)
+{
+	float line;
+
+	pos--;
+	line = pos * spacing * 0.7;
+	cpgsci(11);
+	cpgmtxt("T", line, 0.5, 0.5, message);
+	cpgsci(1);
+	pos--;
+
+	return --pos;
+}
+
 void Config(defs * d)
 {
 	g_ctl *Wd = NULL;
@@ -147,6 +162,8 @@ void Config(defs * d)
 	float value;
 	char aux[200];
 
+	int reloadTraces = 0;
+
 	Wd = ctl_newctl(0.2, 0.05, .6, .9);
 	Wd->expand = 0;
 
@@ -154,7 +171,9 @@ void Config(defs * d)
 		k = -1;
 		ctl_resizeview(Wd);
 		ctl_clean(NULL);
-		k = titleoption("Global Defaults:", k);
+		k = titleoption("Configuration:", k);
+		k = subtitleoption("config file is ~/.sacinspectrc", k--);
+
 		k = valueoption(getConfigAsNumber(config, NAME_LP, DEFAULT_LP), k,
 						"l", "Default Low Pass filter for new events:",
 						DEFAULT_LP);
@@ -250,21 +269,25 @@ void Config(defs * d)
 		case ('1'):
 			lerchar("Enter a new file pattern?", aux, 200);
 			setConfigString(config, NAME_Z, (strlen(aux)>0)?aux:DEFAULT_Z);
+			reloadTraces = 1;
 			break;
 
 		case ('2'):
 			lerchar("Enter a new file pattern?", aux, 200);
 			setConfigString(config, NAME_N, (strlen(aux)>0)?aux:DEFAULT_N);
+			reloadTraces = 1;
 			break;
 
 		case ('3'):
 			lerchar("Enter a new file pattern?", aux, 200);
 			setConfigString(config, NAME_E, (strlen(aux)>0)?aux:DEFAULT_E);
+			reloadTraces = 1;
 			break;
 
 		case ('c'):
 			value = (getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) ? 0 : 1 ;
 			setConfigBoolean(config, NAME_LOAD, value);
+			reloadTraces = 1;
 			break;
 
 		case ('q'):
@@ -279,6 +302,12 @@ void Config(defs * d)
 			}
 			break;
 		}
+	}
+	
+	if (reloadTraces) {
+		io_loadEv(d);
+		d->needsave = 0;
+		sprintf(d->lastaction, "Data Reloaded.");
 	}
 }
 
@@ -500,6 +529,10 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 	}
 
 	case ('?'): {
+		if (d->needsave == 1) {
+			if (yesno("Picks not saved, save?") == 1)
+				writeout(d->files, d);
+		}
 		Config(d);
 		sprintf(d->lastaction, "Reconfiguration complete.");
 		break;
@@ -564,7 +597,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 	case ('t'): {
 		d->putname++;
-		if (d->putname == 3)
+		if (d->putname == 4)
 			d->putname = 0;
 		sprintf(d->lastaction,
 				"Switch display of filename and station information.");
@@ -753,6 +786,8 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 	case ('<'):
 	case ('>'): {
+		int currentid = d->zne;
+		
 		if (!getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) {
 			sprintf(d->lastaction, "Only Z component loaded. Visit config for activate this option.");
 			break;
@@ -764,9 +799,12 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		
 		if (d->zne >= 3) d->zne = 0;
 		if (d->zne < 0) d->zne = 2;
-		io_AdjustCurrent(d);
-		
-		sprintf(d->lastaction, "Switched components to %s", (d->zne == 0)?"Z":(d->zne == 1)?"N":"E");
+		if (io_AdjustCurrent(d) == 0) {
+			sprintf(d->lastaction, "Switched components to %s", (d->zne == 0)?"Z":(d->zne == 1)?"N":"E");
+		} else {
+			sprintf(d->lastaction, "Failed to switch, try reloading the event.");
+			d->zne = currentid;
+		}
 		break;
 	}
 

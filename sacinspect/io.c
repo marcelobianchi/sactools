@@ -67,7 +67,9 @@ int findpair(tf *files, int nfiles, SACHEAD *head) {
 		char *ncode;
 		hdu_getValueFromChar("KNETWK", head, NULL, NULL, &ncode);
 		if ((strlen(ncode) != strlen(files[i].net))  || strcmp(ncode, files[i].net)) {
+			if (scode != NULL) free(scode);
 			if (ncode != NULL) free(ncode);
+			scode = NULL;
 			ncode = NULL;
 			continue;
 		}
@@ -85,9 +87,12 @@ int findpair(tf *files, int nfiles, SACHEAD *head) {
 	return -1;
 }
 
-void io_AdjustCurrent(defs *d) {
+int io_AdjustCurrent(defs *d) {
 	int i;
+	
 	for(i = 0; i < d->nfiles; i++) {
+		if (d->zne > 0 && !d->has3)  return 1;
+		
 		if (d->zne == 0)
 			d->files[i].current = d->files[i].z;
 		
@@ -100,7 +105,8 @@ void io_AdjustCurrent(defs *d) {
 		else // Default is Z, for safety
 			d->files[i].current = d->files[i].z;
 	}
-	return;
+	
+	return 0;
 }
 
 tf * io_loadZ (glob_t *glb, int *pnfiles) {

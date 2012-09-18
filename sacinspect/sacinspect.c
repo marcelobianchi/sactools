@@ -84,11 +84,16 @@ int main(int argc, char **argv)
 		}
 
 		PK_process(glb);
-
+		
+		free (glb->gl_pathv[0]);
+		glb->gl_pathv[0] = NULL;
+		
 		free (glb->gl_pathv);
 		glb->gl_pathv = NULL;
+		
 		free(glb);
 		glb = NULL;
+
 	} else if ((compare = strncmp(argv[1], "-az", 10)) == 0) {
 		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(pathPattern);
 		if (glb->gl_pathc > 0)

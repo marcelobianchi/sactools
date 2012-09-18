@@ -115,6 +115,9 @@ void plothelp(defs * d)
 		cpgmtxt("B", k--, where, how, "Align .");
 		cpgmtxt("B", k--, where, how, "Tr. per Sc. ,");
 		k--;
+		cpgmtxt("B", k--, where, how, "Nex.Comp >");
+		cpgmtxt("B", k--, where, how, "Pre.Comp <");
+		k--;
 		cpgmtxt("B", k--, where, how, "Event N,P");
 		cpgmtxt("B", k--, where, how, "Trace n,p");
 		cpgsci(15);
@@ -186,6 +189,7 @@ void multitraceplot(defs * d)
 	int j;
 	float start;
 	char string[1024];
+	char stringaux[1024];
 	g_ctl **ctl = d->ctl;
 	int color = 1;
 	char aligChar;
@@ -340,7 +344,7 @@ void multitraceplot(defs * d)
 
 		sprintf(string, "B: %.0f D: %.2f", thistrace->current->head->baz,
 				thistrace->current->head->gcarc);
-		if (d->putname == 2)
+		if (d->putname >= 3)
 			cpgmtxt("B", -2.00, 0.0, 0.0, string);
 		else
 			cpgmtxt("B", -0.70, 0.0, 0.0, string);
@@ -348,17 +352,31 @@ void multitraceplot(defs * d)
 
 		// Add the name of the trace
 		if (d->putname > 0) {
+			float pos = 1.2;
+
 			cpgsci(2);
-
-			cpgmtxt("R", 1.2, .5, .5, thistrace->net);
-			if (d->max <= 20)
-				cpgmtxt("R", 2.2, .5, .5, thistrace->station);
-
-			if (d->putname == 2) {
+			cpgmtxt("R", pos, .5, .5, thistrace->net);
+			pos +=  1.0;
+			
+			if (d->max <= 20) {
+				cpgmtxt("R", pos, .5, .5, thistrace->station);
+				pos +=  1.0;
+			}
+			
+			if (d->putname >= 2) {
+				char *cmp;
+				hdu_getValueFromChar("KCMPNM",thistrace->current->head,NULL,NULL, &cmp);
+				cpgmtxt("R", pos, .5, .5, cmp);
+				cmp = io_freeData(cmp);
+				pos +=  1.0;
+			}
+			
+			if (d->putname >= 3) {
 				sprintf(string, "%02d] %s", d->offset + j,
 						thistrace->current->filename);
 				cpgmtxt("B", -0.70, 0.0, 0.0, string);
 			}
+			
 			cpgsci(1);
 		}
 
@@ -366,8 +384,32 @@ void multitraceplot(defs * d)
 
 	// basic information on the foot
 	ctl_resizeview(ctl[0]);
+	
+	// components information
+	// green  (should load and loaded)
+	// gray   (should not load)
+	// red    (should load but not loaded)
+	// the < mark the current displayed component
+	strcpy(stringaux,"");
+	if (d->nfiles > 0) {
+		cpgsci((d->files[0].z != NULL)?3:2);
+		cpgsch(1.);
+		cpgmtxt("B",1.25, -0.05, 1.0, (d->zne == 0)?"Z":"Z");
+		
+		cpgsci((d->has3 && d->files[0].n != NULL)?3:(d->has3)?2:14);
+		cpgmtxt("B",1.25, -0.035, 1.0, (d->zne == 1)?"N":"N");
+		
+		cpgsci((d->has3 && d->files[0].e != NULL)?3:(d->has3)?2:14);
+		cpgmtxt("B",1.25, -0.02, 1.0, (d->zne == 2)?"E":"E");
+
+		cpgsci(1);
+
+		cpgmtxt("B",2.0, -0.05 + d->zne*0.015, 1.75, "\\m17");
+		cpgsch(0.65);
+	}
+	
 	sprintf(string, "[%03d-%03d/%03d] [Filter %s (%.2f to %.2f hz)]",
-			d->offset + 1, d->offset + d->max, d->nfiles,
+			d->offset + 1, d->offset + d->max, d->nfiles, stringaux,
 			(d->filter) ? "ON" : "OFF", d->hp, d->lp);
 	cpgmtxt("B", 2.5, 0.0, 0.0, string);
 
@@ -489,7 +531,6 @@ void synch(tf * f, int nfiles)
 				(t->z->head->nzmin  - ref->z->head->nzmin) * 60 +
 				(t->z->head->nzsec  - ref->z->head->nzsec) +
 				(t->z->head->nzmsec - ref->z->head->nzmsec) / 1000.0 + t->z->head->b;
-			fprintf(stderr,"Reference Z == %d\n",val);
 			t->z->reference = val;
 		}
 		
@@ -500,7 +541,6 @@ void synch(tf * f, int nfiles)
 				(t->n->head->nzmin  - ref->n->head->nzmin) * 60 +
 				(t->n->head->nzsec  - ref->n->head->nzsec) +
 				(t->n->head->nzmsec - ref->n->head->nzmsec) / 1000.0 + t->n->head->b;
-			fprintf(stderr,"Reference N == %d\n",val);
 			t->n->reference = val;
 		}
 		
@@ -511,7 +551,6 @@ void synch(tf * f, int nfiles)
 				(t->e->head->nzmin  - ref->e->head->nzmin) * 60 +
 				(t->e->head->nzsec  - ref->e->head->nzsec) +
 				(t->e->head->nzmsec - ref->e->head->nzmsec) / 1000.0 + t->e->head->b;
-			fprintf(stderr,"Reference E == %d\n",val);
 			t->e->reference = val;
 		}
 	}
@@ -607,6 +646,7 @@ void checkTREF(tf * files, int nfiles)
 
 		// Check
 		if (val == SAC_HEADER_FLOAT_UNDEFINED) {
+			name = io_freeData(name);
 			strcpy(message,
 				   "The desired header variable is also undefined.");
 			alert(WARNING);
@@ -615,6 +655,7 @@ void checkTREF(tf * files, int nfiles)
 		// Set
 		files[i].z->head->a = val;
 		changeCharValueFromChar(files[i].z->head, kphase, name);
+		name = io_freeData(name);
 	}
 }
 
@@ -641,7 +682,7 @@ void tffree(tf * tf, int n)
 		if (tf[i].net != NULL) free(tf[i].net);
 		tf[i].net = NULL;
 		tf[i].station = NULL;
-		
+
 		tf[i].z = otffree(tf[i].z);
 		tf[i].n = otffree(tf[i].n);
 		tf[i].e = otffree(tf[i].e);
