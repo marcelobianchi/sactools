@@ -1,5 +1,6 @@
 #include <inspect.h>
 #include <aux.h>
+#include <globers.h>
 
 int findFilters(glob_t *glb, float *lp, float *hp) {
 	int state = 0;

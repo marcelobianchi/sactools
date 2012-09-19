@@ -21,11 +21,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <glob.h>
-#include <sac.h>
-#include <cpgplot.h>
-#include <gr.h>
 #include <string.h>
+#include <glob.h>
+
+#include <sac.h>
+#include <gr.h>
 #include <cfg.h>
 
 #ifndef _lala_

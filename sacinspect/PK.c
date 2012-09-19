@@ -21,11 +21,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include <inspect.h>
+
+#include <io.h>
 #include <aux.h>
 #include <edit_tf.h>
-#include <string.h>
-#include <io.h>
+#include <globers.h>
+
 
 /* Config for plotting the config screen */
 float col1 = 0.35;

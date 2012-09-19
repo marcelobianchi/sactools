@@ -23,8 +23,11 @@
 #include <stdlib.h>
 #include <inspect.h>
 #include <aux.h>
+#include <globers.h>
+
 #include <PK.h>
 #include <EX.h>
+#include <HS.h>
 
 CFG *config;
 
@@ -93,11 +96,6 @@ int main(int argc, char **argv)
 		
 		free(glb);
 		glb = NULL;
-
-	} else if ((compare = strncmp(argv[1], "-az", 10)) == 0) {
-		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(pathPattern);
-		if (glb->gl_pathc > 0)
-			EXAZ_process(glb, argv[2]);
 	} else if ((compare = strncmp(argv[1], "-histogram", 10)) == 0) {
 		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(pathPattern);
 		if (glb->gl_pathc > 0)

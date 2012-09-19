@@ -27,14 +27,13 @@ void writeout(tf * f, defs * d);
 void synch(tf * f, int nfiles);
 void killCTL(g_ctl *** c, int n);
 int cmpstringp(const void *p1, const void *p2);
-glob_t *dirlist(char *pattern);
-glob_t *filelist(char *folder, char *fpattern);
 
 g_ctl **initCTL(defs * d);
 defs *newdefs(glob_t * glb);
 void tffree(tf * tf, int n);
 void plot(g_ctl * ctl, float *data, int npts, float delta, float b,
 		  int overlay);
-void * killGlob(glob_t *glb);
 int sortDist(const void *p1, const void *p2);
 int sortBaz(const void *p1, const void *p2);
+
+
