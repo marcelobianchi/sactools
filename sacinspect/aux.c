@@ -409,7 +409,7 @@ void multitraceplot(defs * d)
 	}
 	
 	sprintf(string, "[%03d-%03d/%03d] [Filter %s (%.2f to %.2f hz)]",
-			d->offset + 1, d->offset + d->max, d->nfiles, stringaux,
+			d->offset + 1, d->offset + d->max, d->nfiles,
 			(d->filter) ? "ON" : "OFF", d->hp, d->lp);
 	cpgmtxt("B", 2.5, 0.0, 0.0, string);
 
