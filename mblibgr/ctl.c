@@ -117,6 +117,21 @@ g_ctl *ctl_newctl(float xpos, float ypos, float xsize, float ysize)
  * It makes:
  *
  * - Full border arround the plot.
+ * - Anotation all arround.
+ * - Tick marks all arround.
+ * 
+ * @param ctl The inputs g_ctl to change axis anotation style
+ */
+void ctl_axismap(g_ctl * ctl) {
+	strncpy(ctl->xaxis, "BCNST", 14);
+	strncpy(ctl->yaxis, "BCNST", 14);
+}
+
+/** 
+ * Change the axis anotation style for the supplied g_ctl.
+ * It makes:
+ *
+ * - Full border arround the plot.
  * - Anotation on the bottom side.
  * - Tick marks all arround.
  * 
@@ -188,6 +203,21 @@ void ctl_xreset_ndb(g_ctl * ctl, int npts, float delta, float b)
 	ctl_xreset_mm(ctl, b, (float) npts * delta + b);
 }
 
+/** 
+ * Y reset giving min/max values. Note that if g_ctl::expand is different from 0 the minimun 
+ * and maximun values supplied here will be expanded by 5%.
+ * 
+ * @param ctl The g_ctl structure to reset the x-range.
+ * @param ymin The minimun value for the y-range.
+ * @param ymax The maximun value for the y-range.
+ * 
+ * @see ctl_xreset_ndb, ctl_yupdate_ndb
+ */
+void ctl_yreset_mm(g_ctl * ctl, float ymin, float ymax){
+	ctl->ymin = ymin;
+	ctl->ymax = ymax;
+	ctl->h = ctl->ymax - ctl->ymin;
+}
 
 /** 
  * Rescale the y-range of the supplied g_ctl based on the supplied y-data and, the x-range pre-defined in the g_ctl.

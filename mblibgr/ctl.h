@@ -42,11 +42,17 @@
 void ctl_yupdate_ndb(g_ctl * ctl, float *y, int npts, float delta,
 					 float b);
 
+/// Arrange the axis to be plotted like in a map
+void ctl_axismap(g_ctl * ctl);
+
 /// Reset the xmin, xmax from g_ctl based on number of points, sampling and begin time for a time series
 void ctl_xreset_ndb(g_ctl * ctl, int npts, float delta, float b);
 
 /// Reset the xmin, xmax from g_ctl based on supplied xmin and xmax values
 void ctl_xreset_mm(g_ctl * ctl, float xmin, float xmax);
+
+/// Reset the xmin, xmax from g_ctl based on supplied xmin and xmax values
+void ctl_yreset_mm(g_ctl * ctl, float ymin, float ymax);
 
 /// Get a new ready to use g_ctl data structure
 g_ctl *ctl_newctl(float xpos, float ypos, float wsize, float ysize);

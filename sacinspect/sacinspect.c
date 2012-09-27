@@ -28,6 +28,7 @@
 #include <PK.h>
 #include <EX.h>
 #include <HS.h>
+#include <MAP.h>
 
 CFG *config;
 
@@ -64,6 +65,10 @@ int main(int argc, char **argv)
 	if ((compare = strncmp(argv[1], "-pick", 5)) == 0) {
 		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(pathPattern);
 		PK_process(glb);
+	} else if ((compare = strncmp(argv[1], "-map", 5)) == 0) {
+		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(pathPattern);
+		if (glb->gl_pathc > 0)
+			MAP_process(glb);
 	} else if ((compare = strncmp(argv[1], "-export", 7)) == 0) {
 		char * oldlist = (argc >= 4) ? argv[3] : NULL;
 		glb = (argc >= 3) ? dirlist(argv[2]) : dirlist(pathPattern);
