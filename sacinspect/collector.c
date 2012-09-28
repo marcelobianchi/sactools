@@ -315,6 +315,7 @@ event *loadEvent(char *sacFilename)
 	e->lat = h->evla;
 	e->lon = h->evlo;
 	e->depth = h->evdp;
+	e->magnitude = h->mag;
 	e->n = 0;
 	e->resMean = 0.0;
 	e->resStd = 0.0;

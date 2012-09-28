@@ -66,9 +66,19 @@ int main(int argc, char **argv)
 		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(pathPattern);
 		PK_process(glb);
 	} else if ((compare = strncmp(argv[1], "-map", 5)) == 0) {
-		glb = (argc == 3) ? dirlist(argv[2]) : dirlist(pathPattern);
-		if (glb->gl_pathc > 0)
-			MAP_process(glb);
+
+		if (argc == 3) {
+			glb = malloc(sizeof(glob_t));
+			glb->gl_pathv = malloc(sizeof(char *));
+			glb->gl_pathc = 1;
+			glb->gl_pathv[0] =
+				malloc(sizeof(char) * (strlen(argv[2]) + 1));
+			strcpy(glb->gl_pathv[0], argv[2]);
+		} else {
+			glb = dirlist(pathPattern);
+		}
+		MAP_process(glb);
+		
 	} else if ((compare = strncmp(argv[1], "-export", 7)) == 0) {
 		char * oldlist = (argc >= 4) ? argv[3] : NULL;
 		glb = (argc >= 3) ? dirlist(argv[2]) : dirlist(pathPattern);

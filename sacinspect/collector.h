@@ -39,6 +39,7 @@ typedef struct {
 	float lat;
 	float lon;
 	float depth;
+	float magnitude;
 	float resMean;
 	float resStd;
 	int hasMean;
