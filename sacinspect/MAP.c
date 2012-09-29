@@ -88,12 +88,16 @@ void addLegend(g_ctl * legend) {
 	cpgsch(1.0);
 }
 
-void plotMap(g_ctl *map, int eventid, stations * ss, events *evs) {
+void drawMap(g_ctl *map, int eventid, stations * ss, events *evs) {
 	int is;
 	int i;
+	event *pevent = NULL;
 
 	// Which event
-	event *pevent = evs->elist[eventid];
+	if (eventid < evs->n)
+		pevent = evs->elist[eventid];
+	else
+		return;
 
 	// Axis Set to Map
 	ctl_clean(map);
@@ -156,26 +160,55 @@ void plotMap(g_ctl *map, int eventid, stations * ss, events *evs) {
 
 void MAP_process(glob_t * glb)
 {
+	// Helpers
 	int i;
-	float ax,ay;
-	char ch = 'e', aux[2048];
 	float lonmin = 999.0, lonmax = -999.0, latmin = 999.0, latmax = -999.0;
+	char aux[2048];
+
+	// Keyboard interaction
+	float ax,ay;
+	char ch = 'e';
+
+	// Index
 	int eventid = 0;
 	int stationId = -1;
+
+	// Graphical screen id
 	int grId = -1; 
 
-	g_ctl *map = NULL, *legend = NULL, *label = NULL;
+	// Graphicas sub windows
+	g_ctl *mapArea = NULL;
+	g_ctl *legendArea = NULL;
+	g_ctl *labelArea = NULL;
+
+	// Data pointers
 	pick *ppick = NULL;
+	stations *ss = NULL;
+	events *evs = NULL;
 
-	stations *ss;
-	events *evs;
-	
+	// Load Data
 	ss = newStationList(glb);
-	evs = newEventList(glb, ss);
+	if (ss == NULL) {
+		fprintf(stderr, "No stations found.\n");
+		return;
+	}
 
-	// Preparing coordinates
-	map = ctl_newctl(0.08, 0.08, 0.84, 0.84);
-	
+	evs = newEventList(glb, ss);
+	if (evs == NULL) {
+		fprintf(stderr,"No Events found.\n");
+		return;
+	}
+
+	fprintf(stderr,"Found %d stations and %d events.\n", ss->n, evs->n);
+	if (ss->n == 0 || evs->n == 0) {
+		ss = killStations(ss);
+		evs = killEvents(evs);
+		return;
+	}
+
+	// Preparing map window
+	mapArea = ctl_newctl(0.08, 0.08, 0.84, 0.84);
+
 	for(i=0; i<ss->n; i++){
 		if (ss->slist[i]->lat > latmax) latmax = ss->slist[i]->lat;
 		if (ss->slist[i]->lat < latmin) latmin = ss->slist[i]->lat;
@@ -183,39 +216,45 @@ void MAP_process(glob_t * glb)
 		if (ss->slist[i]->lon < lonmin) lonmin = ss->slist[i]->lon;
 	}
 	
-	ctl_axismap(map);
-	ctl_xreset_mm(map, lonmin, lonmax);
-	ctl_yreset_mm(map, latmin, latmax);
+	ctl_axismap(mapArea);
+	ctl_xreset_mm(mapArea, lonmin, lonmax);
+	ctl_yreset_mm(mapArea, latmin, latmax);
 	// End of Mapping coordinates setup
-	
 
 	// Label ctl
-	label = ctl_newctl(map->xpos + 0.02, map->ypos + 0.02, 0.3, 0.3);
-	ctl_axisnone(label);
-	ctl_xreset_mm(label, 0.0, 1.0);
-	ctl_yreset_mm(label, 0.0, 1.0);
+	labelArea = ctl_newctl(mapArea->xpos + 0.02, mapArea->ypos + 0.02, 0.3, 0.3);
+	ctl_axisnone(labelArea);
+	ctl_xreset_mm(labelArea, 0.0, 1.0);
+	ctl_yreset_mm(labelArea, 0.0, 1.0);
 	// End of Label
 
 	// Legend ctl
-	legend = ctl_newctl(map->xpos + map->xsize - 0.12, map->ypos, 0.12, 0.15);
-	ctl_axisnone(legend);
-	ctl_xreset_mm(legend, 0.0, 1.0);
-	ctl_yreset_mm(legend, 0.0, 1.0);
+	legendArea = ctl_newctl(mapArea->xpos + mapArea->xsize - 0.12, mapArea->ypos, 0.12, 0.15);
+	ctl_axisnone(legendArea);
+	ctl_xreset_mm(legendArea, 0.0, 1.0);
+	ctl_yreset_mm(legendArea, 0.0, 1.0);
 	// End of Label
 
 	// Open my graphics
 	grId = opengr();
 
+	// Loop
 	while (ch != 'q')
 	{
-		plotMap(map, eventid, ss, evs);
-		addLegend(legend);
-		ppick = addLabel(label, ppick, ss, stationId);
-		
-		// Stop to move
-		ctl_resizeview(map);
+		// Main map, draws a new page
+		drawMap(mapArea, eventid, ss, evs);
+		// Add a legend
+		addLegend(legendArea);
+		// Add a label area
+		ppick = addLabel(labelArea, ppick, ss, stationId);
+
+		// Prepare the viewport to get correct coordinates
+		ctl_resizeview(mapArea);
+
+		// Wait for user
 		ch = getonechar(&ax, &ay);
 		switch(ch) {
+		// User click on a station
 		case('A'): {
 			stationId = findNeareastStation(ss, ax, ay);
 			if (stationId >= 0) {
@@ -224,25 +263,28 @@ void MAP_process(glob_t * glb)
 			break;
 		}
 
+		// Next event
 		case('N'): {
 			eventid++;
 			if (eventid >= evs->n) eventid = evs->n - 1;
 			break;
 		}
 
+		// Make printout for all events
 		case('O'): {
 			int ans = yesno("Really generate the output plot for all events loaded ?");
 			if (!ans) break;
 			for(i = 0; i < evs->n; i++) {
 				sprintf(aux, "%s.ps/CPS", evs->elist[i]->Id);
 				cpgopen(aux);
-				plotMap(map, i, ss, evs);
-				addLegend(legend);
+				drawMap(mapArea, i, ss, evs);
+				addLegend(legendArea);
 				cpgclos();
 			}
 			cpgslct(grId);
 		}
 
+		// Make printout for one event
 		case('o'): {
 			lerchar("Choose a filename to save (enter to use evid)", aux, 2047);
 			if (strlen(aux) > 0) {
@@ -252,26 +294,35 @@ void MAP_process(glob_t * glb)
 			}
 			cpgopen(aux);
 			fprintf(stderr, "Writting ps file %s", aux);
-			plotMap(map, eventid, ss, evs);
-			addLegend(legend);
+			drawMap(mapArea, eventid, ss, evs);
+			addLegend(legendArea);
 			cpgclos();
 			cpgslct(grId);
 		}
 
+		// Previous event
 		case('P'): {
 			eventid--;
 			if (eventid < 0) eventid = 0;
 			break;
 		}
+
+		// Quit
+		case('q'): break;
 		}
 	}
 
-	free(label);
-	free(legend);
-	free(map);
+	// Free areas
+	if (labelArea) free(labelArea);
+	if (legendArea) free(legendArea);
+	if (mapArea) free(mapArea);
 
-	killStations(ss);
-	killEvents(evs);
+	// Free data
+	ss = killStations(ss);
+	evs = killEvents(evs);
 
+	// Close graphics
 	cpgclos();
+
+	return;
 }

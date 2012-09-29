@@ -77,7 +77,9 @@ int main(int argc, char **argv)
 		} else {
 			glb = dirlist(pathPattern);
 		}
-		MAP_process(glb);
+		
+		if (glb->gl_pathc > 0)
+			MAP_process(glb);
 		
 	} else if ((compare = strncmp(argv[1], "-export", 7)) == 0) {
 		char * oldlist = (argc >= 4) ? argv[3] : NULL;

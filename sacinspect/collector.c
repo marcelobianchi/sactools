@@ -1,6 +1,7 @@
 #include <collector.h>
 #include <sac.h>
 #include <globers.h>
+#include <libgen.h>
 
 int collectorVerbose = 0;
 
@@ -300,7 +301,8 @@ events *newEventList(glob_t *glb, stations * ss)
 event *loadEvent(char *sacFilename)
 {
 	event *e = NULL;
-
+	int i;
+	
 	SACHEAD *h = io_readSacHead(sacFilename);
 	if (h == NULL) {
 		fprintf(stderr, "On Event file %s not found.\n", sacFilename);
@@ -311,6 +313,22 @@ event *loadEvent(char *sacFilename)
 
 	e->Id = NULL;
 	hdu_getValueFromChar("kevnm", h, NULL, NULL, &e->Id);
+	// if no id use the folder name
+	if ((i = strncmp(e->Id, SAC_HEADER_CHAR_UNDEFINED, strlen(SAC_HEADER_CHAR_UNDEFINED)) == 0)) {
+		char *filenamecopy = malloc(sizeof(char) * (strlen(sacFilename)+1));
+		strcpy(filenamecopy, sacFilename);
+
+		char *basefolder;
+		basefolder = dirname(filenamecopy);
+		
+		free(e->Id);
+		e->Id = malloc(sizeof(char)*(strlen(basefolder)+1));
+		strcpy(e->Id, basefolder);
+
+		free(filenamecopy);
+		filenamecopy = NULL;
+		fprintf(stderr, "Warning, no kevnm defined using the folder name.\n");
+	}
 
 	e->lat = h->evla;
 	e->lon = h->evlo;
