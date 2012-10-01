@@ -287,13 +287,13 @@ void MAP_process(glob_t * glb)
 		// Make printout for one event
 		case('o'): {
 			lerchar("Choose a filename to save (enter to use evid)", aux, 2047);
+			if (strncmp(&aux[strlen(aux) - 3],".ps",3) == 0) aux[strlen(aux)-3] = '\0';
 			if (strlen(aux) > 0) {
 				sprintf(aux, "%s.ps/CPS", aux);
 			} else {
 				sprintf(aux, "%s.ps/CPS", evs->elist[eventid]->Id);
 			}
 			cpgopen(aux);
-			fprintf(stderr, "Writting ps file %s", aux);
 			drawMap(mapArea, eventid, ss, evs);
 			addLegend(legendArea);
 			cpgclos();
