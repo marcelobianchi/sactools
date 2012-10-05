@@ -37,17 +37,17 @@ float minmaxrefine(tf * f, defs * d, float ax, float halfmaxdist)
 	float pos;
 
 	if (d->filter == 1) {
-		if (f->z->dataf == NULL)
+		if (f->current->dataf == NULL)
 			return ax;
-		data = f->z->dataf;
+		data = f->current->dataf;
 	} else {
-		data = f->z->data;
+		data = f->current->data;
 	}
 
 	status = 0;
 
 	step = (halfmaxdist / 50.0);
-	while (step < f->z->head->delta)
+	while (step < f->current->head->delta)
 		step += (halfmaxdist / 50.0);
 
 	w = step;
@@ -55,15 +55,15 @@ float minmaxrefine(tf * f, defs * d, float ax, float halfmaxdist)
 		start = ax - w;
 		end = ax + w;
 
-		current = hdu_getNptsFromSeconds(f->z->head, ax);
-		Nstart = hdu_getNptsFromSeconds(f->z->head, start);
-		Nend = hdu_getNptsFromSeconds(f->z->head, end);
+		current = hdu_getNptsFromSeconds(f->current->head, ax);
+		Nstart = hdu_getNptsFromSeconds(f->current->head, start);
+		Nend = hdu_getNptsFromSeconds(f->current->head, end);
 
-		if (hdu_checkNPTS(f->z->head, current))
+		if (hdu_checkNPTS(f->current->head, current))
 			return ax;
-		if (hdu_checkNPTS(f->z->head, Nstart))
+		if (hdu_checkNPTS(f->current->head, Nstart))
 			return ax;
-		if (hdu_checkNPTS(f->z->head, Nend))
+		if (hdu_checkNPTS(f->current->head, Nend))
 			return ax;
 		if (Nend <= Nstart)
 			return ax;
@@ -78,7 +78,7 @@ float minmaxrefine(tf * f, defs * d, float ax, float halfmaxdist)
 		}
 	}
 
-	getminmax(data, f->z->head, start, end, &min, &max);
+	getminmax(data, f->current->head, start, end, &min, &max);
 
 	if (status == 1)
 		pos = max;
@@ -89,11 +89,6 @@ float minmaxrefine(tf * f, defs * d, float ax, float halfmaxdist)
 
 	// fprintf(stderr,"%f %f\n",ax,pos);
 	return pos;
-}
-
-void deletemark(tf * f, float ax)
-{
-	f->z->head->f = SAC_HEADER_FLOAT_UNDEFINED;
 }
 
 void mark(g_ctl * ctl, float x, char *c, int color)
@@ -114,27 +109,32 @@ void timedraw(g_ctl * ctl, tf * f, defs * d, int gravity)
 	float *x = NULL;
 	int i;
 
-	x = malloc(sizeof(float) * f->z->head->npts);
-	for (i = 0; i < f->z->head->npts; i++)
-		x[i] = i * f->z->head->delta + f->z->head->b;
+	x = malloc(sizeof(float) * f->current->head->npts);
+	for (i = 0; i < f->current->head->npts; i++)
+		x[i] = i * f->current->head->delta + f->current->head->b;
 
 
-	float *y = (d->filter && f->z->dataf != NULL) ? f->z->dataf : f->z->data;
-	ctl_yupdate_ndb(ctl, y, f->z->head->npts, f->z->head->delta, f->z->head->b);
+	pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
+	float FMark = pickD(pick, f->current->head);
+	float AMark = pickR(pick, f->current->head);
+	
+	float *y = (d->filter && f->current->dataf != NULL) ? f->current->dataf : f->current->data;
+	ctl_yupdate_ndb(ctl, y, f->current->head->npts, f->current->head->delta, f->current->head->b);
+	
 	ctl_clean(NULL);
 	ctl_resizeview(ctl);
 	ctl_axisfull(ctl);
 	ctl->expand = 0;
 	ctl_drawaxis(ctl);
-	cpgline(f->z->head->npts, x, y);
+	cpgline(f->current->head->npts, x, y);
 
 	free(x);
 	x = NULL;
 
-	if (f->z->head->a != SAC_HEADER_FLOAT_UNDEFINED)
-		mark(ctl, f->z->head->a, "a", 2);
-	if (f->z->head->f != SAC_HEADER_FLOAT_UNDEFINED)
-		mark(ctl, f->z->head->f, "f", 2);
+	if (AMark != SAC_HEADER_FLOAT_UNDEFINED)
+		mark(ctl, AMark, "a", 2);
+	if (FMark != SAC_HEADER_FLOAT_UNDEFINED)
+		mark(ctl, FMark, "f", 2);
 
 	if (d->filter) {
 		sprintf(txt, "%s [Filtering, bandpass from %.2f to %.2f]",
@@ -165,15 +165,19 @@ void edit_tf(g_ctl * ctl, tf * f, defs * d)
 	strcpy(ctl->xlabel, "Time (s)");
 	strcpy(ctl->ylabel, "Amp.");
 
+	pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
+	float AMark = pickR(pick, f->current->head);
+	float FMark = pickD(pick, f->current->head);
+
 	switch (d->alig) {
 	case (ALIGO):
 	case (ALIGA):
-		ctl->xmin = f->z->head->a - d->prephase;
-		ctl->xmax = f->z->head->a + d->postphase;
+		ctl->xmin = AMark - d->prephase;
+		ctl->xmax = AMark + d->postphase;
 		break;
 	case (ALIGF):
-		ctl->xmin = f->z->head->f - d->prephase;
-		ctl->xmax = f->z->head->f + d->postphase;
+		ctl->xmin = FMark - d->prephase;
+		ctl->xmax = FMark + d->postphase;
 		break;
 	}
 
@@ -189,47 +193,54 @@ void edit_tf(g_ctl * ctl, tf * f, defs * d)
 		op = toupper(op);
 
 		switch (op) {
-		case 'G':
+		case 'G': {
 			gravity = !gravity;
 			break;
+		}
 
 		case 'Z':
-		case 'Y':
-			f->z->head->f = (gravity) ? minmaxrefine(f, d, ax, 2.) : ax;
+		case 'Y': {
+			setPick(pick, f->current->head, (gravity) ? minmaxrefine(f, d, ax, 2.) : ax);
 			d->needsave = 1;
 			break;
+		}
 
-		case 'A':
+		case 'A': {
 			aux = ax;
 			cpgband(7, 0, 0.0, 0.0, &ax, &ay, &op);
 			if (aux < ax) {
 				ctl->xmin = aux;
 				ctl->xmax = ax;
 			} else {
-				ctl->xmin = hdu_getSecondsFromNPTS(f->z->head, 0);
-				ctl->xmax = hdu_getSecondsFromNPTS(f->z->head, f->z->head->npts);
+				ctl->xmin = hdu_getSecondsFromNPTS(f->current->head, 0);
+				ctl->xmax = hdu_getSecondsFromNPTS(f->current->head, f->current->head->npts);
 			}
 			break;
+		}
 
-		case 'F':
+		case 'F': {
 			d->filter = !d->filter;
 			filterneed = 1;
 			break;
+		}
 
-		case 'D':
-			deletemark(f, ax);
+		case 'D': {
+			setPick(pick, f->current->head, SAC_HEADER_FLOAT_UNDEFINED);
 			d->needsave = 1;
 			break;
+		}
 
-		case 'L':
+		case 'L': {
 			d->lp = lerfloat("Enter Low-Pass filter frequency (Hz):");
 			filterneed = 1;
 			break;
+		}
 
-		case 'H':
+		case 'H': {
 			d->hp = lerfloat("Enter High-Pass filter frequency (Hz):");
 			filterneed = 1;
 			break;
+		}
 		}
 	}
 }

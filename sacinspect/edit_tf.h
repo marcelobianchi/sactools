@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <ctl.h>
 
-void deletemark(tf * f, float ax);
 void mark(g_ctl * ctl, float x, char *c, int color);
 void edit_tf(g_ctl * ctl, tf * f, defs * d);
 float minmaxrefine(tf * f, defs * d, float ax, float halfmaxdist);
