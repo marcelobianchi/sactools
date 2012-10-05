@@ -2,6 +2,23 @@
 #include <aux.h>
 #include <globers.h>
 
+/*
+ * Header variables used:
+ *
+ * Defined in the Pick Structures (PK.C)
+ * A - Theoretical P                            (read)
+ * F - Pick P                                   (read & Write)
+ * T0 - Theoritical S                           (read)
+ * T1 - Pick S                                  (read & Write)
+ *
+ * Fixed -- Hard Coded
+ * unused11 - Low Pass Filter                   (read & Write)
+ * unused12 - High Pass Filter                  (read & Write)
+ * unused27 - File was already visited          (read & Write)
+ *
+ */
+
+
 int findFilters(glob_t *glb, float *lp, float *hp) {
 	int state = 0;
 	
@@ -19,10 +36,10 @@ int findFilters(glob_t *glb, float *lp, float *hp) {
 	if (head == NULL)
 		return state;
 	
-	if (head->user0 != -12345.0 && head->user1 != -12345.0 && head->user0 > head->user1) {
-		*lp = head->user0;
-		*hp = head->user1;
-		state = (head->user0 > head->user1);
+	if (head->unused11 != -12345.0 && head->unused12 != -12345.0 && head->unused11 > head->unused12) {
+		*lp = head->unused11;
+		*hp = head->unused12;
+		state = (head->unused11 > head->unused12);
 	}
 	head = io_freeData(head);
 
