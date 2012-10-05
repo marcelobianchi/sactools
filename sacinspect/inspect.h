@@ -36,6 +36,7 @@
 #define ALIGO 2
 
 // Config variable names
+#define NAME_PICK "defaultPickPhase"
 #define NAME_HP "highPass"
 #define NAME_LP "lowPass"
 #define NAME_PATTERN "folderPattern"
@@ -48,6 +49,7 @@
 #define NAME_LOAD "loadAll"
 
 // Config default values
+#define DEFAULT_PICK 1
 #define DEFAULT_PATTERN "??????_????"
 #define DEFAULT_ZOOMGAIN 3.0
 #define DEFAULT_LP 2.0
@@ -58,6 +60,34 @@
 #define DEFAULT_N "*N.SAC"
 #define DEFAULT_E "*E.SAC"
 #define DEFAULT_LOAD 0
+
+typedef enum {
+	None,
+	P,
+	S
+} PickTypes;
+
+static char *PickTypesNames[] = {
+	"None", "P Picker", "S Picker"
+};
+
+typedef struct {
+	/* A generic name for the pick */
+	char genericName[128];
+
+	/* A type of the pick */
+	PickTypes phaseType;
+	
+	/* A sac header name to used as reference */
+	char referencePhase[3];
+
+	/* A sac header name to used as storage for pick */
+	char destinationPhase[3];
+	
+	/* Other sac headers variable names to be plotted together */
+	int  nPhase;
+	char **markPhase;
+} pdefs;
 
 typedef struct onetimefile {
 	double reference;
@@ -111,11 +141,14 @@ typedef struct {
 	// Data
 	glob_t *glb;
 	int has;
-	int has3;
 	tf *files;
 	int nfiles;
 	int currentdir;
+	
+	/* Multi component support */
 	int zne;
+	int has3;
+	pdefs **pickRules;
 
 	// Processing parameters
 	float searchsize;
