@@ -34,7 +34,7 @@ void filtertf(tf * f, defs * d);
 
 /* Picker handling methods */
 pdefs *killpicker(pdefs *pick) {
-	strcpy(pick->genericName, "");
+	strcpy(pick->pickLabel, "");
 	strcpy(pick->destinationPhase, "");
 	strcpy(pick->referencePhase, "");
 	if (pick->markPhase != NULL) {
@@ -50,11 +50,11 @@ pdefs *killpicker(pdefs *pick) {
 	return NULL;
 }
 
-pdefs *newpicker(PickTypes picktype, char *from, char *to,  char *name) {
+pdefs *newpicker(PickTypes picktype, char *from, char *to,  char *label) {
 	pdefs *pick = NULL;
 	SACHEADDEF *def;
 
-	if (name != NULL && strlen(name) > 127)
+	if (label != NULL && strlen(label) > 127)
 		return pick;
 
 	if (from == NULL || strlen(from) > 2)
@@ -74,9 +74,11 @@ pdefs *newpicker(PickTypes picktype, char *from, char *to,  char *name) {
 
 	pick->phaseType = picktype;
 
-	if (name != NULL)
-		strcpy(pick->genericName, name);
-
+	if (label != NULL)
+		strcpy(pick->pickLabel, label);
+	else
+		strcpy(pick->pickLabel, "Pick");
+	
 	strcpy(pick->referencePhase, from);
 	strcpy(pick->destinationPhase, to);
 
@@ -87,7 +89,37 @@ pdefs *newpicker(PickTypes picktype, char *from, char *to,  char *name) {
 }
 
 void pickLoadPhase(pdefs *pick, char *phase) {
+	SACHEADDEF *def;
+
+	if (phase == NULL || strlen(phase) > 2)
+		return;
+	
+	def = getSacHeadDefFromChar(phase);
+	if (def == NULL || !def->isMark) return;
+
+	pick->nPhase++;
+	pick->markPhase = realloc(pick->markPhase, (sizeof(char *) * pick->nPhase));
+	pick->markPhase[pick->nPhase - 1] = malloc(sizeof(char) * 3);
+	strcpy(pick->markPhase[pick->nPhase - 1], phase);
+
 	return;
+}
+
+float pickO(pdefs *pick, SACHEAD *head, int i) {
+	float value;
+	if (i < 0 || i >= pick->nPhase) return SAC_HEADER_FLOAT_UNDEFINED;
+	hdu_getValueFromChar(pick->markPhase[i], head, &value, NULL, NULL);
+	return value;
+}
+
+char * pickL(pdefs *pick, SACHEAD *head, int i) {
+	if (i < 0 || i >= pick->nPhase) return NULL;
+	
+	char *label;
+	char lvar[128];
+	sprintf(lvar,"k%s", pick->markPhase[i]);
+	hdu_getValueFromChar(lvar, head, NULL, NULL, &label);
+	return label;
 }
 
 float pickD(pdefs *pick, SACHEAD *head){
@@ -104,6 +136,10 @@ float pickR(pdefs *pick, SACHEAD *head){
 
 void setPick(pdefs *pick, SACHEAD *head, float value) {
 	hdu_changeValueFromChar(head, pick->destinationPhase, &value, NULL, NULL);
+	
+	char lvar[128];
+	sprintf(lvar,"k%s", pick->destinationPhase);
+	hdu_changeValueFromChar(head, lvar, NULL, NULL, pick->pickLabel);
 }
 
 /* Plot help methods */
@@ -244,7 +280,7 @@ void plot(g_ctl * ctl, float *y, int npts, float delta, float b,
 
 void multitraceplot(defs * d)
 {
-	int j;
+	int j, k;
 	float start;
 	char string[1024];
 	char stringaux[1024];
@@ -369,31 +405,22 @@ void multitraceplot(defs * d)
 		/* *********************************************************** */
 		/* Plot MARKS & Names                                          */
 		/* *********************************************************** */
+		for(k=0;k<pick->nPhase;k++) {
+			if (strcmp(pick->referencePhase, pick->markPhase[k]) == 0 && d->hidephase) continue;
 
-		// F mark, the pick time
-		if (Fmark != SAC_HEADER_FLOAT_UNDEFINED)
-			mark(ctl[j], Fmark + start - thistrace->current->head->b, "f",
-				 2);
+			float value = pickO(pick, thistrace->current->head, k);
+			char *label = pickL(pick, thistrace->current->head, k);
+			if (value != SAC_HEADER_FLOAT_UNDEFINED)
+				mark(ctl[j], value + start - thistrace->current->head->b, label,
+					 2);
+			if (label != NULL) free(label);
+			label = NULL;
+		}
 
 		// IF OVERLAY MODE JUST PLOT THE TRACE AND RETURN.
 		if (d->overlay == 1)
 			continue;
 
-		// A Mark (Theoretical Model)
-		if (Amark != SAC_HEADER_FLOAT_UNDEFINED
-			&& d->hidephase == 0) {
-			char *label = NULL;
-
-			hdu_getValueFromChar("ka", thistrace->current->head, NULL, NULL, &label);
-			if (label != NULL && strlen(label) > 0)
-				mark(ctl[j], Amark + start - thistrace->current->head->b,
-					 label, 2);
-			else
-				mark(ctl[j], Amark + start - thistrace->current->head->b,
-					 "A", 2);
-
-			label = io_freeData(label);
-		}
 		// Mark the Window we perform the Min/Max Search in the trace
 		if (d->plotsearchsize) {
 			mark(ctl[j],
@@ -410,7 +437,6 @@ void multitraceplot(defs * d)
 			cpgmtxt("B", -2.00, 0.0, 0.0, string);
 		else
 			cpgmtxt("B", -0.70, 0.0, 0.0, string);
-
 
 		// Add the name of the trace
 		if (d->putname > 0) {

@@ -99,7 +99,9 @@ void mark(g_ctl * ctl, float x, char *c, int color)
 	cpgsci(color);
 	cpgmove(x, ctl->ymin + ctl->h * 0.05);
 	cpgdraw(x, ctl->ymax - ctl->h * 0.05);
-	cpgptxt(x, ctl->ymin + ctl->h * 0.1, 0.0, -0.55, c);
+	
+	
+	cpgptxt(x, ctl->ymin + ctl->h * 0.1, 0.0, -0.05, c);
 	cpgsci(oldcolor);
 }
 

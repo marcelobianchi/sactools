@@ -900,9 +900,15 @@ void PK_process(glob_t * glb)
 	/* initialize the pick structures */
 	pdefs **picks;
 	picks = malloc(sizeof(pdefs*) * 3);
-	picks[None] = newpicker(None, "", "", PickTypesNames[None]);
-	picks[P]    = newpicker(P, "A", "F", PickTypesNames[P]);
-	picks[S]    = newpicker(S, "T0", "T1", PickTypesNames[S]);
+	picks[None] = newpicker(None, "", "", "None");
+
+	picks[P]    = newpicker(P, "A", "F", "f");
+	pickLoadPhase(picks[P], "A");
+	pickLoadPhase(picks[P], "F");
+
+	picks[S]    = newpicker(S, "T0", "T1", "g");
+	pickLoadPhase(picks[S], "T0");
+	pickLoadPhase(picks[S], "T1");
 
 	/* Attach */
 	if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) > 2) {

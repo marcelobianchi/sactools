@@ -73,7 +73,7 @@ static char *PickTypesNames[] = {
 
 typedef struct {
 	/* A generic name for the pick */
-	char genericName[128];
+	char pickLabel[128];
 
 	/* A type of the pick */
 	PickTypes phaseType;
