@@ -28,6 +28,85 @@
 
 #include<timeu.h>
 
+/* Some internal definition of methods */
+void filtertf(tf * f, defs * d);
+
+
+/* Picker handling methods */
+pdefs *killpicker(pdefs *pick) {
+	strcpy(pick->genericName, "");
+	strcpy(pick->destinationPhase, "");
+	strcpy(pick->referencePhase, "");
+	if (pick->markPhase != NULL) {
+		for (;pick->nPhase > 0; pick->nPhase --) {
+			free(pick->markPhase[pick->nPhase - 1 ]);
+			pick->markPhase[pick->nPhase - 1] = NULL;
+		}
+		free(pick->markPhase);
+		pick->markPhase = NULL;
+	}
+	
+	free(pick);
+	return NULL;
+}
+
+pdefs *newpicker(PickTypes picktype, char *from, char *to,  char *name) {
+	pdefs *pick = NULL;
+	SACHEADDEF *def;
+
+	if (name != NULL && strlen(name) > 127)
+		return pick;
+
+	if (from == NULL || strlen(from) > 2)
+		return pick;
+
+	def = getSacHeadDefFromChar(from);
+	if (def == NULL || !def->isMark) return pick;
+
+	if (to == NULL || strlen(to) > 2)
+		return pick;
+
+	def = getSacHeadDefFromChar(to);
+	if (def == NULL || !def->isMark) return pick;
+
+	pick = malloc(sizeof(pdefs));
+	if (pick == NULL) return pick;
+
+	pick->phaseType = picktype;
+
+	if (name != NULL)
+		strcpy(pick->genericName, name);
+
+	strcpy(pick->referencePhase, from);
+	strcpy(pick->destinationPhase, to);
+
+	pick->markPhase = NULL;
+	pick->nPhase = 0;
+
+	return pick;
+}
+
+void pickLoadPhase(pdefs *pick, char *phase) {
+	return;
+}
+
+float pickD(pdefs *pick, SACHEAD *head){
+	float value;
+	hdu_getValueFromChar(pick->destinationPhase, head, &value, NULL, NULL);
+	return value;
+}
+
+float pickR(pdefs *pick, SACHEAD *head){
+	float value;
+	hdu_getValueFromChar(pick->referencePhase, head, &value, NULL, NULL);
+	return value;
+}
+
+void setPick(pdefs *pick, SACHEAD *head, float value) {
+	hdu_changeValueFromChar(head, pick->destinationPhase, &value, NULL, NULL);
+}
+
+/* Plot help methods */
 void plothelp(defs * d)
 {
 	int k = 0;
@@ -110,13 +189,16 @@ void plothelp(defs * d)
 		cpgmtxt("B", k--, where, how, "Ampl. Zoom !");
 		cpgmtxt("B", k--, where, how, "+ Window *");
 		cpgmtxt("B", k--, where, how, "- Window /");
+
 		k--;
 		cpgmtxt("B", k--, where, how, "Sort 0");
 		cpgmtxt("B", k--, where, how, "Align .");
 		cpgmtxt("B", k--, where, how, "Tr. per Sc. ,");
+
 		k--;
 		cpgmtxt("B", k--, where, how, "Nex.Comp >");
 		cpgmtxt("B", k--, where, how, "Pre.Comp <");
+
 		k--;
 		cpgmtxt("B", k--, where, how, "Event N,P");
 		cpgmtxt("B", k--, where, how, "Trace n,p");
@@ -160,30 +242,6 @@ void plot(g_ctl * ctl, float *y, int npts, float delta, float b,
 	x = io_freeData(x);
 }
 
-void filtertf(tf * f, defs * d)
-{
-	if (f->current->data == NULL) {
-		f->current->dataf = NULL;
-		return;
-	}
-
-	f->current->dataf = io_freeData(f->current->dataf);
-
-	if (d->filter) {
-		yu_rtrend(f->current->data, f->current->head->npts);
-		f->current->dataf = iir(f->current->data, f->current->head->npts, f->current->head->delta,
-					(d->hp > 0.0) ? 2 : 0, d->hp, (d->lp > 0.0) ? 2 : 0,
-					d->lp);
-
-		if (f->current->dataf == NULL) {
-			strcpy(message, "Something wrong with the filter.");
-			alert(WARNING);
-		}
-	}
-
-	return;
-}
-
 void multitraceplot(defs * d)
 {
 	int j;
@@ -195,7 +253,8 @@ void multitraceplot(defs * d)
 	char aligChar;
 	float x1, x2;
 	int lastFile;
-
+	pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
+	
 	ctl_clean(NULL);
 
 	ctl_resizeview(ctl[0]);
@@ -214,8 +273,8 @@ void multitraceplot(defs * d)
 
 	// Those are used for min and max of the ALIGO mode
 	if (d->files[d->offset].current) {
-		x1 = d->files[d->offset].current->head->a + d->files[d->offset].current->reference - 2.5;
-		x2 = d->files[lastFile].current->head->a + d->files[lastFile].current->reference +
+		x1 = pickR(pick, d->files[d->offset].current->head) + d->files[d->offset].current->reference - 2.5;
+		x2 = pickR(pick, d->files[lastFile].current->head) + d->files[lastFile].current->reference +
 				d->postphase;
 	} else {
 		x1 = 0.0;
@@ -238,6 +297,9 @@ void multitraceplot(defs * d)
 			filtertf(thistrace, d);
 		}
 
+		float Fmark = pickD(pick, thistrace->current->head);
+		float Amark = pickR(pick, thistrace->current->head);
+		
 		/* *********************************************************** */
 		/* Switch Aligment mode                                        */
 		/* *********************************************************** */
@@ -266,8 +328,8 @@ void multitraceplot(defs * d)
 		case (ALIGF):
 			aligChar = 'F';
 			ctl_xreset_mm(ctl[j], -d->prephase, +d->postphase);
-			if (thistrace->current->head->f != SAC_HEADER_FLOAT_UNDEFINED) {
-				start = thistrace->current->head->b - thistrace->current->head->f;
+			if (Fmark != SAC_HEADER_FLOAT_UNDEFINED) {
+				start = thistrace->current->head->b - Fmark;
 			} else {
 				start = thistrace->current->head->b;
 			}
@@ -276,8 +338,8 @@ void multitraceplot(defs * d)
 		case (ALIGA):
 			aligChar = 'A';
 			ctl_xreset_mm(ctl[j], -d->prephase, +d->postphase);
-			if (thistrace->current->head->a != SAC_HEADER_FLOAT_UNDEFINED) {
-				start = thistrace->current->head->b - thistrace->current->head->a;
+			if (Amark != SAC_HEADER_FLOAT_UNDEFINED) {
+				start = thistrace->current->head->b - Amark;
 			} else {
 				start = thistrace->current->head->b;
 			}
@@ -309,8 +371,8 @@ void multitraceplot(defs * d)
 		/* *********************************************************** */
 
 		// F mark, the pick time
-		if (thistrace->current->head->f != SAC_HEADER_FLOAT_UNDEFINED)
-			mark(ctl[j], thistrace->current->head->f + start - thistrace->current->head->b, "f",
+		if (Fmark != SAC_HEADER_FLOAT_UNDEFINED)
+			mark(ctl[j], Fmark + start - thistrace->current->head->b, "f",
 				 2);
 
 		// IF OVERLAY MODE JUST PLOT THE TRACE AND RETURN.
@@ -318,16 +380,16 @@ void multitraceplot(defs * d)
 			continue;
 
 		// A Mark (Theoretical Model)
-		if (thistrace->current->head->a != SAC_HEADER_FLOAT_UNDEFINED
+		if (Amark != SAC_HEADER_FLOAT_UNDEFINED
 			&& d->hidephase == 0) {
 			char *label = NULL;
 
 			hdu_getValueFromChar("ka", thistrace->current->head, NULL, NULL, &label);
 			if (label != NULL && strlen(label) > 0)
-				mark(ctl[j], thistrace->current->head->a + start - thistrace->current->head->b,
+				mark(ctl[j], Amark + start - thistrace->current->head->b,
 					 label, 2);
 			else
-				mark(ctl[j], thistrace->current->head->a + start - thistrace->current->head->b,
+				mark(ctl[j], Amark + start - thistrace->current->head->b,
 					 "A", 2);
 
 			label = io_freeData(label);
@@ -335,10 +397,10 @@ void multitraceplot(defs * d)
 		// Mark the Window we perform the Min/Max Search in the trace
 		if (d->plotsearchsize) {
 			mark(ctl[j],
-				 thistrace->current->head->a + start - thistrace->current->head->b +
+				 Amark + start - thistrace->current->head->b +
 				 d->searchsize, "", 3);
 			mark(ctl[j],
-				 thistrace->current->head->a + start - thistrace->current->head->b -
+				 Amark + start - thistrace->current->head->b -
 				 d->insetsearchsize, "", 3);
 		}
 
@@ -443,6 +505,31 @@ void multitraceplot(defs * d)
 	cpgsci(1);
 }
 
+/* Other io help methods */
+void filtertf(tf * f, defs * d)
+{
+	if (f->current->data == NULL) {
+		f->current->dataf = NULL;
+		return;
+	}
+
+	f->current->dataf = io_freeData(f->current->dataf);
+
+	if (d->filter) {
+		yu_rtrend(f->current->data, f->current->head->npts);
+		f->current->dataf = iir(f->current->data, f->current->head->npts, f->current->head->delta,
+					(d->hp > 0.0) ? 2 : 0, d->hp, (d->lp > 0.0) ? 2 : 0,
+					d->lp);
+
+		if (f->current->dataf == NULL) {
+			sprintf(message, "Something wrong with the filter %f %f.", d->hp, d->lp);
+			alert(WARNING);
+		}
+	}
+
+	return;
+}
+
 void writeout(tf * files, defs * d)
 {
 	tf *f;
@@ -451,8 +538,8 @@ void writeout(tf * files, defs * d)
 	for (j = 0; j < d->nfiles; j++) {
 		f = &files[j];
 		if (f != NULL && f->current->head != NULL && f->current->filename != NULL) {
-			f->current->head->user0 = d->lp;
-			f->current->head->user1 = d->hp;
+			f->current->head->unused11 = d->lp;
+			f->current->head->unused12 = d->hp;
 			io_writeSacHead(f->current->filename, f->current->head);
 		}
 	}
@@ -728,6 +815,7 @@ defs *newdefs(glob_t * glb)
 	d->zoom = 1.0;
 	d->sortmode = 0;
 
+	d->pickRules = NULL;
 	d->zne = 0;
 	d->has3 = 0;
 	d->ctl = NULL;

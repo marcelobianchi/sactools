@@ -30,7 +30,6 @@
 #include <edit_tf.h>
 #include <globers.h>
 
-
 /* Config for plotting the config screen */
 float col1 = 0.35;
 float col2 = 0.37;
@@ -231,71 +230,99 @@ void Config(defs * d)
 							"Load All Components:",
 							DEFAULT_LOAD);
 
+		// Jump a line
+		k--;
+
+		k = valueoptionchar(PickTypesNames[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)],
+							k,
+							"m",
+							"Pick Mode:",
+							PickTypesNames[DEFAULT_PICK]);
+
 		k -= 12;
 		k = titleoption("Q - To Return !", k);
 
 		ch = getonechar(&ax, &ay);
 		switch (ch) {
-		case ('z'):
+		case ('z'): {
 			value = lerfloat("Enter new zoom gain?");
 			setConfigNumber(config, NAME__ZOOMGAIN, value);
 			break;
-
-		case ('l'):
+		}
+			
+		case ('l'): {
 			value = lerfloat("Low pass filter Hz?");
 			setConfigNumber(config, NAME_LP, value);
 			break;
-
-		case ('h'):
+		}
+			
+		case ('h'): {
 			value = lerfloat("High pass filter Hz?");
 			setConfigNumber(config, NAME_HP, value);
 			break;
-
-		case ('a'):
+		}
+			
+		case ('a'): {
 			value =
-				fabs(lerfloat
-					 ("Time in seconds before the theoretical mark?"));
+					fabs(lerfloat
+						 ("Time in seconds before the theoretical mark?"));
 			setConfigNumber(config, NAME_PRE, value);
 			break;
-
-		case ('s'):
+		}
+			
+		case ('s'): {
 			value =
-				fabs(lerfloat
-					 ("Time in seconds after the theoretical mark?"));
+					fabs(lerfloat
+						 ("Time in seconds after the theoretical mark?"));
 			setConfigNumber(config, NAME_POST, value);
 			break;
-
-		case ('f'):
+		}
+			
+		case ('f'): {
 			lerchar("Enter a new folder pattern?", aux, 200);
 			setConfigString(config, NAME_PATTERN, (strlen(aux)>0)?aux:DEFAULT_PATTERN);
 			break;
-
-		case ('1'):
+		}
+			
+		case ('1'): {
 			lerchar("Enter a new file pattern?", aux, 200);
 			setConfigString(config, NAME_Z, (strlen(aux)>0)?aux:DEFAULT_Z);
 			reloadTraces = 1;
 			break;
-
-		case ('2'):
+		}
+			
+		case ('2'): {
 			lerchar("Enter a new file pattern?", aux, 200);
 			setConfigString(config, NAME_N, (strlen(aux)>0)?aux:DEFAULT_N);
 			reloadTraces = 1;
 			break;
-
-		case ('3'):
+		}
+			
+		case ('3'): {
 			lerchar("Enter a new file pattern?", aux, 200);
 			setConfigString(config, NAME_E, (strlen(aux)>0)?aux:DEFAULT_E);
 			reloadTraces = 1;
 			break;
-
-		case ('c'):
+		}
+			
+		case ('c'): {
 			value = (getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) ? 0 : 1 ;
 			setConfigBoolean(config, NAME_LOAD, value);
 			reloadTraces = 1;
 			break;
-
+		}
+			
+		case ('m'): {
+			if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) == P) {
+				setConfigNumber(config, NAME_PICK, S);
+			} else {
+				setConfigNumber(config, NAME_PICK, P);
+			}
+			break;
+		}
+			
 		case ('q'):
-		case ('Q'):
+		case ('Q'): {
 			ax = getConfigAsNumber(config, NAME_LP, DEFAULT_LP);
 			ay = getConfigAsNumber(config, NAME_HP, DEFAULT_HP);
 			if (ax <= ay) {
@@ -305,6 +332,7 @@ void Config(defs * d)
 				alert(WARNING);
 			}
 			break;
+		}
 		}
 	}
 	
@@ -635,7 +663,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		sprintf(d->lastaction, "Sorry, no trace found on this position.");
 		for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
 			if (ctl_checkhit(d->ctl[j], ax, ay)) {
-				deletemark(&d->files[d->offset + j], 0.0);
+				setPick(d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)], d->files[d->offset + j].current->head, SAC_HEADER_FLOAT_UNDEFINED);
 				sprintf(d->lastaction, "Deleted mark F on trace %d", j);
 				d->needsave = 1;
 				break;
@@ -646,14 +674,17 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 	case ('z'): // german changes y and z
 	case ('y'): {
+		pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
 		for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max));
 			 j++) {
 			tf *ts = &d->files[j];
+			float AMark = pickR(pick, ts->current->head);
 			getminmax((d->filter
 					   && ts->current->dataf != NULL) ? ts->current->dataf : ts->current->data, ts->current->head,
-					  ts->current->head->a - d->insetsearchsize,
-					  ts->current->head->a + d->searchsize, &vmin, &vmax);
-			ts->current->head->f = vmax;
+					  AMark - d->insetsearchsize,
+					  AMark + d->searchsize, &vmin, &vmax);
+			// ts->current->head->f = vmax;
+			setPick(pick, ts->current->head, vmax);
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction,
@@ -663,10 +694,11 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 	}
 
 	case ('c'): {
+		pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
 		for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max));
 			 j++) {
 			tf *ts = &d->files[j];
-			ts->current->head->f = -12345.0;
+			setPick(pick, ts->current->head, SAC_HEADER_FLOAT_UNDEFINED);
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction, "Cleaned pick phases.");
@@ -674,15 +706,17 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 	}
 
 	case ('x'): {
+		pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
 		for (j = d->offset; (j < d->nfiles) && (j < (d->offset + d->max));
 			 j++) {
 			tf *ts = &d->files[j];
 			//      if (ts->current->head->unused25 != 1 ) continue;
+			float AMark = pickR(pick, ts->current->head);
 			getminmax((d->filter
 					   && ts->current->dataf != NULL) ? ts->current->dataf : ts->current->data, ts->current->head,
-					  ts->current->head->a - d->insetsearchsize,
-					  ts->current->head->a + d->searchsize, &vmin, &vmax);
-			ts->current->head->f = vmin;
+					  AMark - d->insetsearchsize,
+					  AMark + d->searchsize, &vmin, &vmax);
+			setPick(pick, ts->current->head, vmin);
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction,
@@ -692,14 +726,16 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 	}
 
 	case ('1'): {
+		pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
 		for (j = 0; j < d->nfiles; j++) {
 			tf *ts = &d->files[j];
 			//      if (ts->current->head->unused25 != 1 ) continue;
+			float AMark = pickR(pick, ts->current->head);
 			getminmax((d->filter
 					   && ts->current->dataf != NULL) ? ts->current->dataf : ts->current->data, ts->current->head,
-					  ts->current->head->a - d->insetsearchsize,
-					  ts->current->head->a + d->searchsize, &vmin, &vmax);
-			ts->current->head->f = vmax;
+					  AMark - d->insetsearchsize,
+					  AMark + d->searchsize, &vmin, &vmax);
+			setPick(pick, ts->current->head, vmax);
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction,
@@ -709,14 +745,16 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 	}
 
 	case ('2'): {
+		pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
 		for (j = 0; j < d->nfiles; j++) {
 			tf *ts = &d->files[j];
 			// if (ts->current->head->unused25 != 1 ) continue;
+			float AMark = pickR(pick, ts->current->head);
 			getminmax((d->filter
 					   && ts->current->dataf != NULL) ? ts->current->data : ts->current->data, ts->current->head,
-					  ts->current->head->a - d->insetsearchsize,
-					  ts->current->head->a + d->searchsize, &vmin, &vmax);
-			ts->current->head->f = vmin;
+					  AMark - d->insetsearchsize,
+					  AMark + d->searchsize, &vmin, &vmax);
+			setPick(pick, ts->current->head, vmin);
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction,
@@ -726,10 +764,11 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 	}
 
 	case ('3'): {
+		pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
 		for (j = 0; j < d->nfiles; j++) {
 			tf *ts = &d->files[j];
 			// if (ts->current->head->unused25 != 1 ) continue;
-			ts->current->head->f = -12345.0;
+			setPick(pick, ts->current->head, SAC_HEADER_FLOAT_UNDEFINED);
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction, "Cleaned ALL pick phases.");
@@ -836,6 +875,7 @@ char PK_waitloop(defs * d)
 	return ch;
 }
 
+/* Main Module method */
 void PK_process(glob_t * glb)
 {
 	char ch = '\0';
@@ -857,6 +897,23 @@ void PK_process(glob_t * glb)
 	/* Get new CTLs for use */
 	d->ctl = initCTL(d);
 
+	/* initialize the pick structures */
+	pdefs **picks;
+	picks = malloc(sizeof(pdefs*) * 3);
+	picks[None] = newpicker(None, "", "", PickTypesNames[None]);
+	picks[P]    = newpicker(P, "A", "F", PickTypesNames[P]);
+	picks[S]    = newpicker(S, "T0", "T1", PickTypesNames[S]);
+
+	/* Attach */
+	if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) > 2) {
+		setConfigNumber(config, NAME_PICK, DEFAULT_PICK);
+		fprintf(stderr, "Invalid pick phase %f -- Setting default value of %s\n",
+				getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK),
+				PickTypesNames[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)]);
+	}
+	d->pickRules = picks;
+	picks = NULL; 
+	
 	/* Main Loop */
 	while (ch != 'Q') {
 		/* Plot Data */
@@ -868,6 +925,12 @@ void PK_process(glob_t * glb)
 
 	tffree(d->files, d->nfiles);
 	killCTL(&d->ctl, d->max);
+
+	d->pickRules[0] = killpicker(d->pickRules[0]);
+	d->pickRules[1] = killpicker(d->pickRules[1]);
+	d->pickRules[2] = killpicker(d->pickRules[2]);
+	free(d->pickRules);
+	d->pickRules = NULL;
 
 	if (d != NULL) free(d);
 	d = NULL;

@@ -18,6 +18,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <inspect.h>
+
 void checkTREF(tf * files, int nfiles);
 void multitraceplot(defs * d);
 void getminmax(float *data, SACHEAD * hdr, float start, float end,
@@ -37,3 +39,10 @@ int sortDist(const void *p1, const void *p2);
 int sortBaz(const void *p1, const void *p2);
 
 
+/* Picker handling methods */
+pdefs *killpicker(pdefs *pick);
+pdefs *newpicker(PickTypes picktype, char *from, char *to,  char *name);
+void pickLoadPhase(pdefs *pick, char *phase);
+float pickD(pdefs *pick, SACHEAD *head);
+float pickR(pdefs *pick, SACHEAD *head);
+void setPick(pdefs *pick, SACHEAD *head, float value);
