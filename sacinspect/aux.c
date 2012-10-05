@@ -409,14 +409,14 @@ void multitraceplot(defs * d)
 			if (strcmp(pick->referencePhase, pick->markPhase[k]) == 0 && d->hidephase) continue;
 
 			float value = pickO(pick, thistrace->current->head, k);
-			char *label = pickL(pick, thistrace->current->head, k);
-			if (value != SAC_HEADER_FLOAT_UNDEFINED)
-				mark(ctl[j], value + start - thistrace->current->head->b, label,
-					 2);
-			if (label != NULL) free(label);
-			label = NULL;
+			if (value != SAC_HEADER_FLOAT_UNDEFINED) {
+				char *label = pickL(pick, thistrace->current->head, k);
+				mark(ctl[j], value + start - thistrace->current->head->b, label, 2);
+				if (label != NULL) free(label);
+				label = NULL;
+			}
 		}
-
+		
 		// IF OVERLAY MODE JUST PLOT THE TRACE AND RETURN.
 		if (d->overlay == 1)
 			continue;
@@ -482,17 +482,28 @@ void multitraceplot(defs * d)
 	if (d->nfiles > 0) {
 		cpgsci((d->files[0].z != NULL)?3:2);
 		cpgsch(1.);
-		cpgmtxt("B",1.25, -0.05, 1.0, (d->zne == 0)?"Z":"Z");
+		cpgmtxt("B",1.25, -0.045, 1.0, (d->zne == 0)?"Z":"Z");
 		
 		cpgsci((d->has3 && d->files[0].n != NULL)?3:(d->has3)?2:14);
-		cpgmtxt("B",1.25, -0.035, 1.0, (d->zne == 1)?"N":"N");
+		cpgmtxt("B",1.25, -0.03, 1.0, (d->zne == 1)?"N":"N");
 		
 		cpgsci((d->has3 && d->files[0].e != NULL)?3:(d->has3)?2:14);
-		cpgmtxt("B",1.25, -0.02, 1.0, (d->zne == 2)?"E":"E");
+		cpgmtxt("B",1.25, -0.015, 1.0, (d->zne == 2)?"E":"E");
 
 		cpgsci(1);
 
-		cpgmtxt("B",2.0, -0.05 + d->zne*0.015, 1.75, "\\m17");
+		cpgsch(.65);
+		int phaseid = (int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK);
+		cpgsci((phaseid == 1)?1:14);
+		cpgmtxt("B", 1.25, -0.07, 1.0, PickTypesNames[1]);
+		cpgsci((phaseid == 2)?1:14);
+		cpgmtxt("B", 2.35, -0.07, 1.0, PickTypesNames[2]);
+
+		cpgsch(1.);
+		cpgsci(1);
+		cpgmtxt("B", 2.0, -0.045 + d->zne * 0.015, 1.75, "\\m17");
+
+		// Reset to leave
 		cpgsch(0.65);
 	}
 	

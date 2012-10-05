@@ -46,3 +46,5 @@ void pickLoadPhase(pdefs *pick, char *phase);
 float pickD(pdefs *pick, SACHEAD *head);
 float pickR(pdefs *pick, SACHEAD *head);
 void setPick(pdefs *pick, SACHEAD *head, float value);
+char * pickL(pdefs *pick, SACHEAD *head, int i);
+float pickO(pdefs *pick, SACHEAD *head, int i);

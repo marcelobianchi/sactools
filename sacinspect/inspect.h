@@ -68,7 +68,7 @@ typedef enum {
 } PickTypes;
 
 static char *PickTypesNames[] = {
-	"None", "P Picker", "S Picker"
+	"None", "P", "S"
 };
 
 typedef struct {

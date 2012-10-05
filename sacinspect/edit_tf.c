@@ -109,7 +109,7 @@ void timedraw(g_ctl * ctl, tf * f, defs * d, int gravity)
 {
 	char txt[500];
 	float *x = NULL;
-	int i;
+	int i, k;
 
 	x = malloc(sizeof(float) * f->current->head->npts);
 	for (i = 0; i < f->current->head->npts; i++)
@@ -133,10 +133,16 @@ void timedraw(g_ctl * ctl, tf * f, defs * d, int gravity)
 	free(x);
 	x = NULL;
 
-	if (AMark != SAC_HEADER_FLOAT_UNDEFINED)
-		mark(ctl, AMark, "a", 2);
-	if (FMark != SAC_HEADER_FLOAT_UNDEFINED)
-		mark(ctl, FMark, "f", 2);
+	/* Add marks */
+	for(k=0; k<pick->nPhase; k++) {
+		float value = pickO(pick, f->current->head, k);
+		if (value != SAC_HEADER_FLOAT_UNDEFINED) {
+			char *label = pickL(pick, f->current->head, k);
+			mark(ctl, value - f->current->head->b, label, 2);
+			if (label != NULL) free(label);
+			label = NULL;
+		}
+	}
 
 	if (d->filter) {
 		sprintf(txt, "%s [Filtering, bandpass from %.2f to %.2f]",
@@ -168,19 +174,21 @@ void edit_tf(g_ctl * ctl, tf * f, defs * d)
 	strcpy(ctl->ylabel, "Amp.");
 
 	pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
-	float AMark = pickR(pick, f->current->head);
-	float FMark = pickD(pick, f->current->head);
 
 	switch (d->alig) {
 	case (ALIGO):
-	case (ALIGA):
+	case (ALIGA): {
+		float AMark = pickR(pick, f->current->head);
 		ctl->xmin = AMark - d->prephase;
 		ctl->xmax = AMark + d->postphase;
 		break;
-	case (ALIGF):
+	}
+	case (ALIGF): {
+		float FMark = pickD(pick, f->current->head);
 		ctl->xmin = FMark - d->prephase;
 		ctl->xmax = FMark + d->postphase;
 		break;
+	}
 	}
 
 	while (op != 'Q') {
