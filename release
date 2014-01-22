@@ -1,4 +1,12 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Date: 12/Jan/2014  
+Version Sactool 0.6
+ * Added support for the KZDATE and KZTIME pseudo variables as in SAC.
+ * Support was added and tested in sacchhdr (like in sac will only print
+ * correct error message) and sachinfo, for printing it.
+ * Many improvements in the sacinspect that was back merged inside, many of 
+   those was on a individual release make using launchpad.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Date: 11/May/2012
 Version Sactool 0.5
 

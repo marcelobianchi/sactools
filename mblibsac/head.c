@@ -24,8 +24,9 @@
 #include <string.h>
 
 #include <sachead.h>
+#include <timeu.h>
 
-const char *hd_version = "mbLibSac version 0.7 (head)";
+const char *hd_version = "mbLibSac version 0.8 (head)";
 
 static SACHEADDEF x[] = {
 	{"delta", offsetof(SACHEAD, delta), 1, 0, 0},
@@ -160,13 +161,15 @@ static SACHEADDEF x[] = {
 	{"kcmpnm", offsetof(SACHEAD, kcmpnm), 3, 8, 0},
 	{"knetwk", offsetof(SACHEAD, knetwk), 3, 8, 0},
 	{"kdatrd", offsetof(SACHEAD, kdatrd), 3, 8, 0},
-	{"kinst", offsetof(SACHEAD, kinst), 3, 8, 0}
+	{"kinst", offsetof(SACHEAD, kinst), 3, 8, 0},
+	{"kzdate", 0, TYPE_OTHER, 19, 0},
+	{"kztime", 0, TYPE_OTHER, 13, 0}
 };
 
 SACHEADDEF *getSacHeadDefFromChar(char *name)
 {
 	int i, j;
-	for (i = 0; i < SAC_HEADER_FIELDS; i++)
+	for (i = 0; i < SAC_HEADER_FIELDS_EXTENDED; i++)
 		if ((j = strcasecmp(name, x[i].name)) == 0)
 			return &x[i];
 
@@ -222,21 +225,25 @@ int changeCharValueFromChar(SACHEAD * h, char *var, char *value)
 	p = p + s->offset;
 
 	switch (s->type) {
-	case (1):
+	case (TYPE_FLOAT):
 		*(float *) p = atof(value);
 		break;
 
-	case (2):
+	case (TYPE_INT):
 		*(int *) p = atoi(value);
 		break;
 
-	case (3):
+	case (TYPE_CHAR):
 		pvar = (char *) p;
 		for (i = 0; i < s->charsize; i++)
 			if (i < strlen(value))
 				pvar[i] = value[i];
 			else
 				pvar[i] = ' ';
+		break;
+
+	case (TYPE_OTHER):
+		return -1;
 		break;
 	}
 
@@ -277,15 +284,15 @@ char *hd_showValueFromChar(SACHEAD * h, char *var, char *fmtf, char *fmti,
 	string = malloc(sizeof(char) * 512);
 
 	switch (s->type) {
-	case (1):
+	case (TYPE_FLOAT):
 		sprintf(string, fmtf, *(float *) p);
 		break;
 
-	case (2):
+	case (TYPE_INT):
 		sprintf(string, fmti, *(int *) p);
 		break;
 
-	case (3):
+	case (TYPE_CHAR):
 		pvar = (char *) p;
 		for (i = 0, min = 0; i < s->charsize; i++)
 			if (pvar[i] != ' ') {
@@ -302,6 +309,24 @@ char *hd_showValueFromChar(SACHEAD * h, char *var, char *fmtf, char *fmti,
 
 		string[max + 1] = '\0';
 		break;
+
+	case (TYPE_OTHER):
+		{
+			SACTIME *tr = NULL;
+
+			tr = getTimeStructFromSAC(h);
+
+			if (tr) {
+				if (strcasecmp(var, "kzdate") == 0) {
+					string = print_time(tr, TIME_KZDATE);
+				} else if (strcasecmp(var, "kztime") == 0) {
+					string = print_time(tr, TIME_KZTIME);
+				}
+				free(tr);
+			}
+			tr = NULL;
+			break;
+		}
 	}
 
 	return string;
@@ -312,9 +337,9 @@ void showHeadElements(char *tab)
 	int i;
 	int perc = 3;
 
-	for (i = 0; i < SAC_HEADER_FIELDS; i++) {
-		fprintf(stderr, "%s%10s type: %3d CharSize: %3d", tab,
-				x[i].name, x[i].type, x[i].charsize);
+	for (i = 0; i < SAC_HEADER_FIELDS_EXTENDED; i++) {
+		fprintf(stderr, "%s%10s type: %3d CharSize: %3d", tab, x[i].name,
+				x[i].type, x[i].charsize);
 		if ((i + 1) % perc != 0)
 			fprintf(stderr, " | ");
 		if ((i + 1) % perc == 0)

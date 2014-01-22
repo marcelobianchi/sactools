@@ -78,10 +78,19 @@ double difference(SACTIME * tr, SACTIME * t)
 char *print_time(SACTIME * t, int format)
 {
 	char *text;
-
+	int i;
 	text = calloc(sizeof(char), 500);
 
 	switch (format) {
+	case (TIME_KZDATE):
+		strftime(text, 200, "%b %d (%j), %Y", &t->fs);
+		for (i = 0; text[i] != '\0'; i++)
+			text[i] = toupper(text[i]);
+		break;;
+	case (TIME_KZTIME):
+		strftime(text, 200, "%H:%M:%S", &t->fs);
+		sprintf(text, "%s.%03d", text, t->ms);
+		break;;
 	case (TIME_CHGMT):
 		strftime(text, 200, "%Y %j %H %M %S", &t->fs);
 		sprintf(text, "%s %03d", text, t->ms);

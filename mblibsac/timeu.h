@@ -39,6 +39,8 @@
 #define TIME_CHGMT 0
 #define TIME_ISO 1
 #define TIME_PLAIN 2
+#define TIME_KZDATE 3
+#define TIME_KZTIME 4
 
 typedef struct {
 	struct tm fs;				// Time of the trace

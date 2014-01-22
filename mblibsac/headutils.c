@@ -28,9 +28,8 @@
 
 const char *hdu_version = "mbLibSac version 0.1 (headutils)";
 
-int
-hdu_changeValueFromChar(SACHEAD * h, char *string, float *Fvalue,
-						int *Ivalue, char *Cvalue)
+int hdu_changeValueFromChar(SACHEAD * h, char *string, float *Fvalue,
+							int *Ivalue, char *Cvalue)
 {
 	char *pvar;
 	void *p;
@@ -73,9 +72,8 @@ hdu_changeValueFromChar(SACHEAD * h, char *string, float *Fvalue,
 	return 0;
 }
 
-int
-hdu_getValueFromChar(char *string, SACHEAD * hdr, float *Fvalue,
-					 int *Ivalue, char **str)
+int hdu_getValueFromChar(char *string, SACHEAD * hdr, float *Fvalue,
+						 int *Ivalue, char **str)
 {
 	char *pvar;
 	int i;

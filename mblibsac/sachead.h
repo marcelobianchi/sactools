@@ -48,6 +48,7 @@
 
 /// Number of fields on the header
 #define SAC_HEADER_FIELDS          133
+#define SAC_HEADER_FIELDS_EXTENDED          133+2
 /// Size (in Bytes) of the number part of the header
 #define SAC_HEADER_SIZE_NUMBERS    440
 /// Size (in Bytes) of the header
@@ -73,6 +74,8 @@
 #define TYPE_INT   2
 /// Char type for SACHEADDEF
 #define TYPE_CHAR  3
+/// Char type for SACHEADDEF
+#define TYPE_OTHER 4
 
 /** 
  * @brief Sac Header Definition Information
@@ -87,7 +90,7 @@ typedef struct sac_head_def {
 	/// Name of the header field
 	char *name;			/**< Name of the SAC header variable */
 	/// Offset of the header field
-	/** 
+  /** 
    * The offset for the variable inside the header structure. 
    * The header value can be acessed by: 
    *
@@ -103,9 +106,9 @@ typedef struct sac_head_def {
    */
 	long offset;
 	/// The Type of the header field
-	int type;			/**< The type of variable can be one of: TYPE_FLOAT, TYPE_INT, TYPE_CHAR */
+	int type;		/**< The type of variable can be one of: TYPE_FLOAT, TYPE_INT, TYPE_CHAR */
 	/// The lenght of the char header  field
-	int charsize;			/**< The number of characters that can be stored inside the variable. */
+	int charsize;		/**< The number of characters that can be stored inside the variable. */
 	/// Indicates that this header can contain picks
 	int isMark;			/**< True if this variable can be used to store a pick mark. */
 } SACHEADDEF;

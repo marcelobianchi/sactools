@@ -29,7 +29,7 @@
 
 #include <ftw.h>
 
-char version[] = "sacchhdr version 0.5";
+char version[] = "sacchhdr version 0.6";
 
 
 
@@ -229,6 +229,7 @@ int process(char *filename)
 {
 	int i;
 	SACHEAD *h = NULL;
+	int ret;
 
 	extern char *var[], *value[];
 	extern int n;
@@ -243,8 +244,8 @@ int process(char *filename)
 	}
 
 	for (i = 0; i < n; i++) {
-		fprintf(stderr, ".");
-		changeCharValueFromChar(h, var[i], value[i]);
+		ret = changeCharValueFromChar(h, var[i], value[i]);
+		fprintf(stderr, (ret == 0) ? "." : "!");
 	}
 
 	i = io_writeSacHead(filename, h);
