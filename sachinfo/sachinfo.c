@@ -28,7 +28,7 @@
 #include <timeu.h>
 #include <ftw.h>
 
-char version[] = "sachinfo version 0.3";
+char version[] = "sachinfo version 0.3.2";
 
 /* Global vars */
 char *var[500];
@@ -237,14 +237,14 @@ void showHelp()
 {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr,
-			"  sachinfo [-h] [-v] [--vars] [-e <file ending string>] <-d <dir> <var1> ... <varN>|<file> <var1> ... <varN>\n");
-
+			"  sachinfo [options] <-d <dir> <var1> ... <varN>|<file> <var1> ... <varN>\n");
 	fprintf(stderr, "\n\t-h) Show this help.\n");
 	fprintf(stderr, "\t-v) Show program version.\n");
+	fprintf(stderr, "\t--nonames) Dont print the filenames, only variables.\n");
+	fprintf(stderr, "\t--fulltime) When the indicated variable is a mark, print its fulltime (Y M D H M S) instead of seconds from Reference.\n");
 	fprintf(stderr, "\t--vars) Show list of sac header variables.\n");
+
 	fprintf(stderr,
 			"\t-e) Supply file ending when searching for files.\n");
 	fprintf(stderr, "\t-d) Supply directory for searching for files.\n");
-	fprintf(stderr, "\t-f) Supply filenames for process.\n");
-
 }
