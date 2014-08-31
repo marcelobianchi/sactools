@@ -29,7 +29,8 @@
 #include <yutils.h>
 #include <ftw.h>
 
-char version[] = "sac2gmt version 0.1";
+char version[] = "sac2gmt version 0.2";
+int quiet = 0;
 
 typedef struct fileList {
 	char *path;
@@ -50,6 +51,7 @@ typedef struct ConfigModel {
 	int processCounter;
 
 	int normalize;
+	int justheader;
 
 	FILELIST *list;
 	int nlist;
@@ -109,8 +111,18 @@ int main(int argc, char **argv)
 			continue;
 		}
 
+		if ((j = strncmp(argv[i], "-q", 2)) == 0) {
+			quiet = 1;
+			continue;
+		}
+
 		if ((j = strncmp(argv[i], "-n", 2)) == 0) {
 			config.normalize = 1;
+			continue;
+		}
+
+		if ((j = strncmp(argv[i], "-jh", 3)) == 0) {
+			config.justheader = 1;
 			continue;
 		}
 
@@ -290,10 +302,11 @@ int process(FILELIST * f)
 	data = io_readSac(f->path, &hdr);
 	if (data == NULL) {
 		return 1;
-	} else {
+	}
+
+	if (!quiet)
 		fprintf(stderr, "Filename: %s Npts: %d Order: %f Value: %f\n",
 				f->path, hdr->npts, f->order, value);
-	}
 
 	if (config.normalize)
 		yu_normalize(data, hdr->npts);
@@ -329,10 +342,11 @@ int process(FILELIST * f)
 	}
 
 	fprintf(stdout, "%s\n", f->path);
-	for (i = 0; i < hdr->npts; i++) {
-		float time = i * hdr->delta + hdr->b - ref;
-		fprintf(stdout, "%f %f %f\n", time, value, data[i]);
-	}
+	if (config.justheader == 0)
+		for (i = 0; i < hdr->npts; i++) {
+			float time = i * hdr->delta + hdr->b - ref;
+			fprintf(stdout, "%f %f %f\n", time, value, data[i]);
+		}
 
 	//  offset++;
 	io_freeData(data);
@@ -348,18 +362,23 @@ void showHelp()
 
 	fprintf(stderr, "\n\t-h) Show this help.\n");
 	fprintf(stderr, "\t-v) Show program version.\n");
-	fprintf(stderr, "File Crawling:\n");
+	fprintf(stderr, "\t-q) Quiet run.\n");
+	fprintf(stderr, "\nFile Crawling:\n");
 	fprintf(stderr,
 			"\t-e) Supply file ending when searching for files.\n");
 	fprintf(stderr, "\t-d) Supply directory for searching for files.\n");
 	fprintf(stderr, "\t-f) Supply filenames for process.\n");
-	fprintf(stderr, "Output Display:\n");
+
+	fprintf(stderr, "\nOutput Display:\n");
 	fprintf(stderr,
 			"\t-r) Use header variable as time origin on conversion\n");
 	fprintf(stderr, "\t-s) Sort traces by this header variable\n");
 	fprintf(stderr,
 			"\t-i) Add this variable on the info line, line begging with '>' (use more than one to get more variables in)\n");
 	fprintf(stderr, "\t-u) Use sort variable as Second coordinate axis\n");
+	fprintf(stderr, "\t-o) Offset on sorting value\n");
+	fprintf(stderr, "\t-n) Normalize amplitudes to 1 before output\n");
+	fprintf(stderr, "\t-jh) Just print headers lines\n");
 }
 
 void initConfig(void)
@@ -379,6 +398,7 @@ void initConfig(void)
 	config.list = NULL;
 	config.nlist = 0;
 	config.useSort = 0;
+	config.justheader = 0;
 }
 
 static int cmp(const void *p1, const void *p2)
