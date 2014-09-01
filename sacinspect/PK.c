@@ -751,7 +751,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			// if (ts->current->head->unused25 != 1 ) continue;
 			float AMark = pickR(pick, ts->current->head);
 			getminmax((d->filter
-					   && ts->current->dataf != NULL) ? ts->current->data : ts->current->data, ts->current->head,
+					   && ts->current->dataf != NULL) ? ts->current->dataf : ts->current->data, ts->current->head,
 					  AMark - d->insetsearchsize,
 					  AMark + d->searchsize, &vmin, &vmax);
 			setPick(pick, ts->current->head, vmin);
