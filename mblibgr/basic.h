@@ -50,6 +50,8 @@
 #define ERROR 2
 #define ANOUNCE 3
 
+extern float BASIC_ASPECT;
+
 /// Graphic Control Structure (g_ctl)
 /**
  This structure is responssible for sub allocating the graphics panel.

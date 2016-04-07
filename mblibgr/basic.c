@@ -22,6 +22,8 @@
 #include <basic.h>
 #include <X11/Xlib.h>
 
+float BASIC_ASPECT = 0.0;
+
 /** 
  * This method opens a graphic panel for plotting. All the subsequent plotting will be put in this panel.
  * 
@@ -72,6 +74,8 @@ void resizemax(float scale)
 	ax = X / 25.4 * scale;
 	cpgpap(ax, ay);
 	cpgpage();
+
+    BASIC_ASPECT = ay;
 }
 
 /**
