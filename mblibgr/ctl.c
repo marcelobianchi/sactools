@@ -281,3 +281,39 @@ int ctl_checkhit(g_ctl * ctl, float ax, float ay)
 			return 1;
 	return 0;
 }
+
+/**
+ * Convert an ax, ay coordinates from 0 -> 1.0 into a certain CTL
+ * x,y values.
+ * 
+ * @param ctl The g_ctl to convert to
+ * @param ax  Input ax from 0.0 to 1.0
+ * @param ay  Input ay from 0.0 to 1.0
+ * @param *x  Converted x value
+ * @param *y  Converted y value
+ */
+void ctl_convertxy(g_ctl *ctl, float ax, float ay, float *x, float *y) {
+    *x = *y = 0.0;
+
+    float x1, x2, y1, y2;
+
+    x1 = ctl->xmin;
+    x2 = ctl->xmax;
+    y1 = ctl->ymin;
+    y2 = ctl->ymax;
+
+    if (ctl->expand) {
+        x1 = ctl->xmin - ctl->w * 0.05;
+        x2 = ctl->xmax + ctl->w * 0.05;
+        y1 = ctl->ymin - ctl->h * 0.05;
+        y2 = ctl->ymax + ctl->h * 0.05;
+    }
+
+    float xdiv = (x2 - x1) / ctl->xsize;
+    float ydiv = (y2 - y1) / ctl->ysize;
+
+    *x = x1 + (ax - ctl->xpos) * xdiv;
+    *y = y1 + (ay - ctl->ypos) * ydiv;
+
+    return;
+}

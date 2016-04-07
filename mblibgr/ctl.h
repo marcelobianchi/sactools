@@ -77,3 +77,7 @@ void ctl_axisbottom(g_ctl * ctl);
 
 /// Check if global (from 0.0 to 1.0) ax and ay is inside the g_ctl supplied
 int ctl_checkhit(g_ctl * ctl, float ax, float ay);
+
+/// Convert x/y page coordinates by a CTL
+void ctl_convertxy(g_ctl *ctl, float ax, float ay, float *x, float *y);
+
