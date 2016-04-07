@@ -73,3 +73,33 @@ void resizemax(float scale)
 	cpgpap(ax, ay);
 	cpgpage();
 }
+
+/**
+ * Method to find the min and max of a vector of data
+ *
+ * @ param x Data array
+ * @ param npts Is number of points in x
+ * @ param xmin Is xmin
+ * @ param xmax Is xmax
+ * @ param imin Is i of xmin
+ * @ param imax Is i of xmax
+ */
+void vecminmax(float *x, int npts, float *xmin, float *xmax, int *imin, int *imax) {
+    *xmin = x[0];
+    *xmax = x[0];
+
+    int i;
+
+    for(i = 1; i < npts; i++) {
+        if (x[i] > *xmax) {
+            *xmax  = x[i];
+            if (imax != NULL) *imax = i;
+        }
+
+        if (x[i] <= *xmin) {
+            *xmin = x[i];
+            if (imin != NULL) *imin = i;
+        }
+    }
+
+}
