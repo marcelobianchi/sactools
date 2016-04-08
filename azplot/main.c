@@ -81,18 +81,18 @@ void d_angle(g_ctl *ctl, float *xdata, float *ydata, int npts, float mangle) {
 }
 
 void d_time(g_ctl *ctl, float *data, SACHEAD *h) {
-	int i;
+    int i;
 
-	ctl_yupdate_ndb(ctl, data, h->npts, h->delta, h->b);
-	ctl_resizeview(ctl);
-	ctl_drawaxis(ctl);
+    ctl_yupdate_ndb(ctl, data, h->npts, h->delta, h->b);
+    ctl_resizeview(ctl);
+    ctl_drawaxis(ctl);
 
-	float *x = malloc(sizeof(float) * h->npts);
-	for (i = 0; i < h->npts; i++)
-		x[i] = i * h->delta + h->b;
+    float *x = malloc(sizeof(float) * h->npts);
+    for (i = 0; i < h->npts; i++)
+        x[i] = i * h->delta + h->b;
 
-	cpgline(h->npts, x, data);
-	free(x);
+    cpgline(h->npts, x, data);
+    free(x);
 }
 
 void line(g_ctl *ctl, float xmin, int color) {
@@ -179,7 +179,7 @@ void d(g_ctl *zc, g_ctl *nc, g_ctl *ec, g_ctl *azc, g_ctl *inc,
         if (inct == ZE) {
             strcpy(inc->xlabel, "EW");
             d_angle(inc, &e[i], &z[i], np, incidence);
-         } else {
+        } else {
             strcpy(inc->xlabel, "NS");
             d_angle(inc, &n[i], &z[i], np, incidence);
         }
@@ -190,7 +190,7 @@ void d(g_ctl *zc, g_ctl *nc, g_ctl *ec, g_ctl *azc, g_ctl *inc,
 }
 
 void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *he) {
-	int i;
+    int i;
 
     i = opengr();
     resizemax(0.8);
@@ -208,9 +208,9 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
     ctl_xreset_ndb(nc, hn->npts, hn->delta, hn->b);
     ctl_xreset_ndb(ec, he->npts, he->delta, he->b);
 
-	ctl_axisbottom(zc);
-	ctl_axisbottom(nc);
-	ctl_axisbottom(ec);
+    ctl_axisbottom(zc);
+    ctl_axisbottom(nc);
+    ctl_axisbottom(ec);
 
     ctl_axismap(azc);
     ctl_axismap(inc);
@@ -359,96 +359,93 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
         default:
             printf("Oops, invalid command.");
             break;
-            }
         }
+    }
 }
 
 int main(int argc, char **argv) {
-	SACHEAD *hz, *hn, *he;
-	float *z,*n,*e;
-	int stop = 0;
-	char *filename;
+    SACHEAD *hz, *hn, *he;
+    float *z,*n,*e;
+    int stop = 0;
+    char *filename;
 
     hz = hn = he = NULL;
     z = n = e = NULL;
     filename = NULL;
 
-	filename = "z";
-	z = io_readSac(filename, &hz);
-	if (z == NULL) {
-		fprintf(stderr, "Error reading z file: %s\n", filename);
-		stop = 1;
-	}
+    filename = "z";
+    z = io_readSac(filename, &hz);
+    if (z == NULL) {
+        fprintf(stderr, "Error reading z file: %s\n", filename);
+        stop = 1;
+    }
 
-	filename = "n";
-	n = io_readSac(filename, &hn);
-	if (z == NULL) {
-		fprintf(stderr, "Error reading n file: %s\n", filename);
-		stop = 1;
-	}
+    filename = "n";
+    n = io_readSac(filename, &hn);
+    if (z == NULL) {
+        fprintf(stderr, "Error reading n file: %s\n", filename);
+        stop = 1;
+    }
 
-	filename = "e";
-	e = io_readSac(filename, &he);
-	if (z == NULL) {
-		fprintf(stderr, "Error reading e file: %s\n", filename);
-		stop = 1;
-	}
+    filename = "e";
+    e = io_readSac(filename, &he);
+    if (z == NULL) {
+        fprintf(stderr, "Error reading e file: %s\n", filename);
+        stop = 1;
+    }
 
     /* check that files reference and sps match ! */
-    if (hz->nzyear != he->nzyear ||
-            hz->nzjday != he->nzjday ||
-            hz->nzmin != he->nzmin ||
-            hz->nzhour != he->nzhour ||
-            hz->nzsec != he->nzsec ||
-            hz->nzmsec != he->nzmsec ||
-            hz->b != he->b ||
-            hz->delta != he->delta ||
-            hz->npts != he->npts) {
-        stop = 1;
-        fprintf(stderr, "Z and E files reference time differ.\n");
-    }
+    if (!stop) {
+        if (hz->nzyear != he->nzyear ||
+                hz->nzjday != he->nzjday ||
+                hz->nzmin != he->nzmin ||
+                hz->nzhour != he->nzhour ||
+                hz->nzsec != he->nzsec ||
+                hz->nzmsec != he->nzmsec ||
+                hz->b != he->b ||
+                hz->delta != he->delta ||
+                hz->npts != he->npts) {
+            stop = 1;
+            fprintf(stderr, "Z and E files reference time differ.\n");
+        }
 
-    if (hz->nzyear != hn->nzyear ||
-            hz->nzjday != hn->nzjday ||
-            hz->nzmin != hn->nzmin ||
-            hz->nzhour != hn->nzhour ||
-            hz->nzsec != hn->nzsec ||
-            hz->nzmsec != hn->nzmsec ||
-            hz->b != hn->b ||
-            hz->delta != hn->delta ||
-            hz->npts != hn->npts) {
-        stop = 1;
-        fprintf(stderr, "Z and N files reference time differ.\n");
+        if (hz->nzyear != hn->nzyear ||
+                hz->nzjday != hn->nzjday ||
+                hz->nzmin != hn->nzmin ||
+                hz->nzhour != hn->nzhour ||
+                hz->nzsec != hn->nzsec ||
+                hz->nzmsec != hn->nzmsec ||
+                hz->b != hn->b ||
+                hz->delta != hn->delta ||
+                hz->npts != hn->npts) {
+            stop = 1;
+            fprintf(stderr, "Z and N files reference time differ.\n");
+        }
     }
-
 
     if (!stop) {
         yu_rmean(z, hz->npts);
         yu_rmean(n, hn->npts);
         yu_rmean(e, he->npts);
 
-//        z = iir(z, hz->npts, hz->delta, 2.0, 0.01, 2.0, 0.05);
-//        n = iir(n, hz->npts, hn->delta, 2.0, 0.01, 2.0, 0.05);
-//        e = iir(e, hz->npts, he->delta, 2.0, 0.01, 2.0, 0.05);
-
         if (z == NULL)fprintf(stderr, "OILA");
         interact(z,hz,n,hn,e,hn);
-	}
+    }
 
     if (z != NULL) {
-		free(z); z = NULL;
-		free(hz); hz = NULL;
-	}
+        free(z); z = NULL;
+        free(hz); hz = NULL;
+    }
 
     if (n != NULL) {
-		free(n); n = NULL;
-		free(hn); hn = NULL;
-	}
+        free(n); n = NULL;
+        free(hn); hn = NULL;
+    }
 
     if (e != NULL) {
-		free(e); e = NULL;
-		free(he); he = NULL;
-	}
+        free(e); e = NULL;
+        free(he); he = NULL;
+    }
 }
 
 /*
