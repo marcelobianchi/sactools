@@ -5,6 +5,7 @@
 
 #include <sac.h>
 #include <yutils.h>
+#include <iir.h>
 
 #include <head.h>
 #include <ctl.h>
@@ -15,6 +16,8 @@
 #define ZOOM 2
 #define AZ 3
 #define IN 4
+#define OTHER 10
+
 
 void markazimuth(g_ctl *ctl, float mangle) {
     if (mangle > -999.0) {
@@ -92,9 +95,50 @@ void d_time(g_ctl *ctl, float *data, SACHEAD *h) {
 	free(x);
 }
 
-void line(g_ctl *ctl, float xmin) {
-    cpgmove(xmin, ctl->ymin);
-    cpgdraw(xmin, ctl->ymax);
+void line(g_ctl *ctl, float xmin, int color) {
+    cpgsci(color);
+    cpgmove(xmin, ctl->ymin + ctl->h * 0.2);
+    cpgdraw(xmin, ctl->ymax - ctl->h * 0.2);
+    cpgsci(1);
+}
+
+char *get(char *input) {
+    if (strncmp(input, "-12345", 6) == 0) return "- n/a -";
+    return input;
+}
+
+char *getf(float v, char *fmt) {
+    static char temp[256];
+    if (v == -12345.0) return " - ";
+    sprintf(temp, fmt, v);
+    return temp;
+}
+
+void tag(SACHEAD *h) {
+    char texto[256] = "";
+
+    g_ctl *zc = ctl_newctl(0.05, 0.05,0.90,0.90);
+    ctl_resizeview(zc);
+
+    sprintf(texto,
+            "%s.%s: %04d-%03d/%02d:%02d:%02d (Event Id: %s)",
+            get(h->knetwk), get(h->kstnm), h->nzyear, h->nzjday, h->nzhour, h->nzmin, h->nzsec, get(h->kevnm));
+    sprintf(texto, "%s Lon: %s%c", texto, getf(h->evlo, "%7.2f"), (char)94);
+    sprintf(texto, "%s Lat: %s%c", texto, getf(h->evla, "%6.2f"), (char)94);
+    sprintf(texto, "%s Dep: %s", texto, getf((h->evdp>1000.0)?h->evdp / 1000.0:h->evdp, "%5.1f km"));
+    sprintf(texto, "%s Mag: %s", texto, getf(h->mag, "%3.1f"));
+    cpgmtxt("T", 1.2, 0.5, 0.5, texto);
+
+    sprintf(texto, "Az: %s%c", getf(h->az, "%5.1f"), (char)94);
+    sprintf(texto, "%s Baz: %s%c", texto, getf(h->baz, "%5.1f"), (char)94);
+    sprintf(texto, "%s Dist: %s", texto, getf(h->dist, "%5.1f km"));
+    sprintf(texto, "%s Gcarc: %s%c", texto, getf(h->gcarc, "%5.1f"), (char)94);
+
+    cpgmtxt("T", 0.0, 0.5, 0.5, texto);
+
+    cpgmtxt("R", 2.0, 0.0, 0.0, "AzPlot / m.bianchi@iag.usp.br @ 2016");
+
+    free(zc);
 }
 
 void d(g_ctl *zc, g_ctl *nc, g_ctl *ec, g_ctl *azc, g_ctl *inc,
@@ -105,20 +149,20 @@ void d(g_ctl *zc, g_ctl *nc, g_ctl *ec, g_ctl *azc, g_ctl *inc,
     /* Ts + times */
     d_time(zc, z, hz);
     if (xmin < xmax) {
-        line(zc, xmin);
-        line(zc, xmax);
+        line(zc, xmin, 3);
+        line(zc, xmax, 3);
     }
 
     d_time(nc, n, hn);
     if (xmin < xmax) {
-        line(zc, xmin);
-        line(zc, xmax);
+        line(zc, xmin, 3);
+        line(zc, xmax, 3);
     }
 
     d_time(ec, e, he);
     if (xmin < xmax) {
-        line(zc, xmin);
-        line(zc, xmax);
+        line(zc, xmin, 3);
+        line(zc, xmax, 3);
     }
 
     /* Az plots */
@@ -141,6 +185,7 @@ void d(g_ctl *zc, g_ctl *nc, g_ctl *ec, g_ctl *azc, g_ctl *inc,
         }
         markincidence(inc, incidence);
     }
+    tag(hz);
     return;
 }
 
@@ -152,12 +197,12 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
 
     g_ctl *zc, *nc, *ec, *azc, *inc, *hitc;
 
-    zc = ctl_newctl(0.05, 0.70, 0.50, 0.25);
-    nc = ctl_newctl(0.05, 0.40, 0.50, 0.25);
-    ec = ctl_newctl(0.05, 0.1, 0.50, 0.25);
+    zc = ctl_newctl(0.35, 0.63, 0.6, 0.25);
+    nc = ctl_newctl(0.35, 0.35, 0.6, 0.25);
+    ec = ctl_newctl(0.35, 0.07, 0.6, 0.25);
 
-    azc = ctl_newctl(0.65, 0.55, 0.2, 0.2 / BASIC_ASPECT);
-    inc = ctl_newctl(0.65, 0.1, 0.2, 0.2 / BASIC_ASPECT);
+    azc = ctl_newctl(0.05, 0.52, 0.23, 0.23 / BASIC_ASPECT);
+    inc = ctl_newctl(0.05, 0.07, 0.23, 0.23 / BASIC_ASPECT);
 
     ctl_xreset_ndb(zc, hz->npts, hz->delta, hz->b);
     ctl_xreset_ndb(nc, hn->npts, hn->delta, hn->b);
@@ -166,6 +211,7 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
 	ctl_axisbottom(zc);
 	ctl_axisbottom(nc);
 	ctl_axisbottom(ec);
+
     ctl_axismap(azc);
     ctl_axismap(inc);
 
@@ -175,8 +221,6 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
     strncpy(inc->xaxis, "BCST", 14);
     strncpy(inc->yaxis, "BCST", 14);
 
-    strcpy(zc->xlabel, "Time (s)");
-    strcpy(nc->xlabel, "Time (s)");
     strcpy(ec->xlabel, "Time (s)");
 
     strcpy(zc->ylabel, "Z");
@@ -231,6 +275,9 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
             } else if (ctl_checkhit(inc, ax, ay)) {
                 hitc = inc;
                 mode = IN;
+            } else {
+                hitc = ctlpick;
+                mode = OTHER;
             }
             if (hitc == NULL) continue;
             ctl_convertxy(hitc, ax, ay, &x, &y);
@@ -238,6 +285,19 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
             ax = x; ay = y;
         }
         switch (ch) {
+
+        case 'P':
+            cpgclos();
+            cpgopen("azplot.ps/CPS");
+            d(zc, nc, ec, azc, inc, z, hz, n, hn, e, he, t1, t2, azimuth, incidence, inct);
+            cpgclos();
+            i = opengr();
+            resizemax(0.8);
+            d(zc, nc, ec, azc, inc, z, hz, n, hn, e, he, t1, t2, azimuth, incidence, inct);
+            sprintf(message, "Print wrote to: azplot.ps");
+            alert(ANOUNCE);
+            break;
+
         case 'T':
             inct = (inct == ZE) ? ZN : ZE;
             incidence = -999.0;
@@ -246,7 +306,7 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
         case 'X':
             if (mode != ZOOM) break;
             a1 = ax;
-            line(hitc, a1);
+            line(hitc, a1, 2);
             ch = toupper(getonechar(&ax, &ay));
             a2 = ax;
             if (a1 >= a2) {
@@ -265,7 +325,7 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
                 azimuth = -999.0;
                 incidence = -999.0;
                 t1 = ax;
-                line(hitc, t1);
+                line(hitc, t1, 3);
                 ch = toupper(getonechar(&ax, &ay));
                 t2 = ax;
                 if (t1 > t2) {
@@ -308,6 +368,10 @@ int main(int argc, char **argv) {
 	float *z,*n,*e;
 	int stop = 0;
 	char *filename;
+
+    hz = hn = he = NULL;
+    z = n = e = NULL;
+    filename = NULL;
 
 	filename = "z";
 	z = io_readSac(filename, &hz);
@@ -359,20 +423,29 @@ int main(int argc, char **argv) {
 
 
     if (!stop) {
-		interact(z,hz,n,hn,e,hn);
+        yu_rmean(z, hz->npts);
+        yu_rmean(n, hn->npts);
+        yu_rmean(e, he->npts);
+
+//        z = iir(z, hz->npts, hz->delta, 2.0, 0.01, 2.0, 0.05);
+//        n = iir(n, hz->npts, hn->delta, 2.0, 0.01, 2.0, 0.05);
+//        e = iir(e, hz->npts, he->delta, 2.0, 0.01, 2.0, 0.05);
+
+        if (z == NULL)fprintf(stderr, "OILA");
+        interact(z,hz,n,hn,e,hn);
 	}
 
-	if (z) {
+    if (z != NULL) {
 		free(z); z = NULL;
 		free(hz); hz = NULL;
 	}
 
-	if (n) {
+    if (n != NULL) {
 		free(n); n = NULL;
 		free(hn); hn = NULL;
 	}
 
-	if (e) {
+    if (e != NULL) {
 		free(e); e = NULL;
 		free(he); he = NULL;
 	}
