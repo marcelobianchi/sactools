@@ -44,11 +44,13 @@ void ctl_drawaxis(g_ctl * ctl)
 	cpgbox(ctl->xaxis, 0.0, 0, ctl->yaxis, 0.0, 0);
 
 	if (strlen(ctl->xlabel) > 0)
-		cpgmtxt("B", 2.4, 1.0, 1.0, ctl->xlabel);
+		cpgmtxt("B", ctl->xlabel_offset * 2.4, 1.0, 1.0, ctl->xlabel);
+
 	if (strlen(ctl->ylabel) > 0)
-		cpgmtxt("L", 1.2, 0.5, 0.5, ctl->ylabel);
+		cpgmtxt("L", ctl->ylabel_offset * 2.4, 0.5, 0.5, ctl->ylabel);
+
 	if (strlen(ctl->title) > 0)
-		cpgmtxt("R", 1.2, 0.5, 0.5, ctl->title);
+		cpgmtxt("R", ctl->title_offset * 1.2, 0.5, 0.5, ctl->title);
 }
 
 /** 
@@ -109,6 +111,9 @@ g_ctl *ctl_newctl(float xpos, float ypos, float xsize, float ysize)
 	strncpy(ctl->ylabel, "", 255);
 	strncpy(ctl->title, "", 255);
 
+	ctl->xlabel_offset = 1.0;
+	ctl->ylabel_offset = 1.0;
+	ctl->title_offset  = 1.0;
 	return ctl;
 }
 
@@ -165,6 +170,7 @@ void ctl_axisbottom(g_ctl * ctl)
 {
 	strncpy(ctl->xaxis, "BNST", 14);
 	strncpy(ctl->yaxis, "", 14);
+	ctl->ylabel_offset = 0.5;
 }
 
 /** 

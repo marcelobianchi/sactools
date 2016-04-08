@@ -110,6 +110,11 @@ typedef struct {
 
 	/// Enable or disable 5% expanssion of the w and h.
 	int expand;
+
+    /// Label Positioning
+    float xlabel_offset;
+    float ylabel_offset;
+    float title_offset;
 } g_ctl;
 
 /// Open the graphic panel.
