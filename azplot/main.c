@@ -18,18 +18,27 @@
 #define IN 4
 #define OTHER 10
 
+#define OFF 0
+#define ON  1
+
+float fh, fl; // Filter values
+int filteris = OFF; // Filter status
+
 
 void markazimuth(g_ctl *ctl, float mangle) {
     if (mangle > -999.0) {
         float xc = (ctl->xmin + ctl->xmax)/ 2.0;
         float yc = (ctl->xmin + ctl->xmax)/ 2.0;
+
         cpgsci(2);
+        cpgslw(5);
         cpgmove(xc, yc);
         if (mangle < 180)
             cpgdraw(ctl->xmax, yc + (ctl->xmin - xc) * tan((mangle - 90) * M_PI / 180.0));
         else
             cpgdraw(ctl->xmin, -1 * (yc + (ctl->xmin - xc) * tan((mangle - 90) * M_PI / 180.0)));
         cpgsci(1);
+        cpgslw(1);
     }
 }
 
@@ -38,12 +47,14 @@ void markincidence(g_ctl *ctl, float mangle) {
         float xc = (ctl->xmin + ctl->xmax)/ 2.0;
         float yc = (ctl->xmin + ctl->xmax)/ 2.0;
         cpgsci(2);
+        cpgslw(5);
         cpgmove(xc, yc);
         if (mangle > 0.)
             cpgdraw(ctl->xmax, (yc + (ctl->xmax - xc) * tan((mangle - 90) * M_PI / 180.0)));
         else
             cpgdraw(ctl->xmin, (yc + (ctl->xmin - xc) * tan((mangle - 90) * M_PI / 180.0)));
 
+        cpgslw(1);
         cpgsci(1);
     }
 }
@@ -92,7 +103,18 @@ void d_time(g_ctl *ctl, float *data, SACHEAD *h) {
         x[i] = i * h->delta + h->b;
 
     cpgline(h->npts, x, data);
-    free(x);
+
+	if (filteris == ON) {
+		char texto[256];
+		cpgsch(0.7);
+		cpgsci(3);
+		sprintf(texto, "Filter On [%.2f/%.2f]",fh,fl);
+		cpgmtxt("L", 0.4, 0.5, 0.5, texto);
+		cpgsch(1.0);
+		cpgsci(1);
+	}
+
+	free(x);
 }
 
 void line(g_ctl *ctl, float xmin, int color) {
@@ -131,9 +153,8 @@ void tag(SACHEAD *h) {
 
     sprintf(texto, "Az: %s%c", getf(h->az, "%5.1f"), (char)94);
     sprintf(texto, "%s Baz: %s%c", texto, getf(h->baz, "%5.1f"), (char)94);
-    sprintf(texto, "%s Dist: %s", texto, getf(h->dist, "%5.1f km"));
-    sprintf(texto, "%s Gcarc: %s%c", texto, getf(h->gcarc, "%5.1f"), (char)94);
-
+    sprintf(texto, "%s Distance: %s", texto, getf(h->dist, "%5.1f km"));
+    sprintf(texto, "%s / %s%c", texto, getf(h->gcarc, "%5.1f"), (char)94);
     cpgmtxt("T", 0.0, 0.5, 0.5, texto);
 
     cpgmtxt("R", 2.0, 0.0, 0.0, "AzPlot / m.bianchi@iag.usp.br @ 2016");
@@ -192,6 +213,10 @@ void d(g_ctl *zc, g_ctl *nc, g_ctl *ec, g_ctl *azc, g_ctl *inc,
 void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *he) {
     int i;
 
+	float *zf = z;
+	float *nf = n;
+	float *ef = e;
+
     i = opengr();
     resizemax(0.8);
 
@@ -231,6 +256,11 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
     strcpy(azc->ylabel, "NS");
     strcpy(inc->ylabel, "Z");
 
+    azc->xlabel_offset = 0.5;
+    inc->xlabel_offset = 0.5;
+    azc->ylabel_offset = 0.5;
+    inc->ylabel_offset = 0.5;
+
     /* Interaction */
     float ax, ay;
     float a1, a2;
@@ -254,7 +284,7 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
     incidence = -999.0;
 
     while (ch != 'Q') {
-        d(zc, nc, ec, azc, inc, z, hz, n, hn, e, he, t1, t2, azimuth, incidence, inct);
+                d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2, azimuth, incidence, inct);
         {
             hitc = NULL;
             ctl_resizeview(ctlpick);
@@ -289,11 +319,11 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
         case 'P':
             cpgclos();
             cpgopen("azplot.ps/CPS");
-            d(zc, nc, ec, azc, inc, z, hz, n, hn, e, he, t1, t2, azimuth, incidence, inct);
+                        d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2, azimuth, incidence, inct);
             cpgclos();
             i = opengr();
             resizemax(0.8);
-            d(zc, nc, ec, azc, inc, z, hz, n, hn, e, he, t1, t2, azimuth, incidence, inct);
+                        d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2, azimuth, incidence, inct);
             sprintf(message, "Print wrote to: azplot.ps");
             alert(ANOUNCE);
             break;
@@ -352,6 +382,32 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
                 incidence = (atan2f(ax-a1, a2- ay) * 180.0 / M_PI);
             }
             break;
+
+		case 'F':
+			if (filteris == OFF) {
+				fh = lerfloat("High pass frequency (0 to cancel)?");
+				if (fh == 0.0) break;
+				fl = lerfloat("Low Pass frequency (0 to cancel)?");
+				if (fl == 0.0) break;
+				if (fh >= fl) break;
+
+				zf = iir(z, hz->npts, hz->delta, 2.0, fh, 2.0, fl);
+				nf = iir(n, hn->npts, hn->delta, 2.0, fh, 2.0, fl);
+				ef = iir(e, he->npts, he->delta, 2.0, fh, 2.0, fl);
+
+				filteris = ON;
+			} else {
+				free(zf);
+				zf = z;
+				free(nf);
+				nf = n;
+				free(ef);
+				ef = e;
+				filteris = OFF;
+				fh = 0.0;
+				fl = 0.0;
+			}
+			break;
 
         case 'Q':
             break;
@@ -424,9 +480,9 @@ int main(int argc, char **argv) {
     }
 
     if (!stop) {
-        yu_rmean(z, hz->npts);
-        yu_rmean(n, hn->npts);
-        yu_rmean(e, he->npts);
+                yu_rtrend(z, hz->npts);
+                yu_rtrend(n, hn->npts);
+                yu_rtrend(e, he->npts);
 
         if (z == NULL)fprintf(stderr, "OILA");
         interact(z,hz,n,hn,e,hn);
