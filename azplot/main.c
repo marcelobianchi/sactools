@@ -10,6 +10,7 @@
 #include <head.h>
 #include <ctl.h>
 #include <interaction.h>
+#include <timeu.h>
 
 #define ZN 0
 #define ZE 1
@@ -23,7 +24,23 @@
 
 float fh, fl; // Filter values
 int filteris = OFF; // Filter status
+char statusline[256]; // Message to display on status
 
+#define nm 10
+typedef struct m {
+    int set;
+    float time;
+    char name[5];
+} M;
+
+M marks[nm];
+
+void line(g_ctl *ctl, float xmin, int color) {
+    cpgsci(color);
+    cpgmove(xmin, ctl->ymin + ctl->h * 0.2);
+    cpgdraw(xmin, ctl->ymax - ctl->h * 0.2);
+    cpgsci(1);
+}
 
 void markazimuth(g_ctl *ctl, float mangle) {
     if (mangle > -999.0) {
@@ -114,14 +131,14 @@ void d_time(g_ctl *ctl, float *data, SACHEAD *h) {
 		cpgsci(1);
 	}
 
-	free(x);
-}
+    for(i = 0; i < nm; i++) {
+        if (marks[i].set) {
+            line(ctl, marks[i].time, 5);
+            cpgtext(marks[i].time, ctl->ymin, marks[i].name);
+        }
+    }
 
-void line(g_ctl *ctl, float xmin, int color) {
-    cpgsci(color);
-    cpgmove(xmin, ctl->ymin + ctl->h * 0.2);
-    cpgdraw(xmin, ctl->ymax - ctl->h * 0.2);
-    cpgsci(1);
+    free(x);
 }
 
 char *get(char *input) {
@@ -157,6 +174,10 @@ void tag(SACHEAD *h) {
     sprintf(texto, "%s / %s%c", texto, getf(h->gcarc, "%5.1f"), (char)94);
     cpgmtxt("T", 0.0, 0.5, 0.5, texto);
 
+    if (strlen(statusline) != 0) {
+        cpgmtxt("T", -1.2, 0.5, 0.5, statusline);
+        strcpy(statusline, "");
+    }
     cpgmtxt("R", 2.0, 0.0, 0.0, "AzPlot / m.bianchi@iag.usp.br @ 2016");
 
     free(zc);
@@ -261,6 +282,10 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
     azc->ylabel_offset = 0.5;
     inc->ylabel_offset = 0.5;
 
+    for(i = 0; i < nm; i ++) {
+        marks[i].set = 0;
+    }
+
     /* Interaction */
     float ax, ay;
     float a1, a2;
@@ -316,24 +341,12 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
         }
         switch (ch) {
 
-        case 'P':
-            cpgclos();
-            cpgopen("azplot.ps/CPS");
-                        d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2, azimuth, incidence, inct);
-            cpgclos();
-            i = opengr();
-            resizemax(0.8);
-                        d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2, azimuth, incidence, inct);
-            sprintf(message, "Print wrote to: azplot.ps");
-            alert(ANOUNCE);
-            break;
-
-        case 'T':
+        case 'T': // Switch Vaz mode.
             inct = (inct == ZE) ? ZN : ZE;
             incidence = -999.0;
             break;
 
-        case 'X':
+        case 'X': // Zoom trace
             if (mode != ZOOM) break;
             a1 = ax;
             line(hitc, a1, 2);
@@ -350,7 +363,7 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
             }
             break;
 
-        case 'A':
+        case 'A': // Define a azimuth window
             if (mode == ZOOM) {
                 azimuth = -999.0;
                 incidence = -999.0;
@@ -383,7 +396,7 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
             }
             break;
 
-		case 'F':
+        case 'F': // Filter on/off
 			if (filteris == OFF) {
 				fh = lerfloat("High pass frequency (0 to cancel)?");
 				if (fh == 0.0) break;
@@ -409,7 +422,66 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
 			}
 			break;
 
-        case 'Q':
+        case 'L': // Read time
+            if (mode == ZOOM) {
+                SACTIME *t = getTimeStructFromSAC(hz);
+                sumation(t, ax);
+                char *tt = print_time(t, TIME_ISO);
+                sprintf(statusline, "Pick @ %s (rel. is %.2f)", tt, ax);
+            }
+            break;
+
+        case 'P': // Make a print - out
+            cpgclos();
+            cpgopen("azplot.ps/CPS");
+                        d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2, azimuth, incidence, inct);
+            cpgclos();
+            i = opengr();
+            resizemax(0.8);
+                        d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2, azimuth, incidence, inct);
+            sprintf(message, "Print wrote to: azplot.ps");
+            alert(ANOUNCE);
+            break;
+
+        /* Marks related */
+        case 'D': { // Dump marks
+                for(i = 0; i < nm; i++) {
+                    if (marks[i].set) {
+                        SACTIME *t = getTimeStructFromSAC(hz);
+                        sumation(t, marks[i].time);
+                        char *tt = print_time(t, TIME_ISO);
+                        fprintf(stdout, "%d %s %f %s\n",i, tt, marks[i].time, marks[i].name);
+                        free(tt);
+                        free(t);
+                    }
+                }
+            }
+            break;
+
+        case 'M': // Mark
+            if (mode == ZOOM) {
+                int mark = -1;
+                float mtime = ax;
+                while (1) {
+                    mark = lerint("Which mark 0 to 10?");
+                    if (mark < 0 || mark >= 10) continue;
+                    break;
+                }
+
+                marks[mark].set = 1;
+                marks[mark].time = mtime;
+                lerchar("Phase name?", marks[mark].name, 5);
+            }
+            break;
+
+        case 'C': // Clear Marks
+            if (yesno("Clear all marks?")) {
+                for(i = 0; i < nm; i++)
+                    marks[i].set = 0;
+            }
+            break;
+
+        case 'Q': // Quit
             break;
 
         default:

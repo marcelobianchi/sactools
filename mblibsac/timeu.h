@@ -59,4 +59,5 @@ int calday(int year, int yearday, int *mon, int *day);
 char *print_time(SACTIME * t, int format);
 double getValue(SACTIME * tr, SACTIME * t);
 char *marktime(SACHEAD * h, char *mark, int format);
+void sumation(SACTIME * tr, float n);
 #endif
