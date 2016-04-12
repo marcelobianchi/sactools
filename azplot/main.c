@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <cpgplot.h>
 #include <math.h>
-
+#include<strings.h>
 #include <sac.h>
 #include <yutils.h>
 #include <iir.h>
@@ -22,9 +22,11 @@
 #define OFF 0
 #define ON  1
 
-float fh, fl; // Filter values
-int filteris = OFF; // Filter status
+float fh, fl;         // Filter values
+int filteris = OFF;   // Filter status
 char statusline[256]; // Message to display on status
+
+int rotated  = OFF;   // Is rotated trace?
 
 #define nm 10
 typedef struct m {
@@ -35,7 +37,23 @@ typedef struct m {
 
 M marks[nm];
 
+void rotateNE2RT (int n, float *E, float *N, float azimuth)
+{
+    int i;
+    float ntmp, etmp;
+
+    for (i = 0; i < n; i++)
+    {
+        etmp = E[i];
+        ntmp = N[i];
+
+        E[i] = etmp * cos (azimuth) - ntmp * sin (azimuth);
+        N[i] = etmp * sin (azimuth) + ntmp * cos (azimuth);
+    }
+}
+
 void line(g_ctl *ctl, float xmin, int color) {
+    if (xmin > ctl->xmax || xmin < ctl->xmin) return;
     cpgsci(color);
     cpgmove(xmin, ctl->ymin + ctl->h * 0.2);
     cpgdraw(xmin, ctl->ymax - ctl->h * 0.2);
@@ -122,28 +140,38 @@ void d_time(g_ctl *ctl, float *data, SACHEAD *h) {
     cpgline(h->npts, x, data);
 
 	if (filteris == ON) {
-		char texto[256];
+        char texto[1024];
 		cpgsch(0.7);
 		cpgsci(3);
-		sprintf(texto, "Filter On [%.2f/%.2f]",fh,fl);
+        sprintf(texto, "Filter On [%.2f/%.2f] %s",fh,fl,(rotated == ON) ? "R" : "-");
 		cpgmtxt("L", 0.4, 0.5, 0.5, texto);
 		cpgsch(1.0);
 		cpgsci(1);
-	}
+    } else if (rotated == ON) {
+        char texto[1024];
+        cpgsch(0.7);
+        cpgsci(3);
+        sprintf(texto, " - No Filter - R");
+        cpgmtxt("L", 0.4, 0.5, 0.5, texto);
+        cpgsch(1.0);
+        cpgsci(1);
+    }
 
     for(i = 0; i < nm; i++) {
         if (marks[i].set) {
+            char l[128];
+
             line(ctl, marks[i].time, 5);
-            cpgtext(marks[i].time, ctl->ymin, marks[i].name);
+            if (marks[i].time > ctl->xmin && marks[i].time < ctl->xmax) {
+                sprintf(l, "[%1d] %s", i, marks[i].name);
+                cpgsch(0.6);
+                cpgtext(marks[i].time, ctl->ymin + ctl->h * 0.2, l);
+                cpgsch(1.0);
+            }
         }
     }
 
     free(x);
-}
-
-char *get(char *input) {
-    if (strncmp(input, "-12345", 6) == 0) return "- n/a -";
-    return input;
 }
 
 char *getf(float v, char *fmt) {
@@ -154,14 +182,21 @@ char *getf(float v, char *fmt) {
 }
 
 void tag(SACHEAD *h) {
-    char texto[256] = "";
+    char texto[2048];
 
     g_ctl *zc = ctl_newctl(0.05, 0.05,0.90,0.90);
     ctl_resizeview(zc);
 
+    char *net = hd_showValueFromChar(h, "knetwk", NULL, NULL, NULL);
+    char *sta = hd_showValueFromChar(h, "kstnm", NULL, NULL, NULL);
+    char *ev  = hd_showValueFromChar(h, "kevnm", NULL, NULL, NULL);
     sprintf(texto,
             "%s.%s: %04d-%03d/%02d:%02d:%02d (Event Id: %s)",
-            get(h->knetwk), get(h->kstnm), h->nzyear, h->nzjday, h->nzhour, h->nzmin, h->nzsec, get(h->kevnm));
+            net, sta, h->nzyear, h->nzjday, h->nzhour, h->nzmin, h->nzsec, ev);
+    free(net);
+    free(sta);
+    free(ev);
+
     sprintf(texto, "%s Lon: %s%c", texto, getf(h->evlo, "%7.2f"), (char)94);
     sprintf(texto, "%s Lat: %s%c", texto, getf(h->evla, "%6.2f"), (char)94);
     sprintf(texto, "%s Dep: %s", texto, getf((h->evdp>1000.0)?h->evdp / 1000.0:h->evdp, "%5.1f km"));
@@ -219,15 +254,17 @@ void d(g_ctl *zc, g_ctl *nc, g_ctl *ec, g_ctl *azc, g_ctl *inc,
         markazimuth(azc, azimuth);
 
         if (inct == ZE) {
-            strcpy(inc->xlabel, "EW");
+            strcpy(inc->xlabel, (rotated == ON) ? "T" : "EW");
             d_angle(inc, &e[i], &z[i], np, incidence);
         } else {
-            strcpy(inc->xlabel, "NS");
+            strcpy(inc->xlabel, (rotated == ON) ? "R" : "NS");
             d_angle(inc, &n[i], &z[i], np, incidence);
         }
         markincidence(inc, incidence);
     }
+
     tag(hz);
+
     return;
 }
 
@@ -313,8 +350,10 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
         {
             hitc = NULL;
             ctl_resizeview(ctlpick);
+
             float x, y;
             ch = toupper(getonechar(&ax, &ay));
+
             if (ctl_checkhit(zc, ax, ay)) {
                 hitc = zc;
                 mode = ZOOM;
@@ -408,6 +447,9 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
 				nf = iir(n, hn->npts, hn->delta, 2.0, fh, 2.0, fl);
 				ef = iir(e, he->npts, he->delta, 2.0, fh, 2.0, fl);
 
+                if (rotated == ON)
+                    rotateNE2RT(hz->npts, ef, nf, azimuth * M_PI/180.0);
+
 				filteris = ON;
 			} else {
 				free(zf);
@@ -419,6 +461,18 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
 				filteris = OFF;
 				fh = 0.0;
 				fl = 0.0;
+
+                if (rotated == ON) {
+                    zf = malloc(sizeof(float) * hz->npts);
+                    nf = malloc(sizeof(float) * hn->npts);
+                    ef = malloc(sizeof(float) * he->npts);
+
+                    memcpy(zf, z, hz->npts * sizeof(float));
+                    memcpy(nf, n, hn->npts * sizeof(float));
+                    memcpy(ef, e, he->npts * sizeof(float));
+
+                    rotateNE2RT(hz->npts, ef, nf, azimuth * M_PI/180.0);
+                }
 			}
 			break;
 
@@ -481,11 +535,49 @@ void interact(float *z, SACHEAD *hz, float *n, SACHEAD *hn, float *e, SACHEAD *h
             }
             break;
 
+        case 'R':
+            if (rotated == OFF) {
+                if (filteris == OFF) {
+                        zf = malloc(sizeof(float) * hz->npts);
+                        nf = malloc(sizeof(float) * hn->npts);
+                        ef = malloc(sizeof(float) * he->npts);
+
+                        memcpy(zf, z, hz->npts * sizeof(float));
+                        memcpy(nf, n, hn->npts * sizeof(float));
+                        memcpy(ef, e, he->npts * sizeof(float));
+                    }
+
+                    rotateNE2RT(hz->npts, ef, nf, azimuth * M_PI/180.0);
+                    rotated = ON;
+                    strcpy(nc->ylabel, "R");
+                    strcpy(ec->ylabel, "T");
+                    strcpy(azc->xlabel, "T");
+                    strcpy(azc->ylabel, "R");
+            } else {
+                free(zf);
+                zf = z;
+                free(nf);
+                nf = n;
+                free(ef);
+                ef = e;
+                rotated = OFF;
+                strcpy(nc->ylabel, "N");
+                strcpy(ec->ylabel, "E");
+                strcpy(azc->xlabel, "EW");
+                strcpy(azc->ylabel, "NS");
+
+                if (filteris == ON) {
+                    zf = iir(z, hz->npts, hz->delta, 2.0, fh, 2.0, fl);
+                    nf = iir(n, hn->npts, hn->delta, 2.0, fh, 2.0, fl);
+                    ef = iir(e, he->npts, he->delta, 2.0, fh, 2.0, fl);
+                }
+            }
+            break;
         case 'Q': // Quit
             break;
 
         default:
-            printf("Oops, invalid command.");
+            printf("Oops, invalid command.\n");
             break;
         }
     }
@@ -495,27 +587,36 @@ int main(int argc, char **argv) {
     SACHEAD *hz, *hn, *he;
     float *z,*n,*e;
     int stop = 0;
-    char *filename;
+    char *filename_z, *filename_n, *filename_e, *filename;
+
+    if (argc < 4) {
+        fprintf(stderr, "Invalid number of traces.\n");
+        return -1;
+    }
+
+    filename_z = argv[1];
+    filename_n = argv[2];
+    filename_e = argv[3];
 
     hz = hn = he = NULL;
     z = n = e = NULL;
     filename = NULL;
 
-    filename = "z";
+    filename = filename_z;
     z = io_readSac(filename, &hz);
     if (z == NULL) {
         fprintf(stderr, "Error reading z file: %s\n", filename);
         stop = 1;
     }
 
-    filename = "n";
+    filename = filename_n;
     n = io_readSac(filename, &hn);
     if (z == NULL) {
         fprintf(stderr, "Error reading n file: %s\n", filename);
         stop = 1;
     }
 
-    filename = "e";
+    filename = filename_e;
     e = io_readSac(filename, &he);
     if (z == NULL) {
         fprintf(stderr, "Error reading e file: %s\n", filename);
