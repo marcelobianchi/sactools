@@ -24,7 +24,7 @@
 
 float fh, fl;			// Filter values
 int filteris = OFF;		// Filter status
-char statusline[256];		// Message to display on status
+char statusline[256];	// Message to display on status
 
 int rotated = OFF;		// Is rotated trace?
 
@@ -500,7 +500,7 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 					rotateNE2RT(hz->npts, ef, nf,
 						    ((azimuth >
 						      180.0) ? azimuth -
-						     180.0 : azimuth -
+							 180.0 : azimuth +
 						     180.0) * M_PI / 180.0);
 
 				filteris = ON;
@@ -527,9 +527,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 					rotateNE2RT(hz->npts, ef, nf,
 						    ((azimuth >
 						      180.0) ? azimuth -
-						     180.0 : azimuth -
-						     180.0) * M_PI / 180.0 *
-						    M_PI / 180.0);
+							 180.0 : azimuth +
+							 180.0) * M_PI / 180.0);
 				}
 			}
 			break;
@@ -617,9 +616,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 				rotateNE2RT(hz->npts, ef, nf,
 					    ((azimuth >
 					      180.0) ? azimuth -
-					     180.0 : azimuth -
-					     180.0) * M_PI / 180.0 * M_PI /
-					    180.0);
+						 180.0 : azimuth +
+						 180.0) * M_PI / 180.0);
 				rotated = ON;
 				strcpy(nc->ylabel, "R");
 				strcpy(ec->ylabel, "T");
