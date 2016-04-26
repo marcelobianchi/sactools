@@ -379,6 +379,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 	azimuth = -999.0;
 	incidence = -999.0;
 
+	float *hitdata;
+	SACHEAD *hithead;
 	while (ch != 'Q') {
 		d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2, azimuth,
 		  incidence, inct);
@@ -392,21 +394,33 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 			if (ctl_checkhit(zc, ax, ay)) {
 				hitc = zc;
 				mode = ZOOM;
+				hitdata = zf;
+				hithead = hz;
 			} else if (ctl_checkhit(nc, ax, ay)) {
 				hitc = nc;
 				mode = ZOOM;
+				hitdata = nf;
+				hithead = hn;
 			} else if (ctl_checkhit(ec, ax, ay)) {
 				hitc = ec;
 				mode = ZOOM;
+				hitdata = ef;
+				hithead = he;
 			} else if (ctl_checkhit(azc, ax, ay)) {
 				hitc = azc;
 				mode = AZ;
+				hitdata = NULL;
+				hithead = NULL;
 			} else if (ctl_checkhit(inc, ax, ay)) {
 				hitc = inc;
 				mode = IN;
+				hitdata = NULL;
+				hithead = NULL;
 			} else {
 				hitc = ctlpick;
 				mode = OTHER;
+				hitdata = NULL;
+				hithead = NULL;
 			}
 			if (hitc == NULL)
 				continue;
@@ -535,11 +549,13 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 
 		case 'L':	// Read time
 			if (mode == ZOOM) {
-				SACTIME *t = getTimeStructFromSAC(hz);
+				SACTIME *t = getTimeStructFromSAC(hithead);
+				int namplitude = hdu_getNptsFromSeconds(hithead, ax);
+				namplitude = hdu_roundNPTS(hithead, namplitude);
 				sumation(t, ax);
 				char *tt = print_time(t, TIME_ISO);
-				sprintf(statusline, "Pick @ %s (rel. is %.2f)",
-					tt, ax);
+				sprintf(statusline, "Pick @ %s (rel. is %.2f), Amplitude: %f",
+					tt, ax, hitdata[namplitude]);
 			}
 			break;
 
@@ -661,36 +677,31 @@ int main(int argc, char **argv)
 	SACHEAD *hz, *hn, *he;
 	float *z, *n, *e;
 	int stop = 0;
-	char *filename_z, *filename_n, *filename_e, *filename;
+	char filename[1024];
 
-	if (argc < 4) {
+	if (argc < 2) {
 		fprintf(stderr, "Invalid number of traces.\n");
 		return -1;
 	}
 
-	filename_z = argv[1];
-	filename_n = argv[2];
-	filename_e = argv[3];
-
 	hz = hn = he = NULL;
 	z = n = e = NULL;
-	filename = NULL;
 
-	filename = filename_z;
+	sprintf(filename,"%s.z",argv[1]);
 	z = io_readSac(filename, &hz);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading z file: %s\n", filename);
 		stop = 1;
 	}
 
-	filename = filename_n;
+	sprintf(filename,"%s.n",argv[1]);
 	n = io_readSac(filename, &hn);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading n file: %s\n", filename);
 		stop = 1;
 	}
 
-	filename = filename_e;
+	sprintf(filename,"%s.e",argv[1]);
 	e = io_readSac(filename, &he);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading e file: %s\n", filename);
