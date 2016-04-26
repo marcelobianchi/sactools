@@ -215,6 +215,10 @@ void tag(SACHEAD * h)
 	char *net = hd_showValueFromChar(h, "knetwk", NULL, NULL, NULL);
 	char *sta = hd_showValueFromChar(h, "kstnm", NULL, NULL, NULL);
 	char *ev = hd_showValueFromChar(h, "kevnm", NULL, NULL, NULL);
+    if (strncmp(sta, "-12345", 6) == 0) strcpy(sta, " - ");
+    if (strncmp(net, "-12345", 6) == 0) strcpy(net, " - ");
+    if (strncmp(ev,"-12345", 6) == 0)
+        strcpy(ev, " - ");
 	sprintf(texto,
 		"%s.%s: %04d-%03d/%02d:%02d:%02d (Event Id: %s)",
 		net, sta, h->nzyear, h->nzjday, h->nzhour, h->nzmin, h->nzsec,
