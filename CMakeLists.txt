@@ -2,15 +2,14 @@ cmake_minimum_required(VERSION 2.8)
 project(sactools)
 
 ## Options
-option(X11Tools "Compile graphical utilities -- Depends on pgplot")
-
+option(GraphicTools "Compile graphical utilities (azplot, sacinspect + mblibgr) -- Depends on pgplot" ON)
 
 ## Libraries
 add_subdirectory(mblibsac)
 
-if (X11Tools)
+if (GraphicTools)
 	add_subdirectory(mblibgr)
-endif(X11Tools)
+endif(GraphicTools)
 
 ## Programs
 add_subdirectory(sac2gmt)
@@ -20,7 +19,8 @@ add_subdirectory(sacrename)
 add_subdirectory(sacrgap)
 add_subdirectory(sacrms)
 add_subdirectory(sacpickmax)
-add_subdirectory(azplot)
-if (X11Tools)
+
+if (GraphicTools)
+	add_subdirectory(azplot)
 	add_subdirectory(sacinspect)
-endif(X11Tools)
+endif(GraphicTools)
