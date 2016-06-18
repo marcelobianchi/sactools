@@ -691,21 +691,30 @@ int main(int argc, char **argv)
 	hz = hn = he = NULL;
 	z = n = e = NULL;
 
-	sprintf(filename,"%s.z",argv[1]);
+    if ( argc == 2)
+        sprintf(filename,"%s.z",argv[1]);
+    else
+        sprintf(filename,"%s",argv[1]);
 	z = io_readSac(filename, &hz);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading z file: %s\n", filename);
 		stop = 1;
 	}
 
-	sprintf(filename,"%s.n",argv[1]);
+    if (argc == 2)
+        sprintf(filename,"%s.n",argv[1]);
+    else
+        sprintf(filename,"%s",argv[2]);
 	n = io_readSac(filename, &hn);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading n file: %s\n", filename);
 		stop = 1;
 	}
 
-	sprintf(filename,"%s.e",argv[1]);
+    if (argc == 2)
+        sprintf(filename,"%s.e",argv[1]);
+    else
+        sprintf(filename,"%s",argv[3]);
 	e = io_readSac(filename, &he);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading e file: %s\n", filename);
