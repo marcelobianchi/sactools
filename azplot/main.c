@@ -290,10 +290,10 @@ d(g_ctl * zc, g_ctl * nc, g_ctl * ec, g_ctl * azc, g_ctl * inc,
 		markazimuth(azc, azimuth);
 
 		if (inct == ZE) {
-			strcpy(inc->xlabel, (rotated == ON) ? "T" : "EW");
+			strcpy(inc->xlabel, (rotated == ON) ? "T" : "WE");
 			d_angle(inc, &e[i], &z[i], np, incidence);
 		} else {
-			strcpy(inc->xlabel, (rotated == ON) ? "R" : "NS");
+			strcpy(inc->xlabel, (rotated == ON) ? "R" : "SN");
 			d_angle(inc, &n[i], &z[i], np, incidence);
 		}
 		markincidence(inc, incidence);
@@ -348,8 +348,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 	strcpy(nc->ylabel, "N");
 	strcpy(ec->ylabel, "E");
 
-	strcpy(azc->xlabel, "EW");
-	strcpy(azc->ylabel, "NS");
+	strcpy(azc->xlabel, "WE");
+	strcpy(azc->ylabel, "SN");
 	strcpy(inc->ylabel, "Z");
 
 	azc->xlabel_offset = 0.5;
