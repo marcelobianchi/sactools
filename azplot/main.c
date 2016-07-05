@@ -682,98 +682,103 @@ int main(int argc, char **argv)
 	float *z, *n, *e;
 	int stop = 0;
 	char filename[1024];
-
+	
 	if (argc < 2) {
 		fprintf(stderr, "Invalid number of traces.\n");
 		return -1;
 	}
-
+	
 	hz = hn = he = NULL;
 	z = n = e = NULL;
-
-    if ( argc == 2)
-        sprintf(filename,"%s.z",argv[1]);
-    else
-        sprintf(filename,"%s",argv[1]);
+	
+	if ( argc == 2)
+		sprintf(filename,"%s.z",argv[1]);
+	else
+		sprintf(filename,"%s",argv[1]);
 	z = io_readSac(filename, &hz);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading z file: %s\n", filename);
 		stop = 1;
 	}
-
-    if (argc == 2)
-        sprintf(filename,"%s.n",argv[1]);
-    else
-        sprintf(filename,"%s",argv[2]);
+	
+	if (argc == 2)
+		sprintf(filename,"%s.n",argv[1]);
+	else
+		sprintf(filename,"%s",argv[2]);
 	n = io_readSac(filename, &hn);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading n file: %s\n", filename);
 		stop = 1;
 	}
-
-    if (argc == 2)
-        sprintf(filename,"%s.e",argv[1]);
-    else
-        sprintf(filename,"%s",argv[3]);
+	
+	if (argc == 2)
+		sprintf(filename,"%s.e",argv[1]);
+	else
+		sprintf(filename,"%s",argv[3]);
 	e = io_readSac(filename, &he);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading e file: %s\n", filename);
 		stop = 1;
 	}
-
+	
 	/* check that files reference and sps match ! */
+	if (hz->cmpinc != 0.0 || hn->cmpaz != 0.0 || he->cmpaz != 90.0) {
+		fprintf(stderr, "Components orientation do not match.\n");
+		stop = 1;
+	}
+	
 	if (!stop) {
 		if (hz->nzyear != he->nzyear ||
-		    hz->nzjday != he->nzjday ||
-		    hz->nzmin != he->nzmin ||
-		    hz->nzhour != he->nzhour ||
-		    hz->nzsec != he->nzsec ||
-		    hz->nzmsec != he->nzmsec ||
-		    hz->b != he->b || hz->delta != he->delta
-		    || hz->npts != he->npts) {
+				hz->nzjday != he->nzjday ||
+				hz->nzmin != he->nzmin ||
+				hz->nzhour != he->nzhour ||
+				hz->nzsec != he->nzsec ||
+				hz->nzmsec != he->nzmsec ||
+				hz->b != he->b || hz->delta != he->delta
+				|| hz->npts != he->npts) {
 			stop = 1;
 			fprintf(stderr,
-				"Z and E files reference time differ.\n");
+					"Z and E files reference time differ.\n");
 		}
-
+		
 		if (hz->nzyear != hn->nzyear ||
-		    hz->nzjday != hn->nzjday ||
-		    hz->nzmin != hn->nzmin ||
-		    hz->nzhour != hn->nzhour ||
-		    hz->nzsec != hn->nzsec ||
-		    hz->nzmsec != hn->nzmsec ||
-		    hz->b != hn->b || hz->delta != hn->delta
-		    || hz->npts != hn->npts) {
+				hz->nzjday != hn->nzjday ||
+				hz->nzmin != hn->nzmin ||
+				hz->nzhour != hn->nzhour ||
+				hz->nzsec != hn->nzsec ||
+				hz->nzmsec != hn->nzmsec ||
+				hz->b != hn->b || hz->delta != hn->delta
+				|| hz->npts != hn->npts) {
 			stop = 1;
 			fprintf(stderr,
-				"Z and N files reference time differ.\n");
+					"Z and N files reference time differ.\n");
 		}
 	}
-
+	
 	if (!stop) {
 		yu_rtrend(z, hz->npts);
 		yu_rtrend(n, hn->npts);
 		yu_rtrend(e, he->npts);
-
+		
 		if (z == NULL)
 			fprintf(stderr, "OILA");
 		interact(z, hz, n, hn, e, hn);
 	}
-
+	
 	if (z != NULL) {
 		free(z);
 		z = NULL;
 		free(hz);
 		hz = NULL;
 	}
-
+	
 	if (n != NULL) {
 		free(n);
 		n = NULL;
 		free(hn);
 		hn = NULL;
 	}
-
+	
 	if (e != NULL) {
 		free(e);
 		e = NULL;
