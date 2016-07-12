@@ -29,6 +29,7 @@
 #include <aux.h>
 #include <edit_tf.h>
 #include <globers.h>
+#include <correl.h>
 
 /* Config for plotting the config screen */
 float col1 = 0.35;
@@ -341,6 +342,54 @@ void Config(defs * d)
 		d->needsave = 0;
 		sprintf(d->lastaction, "Data Reloaded.");
 	}
+}
+
+void dump(char *name, float *data, int npts) {
+	FILE *sai = fopen(name, "w");
+	int i;
+	for(i = 0; i< npts; i++) {
+		fprintf(sai, "%d %f\n", i, data[i]);
+	}
+	fclose(sai);
+}
+
+void correlate(defs * d, int reference) {
+	int   j;
+	float AMark, RMark;
+	
+	tf *tsreference = &d->files[reference];
+	pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
+	RMark = pickD(pick, tsreference->current->head);
+	
+	int ref_jstart = hdu_getNptsFromSeconds(tsreference->current->head, RMark - d->insetsearchsize);
+	int ref_npts   = hdu_getNptsFromSeconds(tsreference->current->head, RMark + d->searchsize) - ref_jstart + 1;
+	
+	for (j = 0; j < d->nfiles; j++) {
+		if (j == reference) continue;
+		tf *ts = &d->files[j];
+		
+		AMark = pickR(pick, ts->current->head);
+		int t_jstart = hdu_getNptsFromSeconds(ts->current->head, AMark - 2 * d->insetsearchsize);
+		int t_npts   = hdu_getNptsFromSeconds(ts->current->head, AMark + 2 * d->searchsize) - t_jstart + 1;
+		
+		float dif_coef, max_coef;
+		int problem, n_index, index;
+		
+		float * lags = correl(
+					(d->filter) ? &tsreference->current->dataf[ref_jstart] : &tsreference->current->data[ref_jstart] ,
+					(d->filter) ? &ts->current->dataf[t_jstart] : &ts->current->data[t_jstart],
+					ref_npts,
+					t_npts,
+					&max_coef, &index, &dif_coef, &problem, &n_index);
+		if (lags) free(lags);
+
+		float corr = hdu_getSecondsFromNPTS(ts->current->head, t_jstart + index) + 
+				(RMark - hdu_getSecondsFromNPTS(tsreference->current->head, ref_jstart));
+
+		setPick(pick, ts->current->head, corr);
+	}
+	
+	return;
 }
 
 void PK_checkoption(defs * d, char ch, float ax, float ay)
@@ -739,7 +788,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		}
 		d->needsave = 1;
 		sprintf(d->lastaction,
-				"Searched for maximun for ALL betwen A %.2f adn %.2f seconds.",
+				"Searched for maximun for ALL betwen A %.2f and %.2f seconds.",
 				d->insetsearchsize, d->searchsize);
 		break;
 	}
@@ -825,6 +874,23 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 				writeout(d->files, d);
 		}
 		break;
+	}
+
+	case ('@'): {
+		if (d->needsave == 1) {
+			if (yesno("Picks not saved, save?") == 1)
+				writeout(d->files, d);
+		}
+
+		int referencetrace = -1;
+		for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
+			if (ctl_checkhit(d->ctl[j], ax, ay)) {
+				referencetrace = j;
+				break;
+			}
+		}
+		
+		correlate(d, referencetrace);
 	}
 
 	case ('<'):
