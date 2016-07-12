@@ -356,11 +356,12 @@ void dump(char *name, float *data, int npts) {
 void correlate(defs * d, int reference) {
 	int   j;
 	float AMark, RMark;
-	
+    float xmax, ymax;
+
 	tf *tsreference = &d->files[reference];
 	pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
 	RMark = pickD(pick, tsreference->current->head);
-	
+
 	int ref_jstart = hdu_getNptsFromSeconds(tsreference->current->head, RMark - d->insetsearchsize);
 	int ref_npts   = hdu_getNptsFromSeconds(tsreference->current->head, RMark + d->searchsize) - ref_jstart + 1;
 	
@@ -381,13 +382,13 @@ void correlate(defs * d, int reference) {
 					ref_npts,
 					t_npts,
 					&max_coef, &index, &dif_coef, &problem, &n_index);
-		if (lags) free(lags);
-
 		float corr = hdu_getSecondsFromNPTS(ts->current->head, t_jstart + index) + 
 				(RMark - hdu_getSecondsFromNPTS(tsreference->current->head, ref_jstart));
 
-		setPick(pick, ts->current->head, corr);
-	}
+        parabola(lags, n_index, index, corr, ts->current->head->delta, &xmax, &ymax);
+        if (lags) free(lags);
+        setPick(pick, ts->current->head, xmax);
+    }
 	
 	return;
 }
@@ -890,6 +891,15 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			}
 		}
 		
+        for  (j = 0; j < d->nfiles; j++) {
+            if (( (d->files[j].current->head->delta - d->files[referencetrace].current->head->delta) / d->files[j].current->head->delta ) > 0.01) {
+                strcpy(message,"Traces have different dt!");
+                alert(ERROR);
+                break;
+            }
+
+        }
+
 		correlate(d, referencetrace);
 	}
 

@@ -10,7 +10,7 @@
 void parabola(float *lags, int n_lags, int index, float best_lag, float dt, float *xmax, float *ymax) {
     float xbefore, x, xafter;
     float ybefore, y, yafter;
-    float a, b, c;
+    float aa, bb, cc, A, B, C;
     
     xbefore = best_lag - dt;
     x       = best_lag;
@@ -20,12 +20,16 @@ void parabola(float *lags, int n_lags, int index, float best_lag, float dt, floa
     y       = lags[index];
     yafter  = lags[index + 1];
     
-    a = ((yafter - y) / dt - (y - ybefore) / dt) / (2 * dt);
-    b = ((y-ybefore)/dt) - a*(x-xbefore);
-    c = ybefore + (a*x-((y-ybefore)/dt)) * xbefore;
+    A = ybefore;
+    B = (y - ybefore) / dt;
+    C = ( (yafter - y) / dt - (y - ybefore) / dt) / (2 * dt);
 
-    *xmax = -b / (2*a);
-    *ymax = (4*a*c - b*b ) / (4*a);
+    aa = C;
+    bb = B - C * (x + xbefore);
+    cc = A + (C*x - B) * xbefore;
+
+    *xmax = -bb / (2*aa);
+    *ymax = (4*aa*cc - bb*bb ) / (4*aa);
     
     return;
 }

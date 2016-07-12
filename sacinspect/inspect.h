@@ -50,7 +50,7 @@
 
 // Config default values
 #define DEFAULT_PICK 1
-#define DEFAULT_PATTERN "??????_????"
+#define DEFAULT_PATTERN "??????_??????"
 #define DEFAULT_ZOOMGAIN 3.0
 #define DEFAULT_LP 2.0
 #define DEFAULT_HP 0.5
