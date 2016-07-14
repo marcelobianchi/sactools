@@ -353,11 +353,13 @@ void dump(char *name, float *data, int npts) {
 	fclose(sai);
 }
 
-void correlate(defs * d, int reference) {
+float correlate(defs * d, int reference) {
 	int   j;
-	float AMark, RMark;
-    float xmax, ymax;
-
+	float AMark, RMark, AfMark;
+	float xmax, ymax;
+	float avgcorr;
+	int   ncorr;
+	
 	tf *tsreference = &d->files[reference];
 	pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
 	RMark = pickD(pick, tsreference->current->head);
@@ -365,11 +367,14 @@ void correlate(defs * d, int reference) {
 	int ref_jstart = hdu_getNptsFromSeconds(tsreference->current->head, RMark - d->insetsearchsize);
 	int ref_npts   = hdu_getNptsFromSeconds(tsreference->current->head, RMark + d->searchsize) - ref_jstart + 1;
 	
+	avgcorr = 0.0;
+	ncorr = 0;
 	for (j = 0; j < d->nfiles; j++) {
 		if (j == reference) continue;
 		tf *ts = &d->files[j];
 		
 		AMark = pickR(pick, ts->current->head);
+		AfMark = pickD(pick, ts->current->head);
 		int t_jstart = hdu_getNptsFromSeconds(ts->current->head, AMark - 2 * d->insetsearchsize);
 		int t_npts   = hdu_getNptsFromSeconds(ts->current->head, AMark + 2 * d->searchsize) - t_jstart + 1;
 		
@@ -385,12 +390,22 @@ void correlate(defs * d, int reference) {
 		float corr = hdu_getSecondsFromNPTS(ts->current->head, t_jstart + index) + 
 				(RMark - hdu_getSecondsFromNPTS(tsreference->current->head, ref_jstart));
 
-        parabola(lags, n_index, index, corr, ts->current->head->delta, &xmax, &ymax);
-        if (lags) free(lags);
-        setPick(pick, ts->current->head, xmax);
-    }
+		parabola(lags, n_index, index, corr, ts->current->head->delta, &xmax, &ymax);
+		if (lags) free(lags);
+		setPick(pick, ts->current->head, xmax);
+
+		if (AfMark != -12345.0) {
+			avgcorr += fabs(AfMark - xmax);
+			ncorr++;
+		}
+	}
 	
-	return;
+	if (ncorr > 0)
+		avgcorr /= ncorr;
+	else
+		avgcorr = -12345.0;
+	
+	return avgcorr;
 }
 
 void PK_checkoption(defs * d, char ch, float ax, float ay)
@@ -891,16 +906,20 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			}
 		}
 		
-        for  (j = 0; j < d->nfiles; j++) {
-            if (( (d->files[j].current->head->delta - d->files[referencetrace].current->head->delta) / d->files[j].current->head->delta ) > 0.01) {
+		for  (j = 0; j < d->nfiles; j++)
+			if (( (d->files[j].current->head->delta - d->files[referencetrace].current->head->delta) / d->files[j].current->head->delta ) > 0.01) {
                 strcpy(message,"Traces have different dt!");
                 alert(ERROR);
                 break;
             }
 
-        }
+		float avgcorr = correlate(d, referencetrace);
 
-		correlate(d, referencetrace);
+		if (avgcorr != -12345.0)
+			sprintf(d->lastaction,
+					"Average correction was %.2f s", avgcorr);
+
+		break;
 	}
 
 	case ('<'):
