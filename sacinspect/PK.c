@@ -355,17 +355,19 @@ void dump(char *name, float *data, int npts) {
 
 float correlate(defs * d, int reference) {
 	int   j;
-	float AMark, RMark, AfMark;
+	float TfMark; /* Target f mark */
+	float TrMark; /* Target referente mark */
+	float MfMark; /* Master f mark */
 	float xmax, ymax;
 	float avgcorr;
 	int   ncorr;
 	
 	tf *tsreference = &d->files[reference];
 	pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
-	RMark = pickD(pick, tsreference->current->head);
+	MfMark = pickD(pick, tsreference->current->head);
 
-	int ref_jstart = hdu_getNptsFromSeconds(tsreference->current->head, RMark - d->insetsearchsize);
-	int ref_npts   = hdu_getNptsFromSeconds(tsreference->current->head, RMark + d->searchsize) - ref_jstart + 1;
+	int ref_jstart = hdu_getNptsFromSeconds(tsreference->current->head, MfMark - d->insetsearchsize);
+	int ref_npts   = hdu_getNptsFromSeconds(tsreference->current->head, MfMark + d->searchsize) - ref_jstart + 1;
 	
 	avgcorr = 0.0;
 	ncorr = 0;
@@ -373,10 +375,10 @@ float correlate(defs * d, int reference) {
 		if (j == reference) continue;
 		tf *ts = &d->files[j];
 		
-		AMark = pickR(pick, ts->current->head);
-		AfMark = pickD(pick, ts->current->head);
-		int t_jstart = hdu_getNptsFromSeconds(ts->current->head, AMark - 2 * d->insetsearchsize);
-		int t_npts   = hdu_getNptsFromSeconds(ts->current->head, AMark + 2 * d->searchsize) - t_jstart + 1;
+		TrMark  = pickR(pick, ts->current->head);
+		TfMark = pickD(pick, ts->current->head);
+		int t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 2 * d->insetsearchsize);
+		int t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 2 * d->searchsize) - t_jstart + 1;
 		
 		float dif_coef, max_coef;
 		int problem, n_index, index;
@@ -388,14 +390,14 @@ float correlate(defs * d, int reference) {
 					t_npts,
 					&max_coef, &index, &dif_coef, &problem, &n_index);
 		float corr = hdu_getSecondsFromNPTS(ts->current->head, t_jstart + index) + 
-				(RMark - hdu_getSecondsFromNPTS(tsreference->current->head, ref_jstart));
+				(MfMark - hdu_getSecondsFromNPTS(tsreference->current->head, ref_jstart));
 
 		parabola(lags, n_index, index, corr, ts->current->head->delta, &xmax, &ymax);
 		if (lags) free(lags);
 		setPick(pick, ts->current->head, xmax);
 
-		if (AfMark != -12345.0) {
-			avgcorr += fabs(AfMark - xmax);
+		if (TfMark != -12345.0) {
+			avgcorr += fabs(TfMark - xmax);
 			ncorr++;
 		}
 	}
@@ -657,6 +659,46 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		break;
 	}
 
+	case ('u'): {
+		pdefs *pick;
+		float fMark, correction;
+		
+		for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
+			if (ctl_checkhit(d->ctl[j], ax, ay)) {
+				
+				pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
+				fMark = pickD(pick, d->files[j+d->offset].current->head);
+				
+				if (fMark == SAC_HEADER_FLOAT_UNDEFINED) {
+					sprintf(d->lastaction, "Failed to update times based file %d, not marked.", j);
+					break;
+				}
+
+				g_ctl *fullscreen = ctl_newctl(0.08, 0.15, 0.88, 0.7);
+				fullscreen->expand = 1;
+				ctl_axisfull(fullscreen);
+
+				tf *this = &d->files[j+d->offset];
+				edit_tf(fullscreen, this, d);
+
+				free(fullscreen);
+				fullscreen = NULL;
+
+				correction = pickD(pick, d->files[j+d->offset].current->head) - fMark;
+
+				for(i = 0; i < d->nfiles; i++) {
+					if (i == (j + d->offset)) continue;
+
+					fMark = pickD(pick, d->files[i].current->head);
+					if (fMark == SAC_HEADER_FLOAT_UNDEFINED) continue;
+					setPick(pick, d->files[i].current->head, fMark + correction);
+				}
+				break;
+			}
+		}
+		break;
+	}
+
 	case ('.'): {
 		if (d->alig == ALIGF) {
 			sprintf(d->lastaction,
@@ -901,17 +943,18 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		int referencetrace = -1;
 		for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
 			if (ctl_checkhit(d->ctl[j], ax, ay)) {
-				referencetrace = j;
+				referencetrace = j+d->offset;
 				break;
 			}
 		}
-		
-		for  (j = 0; j < d->nfiles; j++)
+
+		for  (j = 0; j < d->nfiles; j++) {
 			if (( (d->files[j].current->head->delta - d->files[referencetrace].current->head->delta) / d->files[j].current->head->delta ) > 0.01) {
-                strcpy(message,"Traces have different dt!");
-                alert(ERROR);
-                break;
-            }
+				strcpy(message,"Traces have different dt!");
+				alert(ERROR);
+				break;
+			}
+		}
 
 		float avgcorr = correlate(d, referencetrace);
 

@@ -206,9 +206,10 @@ void plothelp(defs * d)
 		cpgsci(14);
 
 		k--;
+		cpgmtxt("B", k--, where, how, "Update Pick  u");
+		cpgmtxt("B", k--, where, how, "Correlate  @");
 		cpgmtxt("B", k--, where, how, "Delete d");
 		cpgmtxt("B", k--, where, how, "Edit   e");
-		k--;
 		cpgsci(15);
 		cpgmtxt("B", k--, where, how, "Picking Keys:");
 		cpgsci(14);
