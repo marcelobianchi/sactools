@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <cpgplot.h>
 #include <math.h>
-#include<strings.h>
+#include <strings.h>
 #include <sac.h>
 #include <yutils.h>
 #include <iir.h>
@@ -205,7 +205,7 @@ char *getf(float v, char *fmt)
 	return temp;
 }
 
-void tag(SACHEAD * h)
+void tag(SACHEAD * h, int needsave)
 {
 	char texto[2048];
 
@@ -235,6 +235,13 @@ void tag(SACHEAD * h)
 	sprintf(texto, "%s Mag: %s", texto, getf(h->mag, "%3.1f"));
 	cpgmtxt("T", 1.2, 0.5, 0.5, texto);
 
+	if (needsave) {
+		cpgsci(2);
+		sprintf(texto, "File Will Be Saved");
+		cpgmtxt("T", -1.2, 0.5, 0.5, texto);
+		cpgsci(1);
+	}
+	
 	sprintf(texto, "Az: %s%c", getf(h->az, "%5.1f"), (char)94);
 	sprintf(texto, "%s Baz: %s%c", texto, getf(h->baz, "%5.1f"), (char)94);
 	sprintf(texto, "%s Distance: %s", texto, getf(h->dist, "%5.1f km"));
@@ -253,7 +260,7 @@ void tag(SACHEAD * h)
 void
 d(g_ctl * zc, g_ctl * nc, g_ctl * ec, g_ctl * azc, g_ctl * inc,
   float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he,
-  float xmin, float xmax, float azimuth, float incidence, int inct)
+  float xmin, float xmax, float azimuth, float incidence, int inct, int needsave)
 {
 	cpgeras();
 
@@ -299,12 +306,12 @@ d(g_ctl * zc, g_ctl * nc, g_ctl * ec, g_ctl * azc, g_ctl * inc,
 		markincidence(inc, incidence);
 	}
 
-	tag(hz);
+	tag(hz, needsave);
 
 	return;
 }
 
-void
+int
 interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 {
 	int i;
@@ -375,6 +382,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 	int inct = ZE;
 	int mode = 0;
 
+	int needsave = 0;
+
 	g_ctl *ctlpick = NULL;
 	ctlpick = ctl_newctl(0.0, 0.0, 1.0, 1.0);
 	ctlpick->expand = 0;
@@ -387,7 +396,7 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 	SACHEAD *hithead;
 	while (ch != 'Q') {
 		d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2, azimuth,
-		  incidence, inct);
+		  incidence, inct, needsave);
 		{
 			hitc = NULL;
 			ctl_resizeview(ctlpick);
@@ -482,6 +491,9 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 				    (atan2f(ax - a1, ay - a2) * 180.0 / M_PI);
 				if (azimuth < 0)
 					azimuth += 360.0;
+				hz->unused6 = azimuth;
+				hn->unused6 = azimuth;
+				he->unused6 = azimuth;
 			} else if (mode == IN) {
 				cpgsci(2);
 				a1 = (hitc->xmax + hitc->xmin) / 2.0;
@@ -491,6 +503,9 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 
 				incidence =
 				    (atan2f(ax - a1, a2 - ay) * 180.0 / M_PI);
+				hz->unused7 = incidence;
+				hn->unused7 = incidence;
+				he->unused7 = incidence;
 			}
 			break;
 
@@ -567,12 +582,12 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 			cpgclos();
 			cpgopen("azplot.ps/CPS");
 			d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2,
-			  azimuth, incidence, inct);
+			  azimuth, incidence, inct, needsave);
 			cpgclos();
 			i = opengr();
 			resizemax(0.8);
 			d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2,
-			  azimuth, incidence, inct);
+			  azimuth, incidence, inct, needsave);
 			sprintf(message, "Print wrote to: azplot.ps");
 			alert(ANOUNCE);
 			break;
@@ -666,22 +681,34 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 				}
 			}
 			break;
-		case 'Q':	// Quit
+		case 'S':
+			needsave = !needsave;
 			break;
+
+		case 'Q': {
+			if (!needsave && (azimuth != -999. || incidence != -999.)) {
+				int yn = yesno("File will not be saved, edits will be lost, really quit?");
+				ch = (yn == 1) ? ch : ' ';
+			}
+			break;
+		}
 
 		default:
 			printf("Oops, invalid command.\n");
 			break;
 		}
 	}
+	
+	return needsave;
 }
 
 int main(int argc, char **argv)
 {
+	int needsave;
 	SACHEAD *hz, *hn, *he;
 	float *z, *n, *e;
 	int stop = 0;
-	char filename[1024];
+	char zfilename[2048], nfilename[2048], efilename[2048];
 	
 	if (argc < 2) {
 		fprintf(stderr, "Invalid number of traces.\n");
@@ -690,34 +717,35 @@ int main(int argc, char **argv)
 	
 	hz = hn = he = NULL;
 	z = n = e = NULL;
+	needsave = 0;
 	
 	if ( argc == 2)
-		sprintf(filename,"%s.z",argv[1]);
+		sprintf(zfilename,"%s.z",argv[1]);
 	else
-		sprintf(filename,"%s",argv[1]);
-	z = io_readSac(filename, &hz);
+		sprintf(zfilename,"%s",argv[1]);
+	z = io_readSac(zfilename, &hz);
 	if (z == NULL) {
-		fprintf(stderr, "Error reading z file: %s\n", filename);
+		fprintf(stderr, "Error reading z file: %s\n", zfilename);
 		stop = 1;
 	}
 	
 	if (argc == 2)
-		sprintf(filename,"%s.n",argv[1]);
+		sprintf(nfilename,"%s.n",argv[1]);
 	else
-		sprintf(filename,"%s",argv[2]);
-	n = io_readSac(filename, &hn);
-	if (z == NULL) {
-		fprintf(stderr, "Error reading n file: %s\n", filename);
+		sprintf(nfilename,"%s",argv[2]);
+	n = io_readSac(nfilename, &hn);
+	if (n == NULL) {
+		fprintf(stderr, "Error reading n file: %s\n", nfilename);
 		stop = 1;
 	}
 	
 	if (argc == 2)
-		sprintf(filename,"%s.e",argv[1]);
+		sprintf(efilename,"%s.e",argv[1]);
 	else
-		sprintf(filename,"%s",argv[3]);
-	e = io_readSac(filename, &he);
-	if (z == NULL) {
-		fprintf(stderr, "Error reading e file: %s\n", filename);
+		sprintf(efilename,"%s",argv[3]);
+	e = io_readSac(efilename, &he);
+	if (e == NULL) {
+		fprintf(stderr, "Error reading e file: %s\n", efilename);
 		stop = 1;
 	}
 	
@@ -762,7 +790,15 @@ int main(int argc, char **argv)
 		
 		if (z == NULL)
 			fprintf(stderr, "OILA");
-		interact(z, hz, n, hn, e, hn);
+		needsave = interact(z, hz, n, hn, e, he);
+	}
+	
+	if (needsave) {
+		fprintf(stderr, "**           Saving files headers             **\n");
+		fprintf(stderr,"    Azimuth is UNUSED6 / Incidence is UNUSED7    \n");
+		io_writeSacHead(zfilename, hz);
+		io_writeSacHead(nfilename, hn);
+		io_writeSacHead(efilename, he);
 	}
 	
 	if (z != NULL) {
