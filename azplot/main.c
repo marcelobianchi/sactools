@@ -28,11 +28,11 @@ char statusline[256];	// Message to display on status
 
 int rotated = OFF;		// Is rotated trace?
 
-#define nm 10
+#define nm 12
 typedef struct m {
 	int set;
 	float time;
-	char name[5];
+	char name[9];
 } M;
 
 M marks[nm];
@@ -63,7 +63,7 @@ void line(g_ctl * ctl, float xmin, int color)
 
 void markazimuth(g_ctl * ctl, float mangle)
 {
-	if (mangle > -999.0) {
+	if (mangle > SAC_HEADER_FLOAT_UNDEFINED) {
 		float xc = (ctl->xmin + ctl->xmax) / 2.0;
 		float yc = (ctl->xmin + ctl->xmax) / 2.0;
 
@@ -87,7 +87,7 @@ void markazimuth(g_ctl * ctl, float mangle)
 
 void markincidence(g_ctl * ctl, float mangle)
 {
-	if (mangle > -999.0) {
+	if (mangle > SAC_HEADER_FLOAT_UNDEFINED) {
 		float xc = (ctl->xmin + ctl->xmax) / 2.0;
 		float yc = (ctl->xmin + ctl->xmax) / 2.0;
 		cpgsci(2);
@@ -115,7 +115,7 @@ void d_angle(g_ctl * ctl, float *xdata, float *ydata, int npts, float mangle)
 	float ymin, ymax;
 	char title[128] = "";
 
-	if (mangle > -999.0) {
+	if (mangle > SAC_HEADER_FLOAT_UNDEFINED) {
 		sprintf(title, "Angle is %.1f", mangle);
 		strcpy(ctl->title, title);
 	} else {
@@ -184,7 +184,7 @@ void d_time(g_ctl * ctl, float *data, SACHEAD * h)
 			line(ctl, marks[i].time, 5);
 			if (marks[i].time > ctl->xmin
 			    && marks[i].time < ctl->xmax) {
-				sprintf(l, "[%1d] %s", i, marks[i].name);
+				sprintf(l, "%s [%1d]", marks[i].name, i);
 				cpgsch(0.6);
 				cpgtext(marks[i].time, ctl->ymin + ctl->h * 0.2,
 					l);
@@ -237,7 +237,7 @@ void tag(SACHEAD * h, int needsave)
 
 	if (needsave) {
 		cpgsci(2);
-		sprintf(texto, "File Will Be Saved");
+		sprintf(texto, "File is Modified");
 		cpgmtxt("T", -1.2, 0.5, 0.5, texto);
 		cpgsci(1);
 	}
@@ -311,8 +311,44 @@ d(g_ctl * zc, g_ctl * nc, g_ctl * ec, g_ctl * azc, g_ctl * inc,
 	return;
 }
 
-int
-interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
+void savemark(M *m, SACHEAD *hz, SACHEAD *hn, SACHEAD *he, char *header, char *lheader) {
+	if (m->set) {
+		hdu_changeValueFromChar(hz, header, &m->time, NULL, NULL);
+		hdu_changeValueFromChar(hn, header, &m->time, NULL, NULL);
+		hdu_changeValueFromChar(he, header, &m->time, NULL, NULL);
+
+		hdu_changeValueFromChar(hz, lheader, NULL, NULL, lheader);
+		hdu_changeValueFromChar(hn, lheader, NULL, NULL, lheader);
+		hdu_changeValueFromChar(he, lheader, NULL, NULL, lheader);
+	} else {
+		float v = SAC_HEADER_FLOAT_UNDEFINED;
+		hdu_changeValueFromChar(hz, header, &v, NULL, NULL);
+		hdu_changeValueFromChar(hn, header, &v, NULL, NULL);
+		hdu_changeValueFromChar(he, header, &v, NULL, NULL);
+
+		hdu_changeValueFromChar(hz, lheader, NULL, NULL, SAC_HEADER_CHAR_UNDEFINED);
+		hdu_changeValueFromChar(hn, lheader, NULL, NULL, SAC_HEADER_CHAR_UNDEFINED);
+		hdu_changeValueFromChar(he, lheader, NULL, NULL, SAC_HEADER_CHAR_UNDEFINED);
+	}
+}
+
+void
+loadmark(M *m, SACHEAD *h, char *header, char *lheader) {
+	char *name = NULL;
+	
+	m->set = 1;
+	
+	hdu_getValueFromChar(header, h, &m->time, NULL, NULL);
+	hdu_getValueFromChar(lheader, h, NULL, NULL, &name);
+	strcpy(m->name, name);
+
+	if (name != NULL) free(name);
+
+	return;
+}
+
+void
+interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SACHEAD * hn, char *efilename, float *e, SACHEAD * he)
 {
 	int i;
 
@@ -388,10 +424,41 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 	ctlpick = ctl_newctl(0.0, 0.0, 1.0, 1.0);
 	ctlpick->expand = 0;
 
-	t1 = t2 = 0.0;
-	azimuth = -999.0;
-	incidence = -999.0;
-
+	/*
+	 *  Loading parameters from hz fileheader
+	 */
+	incidence = (hz->unused7 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused7 : SAC_HEADER_FLOAT_UNDEFINED;
+	azimuth   = (hz->unused6 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused6 : SAC_HEADER_FLOAT_UNDEFINED;
+	t1   = (hz->unused8 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused8 : 0.0;
+	t2   = (hz->unused9 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused9 : 0.0;
+	fh   = (hz->unused10 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused10 : SAC_HEADER_FLOAT_UNDEFINED;
+	fl   = (hz->unused11 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused11 : SAC_HEADER_FLOAT_UNDEFINED;
+	inct = (hz->unused15 != SAC_HEADER_INT_UNDEFINED) ? hz->unused15 : ZE;
+	
+	if ( (fh != SAC_HEADER_FLOAT_UNDEFINED) && (SAC_HEADER_FLOAT_UNDEFINED != fl)) {
+		zf = iir(z, hz->npts, hz->delta, 2.0, fh, 2.0,
+			 fl);
+		nf = iir(n, hn->npts, hn->delta, 2.0, fh, 2.0,
+			 fl);
+		ef = iir(e, he->npts, he->delta, 2.0, fh, 2.0,
+			 fl);
+		filteris = ON;
+	}
+	
+	i = 0;
+	if (hz->f != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "f", "kf");
+	if (hz->a != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "a", "ka");
+	if (hz->t0 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t0", "kt0");
+	if (hz->t1 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t1", "kt1");
+	if (hz->t2 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t2", "kt2");
+	if (hz->t3 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t3", "kt3");
+	if (hz->t4 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t4", "kt4");
+	if (hz->t5 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t5", "kt5");
+	if (hz->t6 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t6", "kt6");
+	if (hz->t7 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t7", "kt7");
+	if (hz->t8 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t8", "kt8");
+	if (hz->t9 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t9", "kt9");
+	
 	float *hitdata;
 	SACHEAD *hithead;
 	while (ch != 'Q') {
@@ -446,7 +513,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 
 		case 'T':	// Switch Vaz mode.
 			inct = (inct == ZE) ? ZN : ZE;
-			incidence = -999.0;
+			incidence = SAC_HEADER_FLOAT_UNDEFINED;
+			needsave = 1;
 			break;
 
 		case 'X':	// Zoom trace
@@ -469,8 +537,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 
 		case 'A':	// Define a azimuth window
 			if (mode == ZOOM) {
-				azimuth = -999.0;
-				incidence = -999.0;
+				azimuth = SAC_HEADER_FLOAT_UNDEFINED;
+				incidence = SAC_HEADER_FLOAT_UNDEFINED;
 				t1 = ax;
 				line(hitc, t1, 3);
 				ch = toupper(getonechar(&ax, &ay));
@@ -491,9 +559,6 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 				    (atan2f(ax - a1, ay - a2) * 180.0 / M_PI);
 				if (azimuth < 0)
 					azimuth += 360.0;
-				hz->unused6 = azimuth;
-				hn->unused6 = azimuth;
-				he->unused6 = azimuth;
 			} else if (mode == IN) {
 				cpgsci(2);
 				a1 = (hitc->xmax + hitc->xmin) / 2.0;
@@ -503,10 +568,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 
 				incidence =
 				    (atan2f(ax - a1, a2 - ay) * 180.0 / M_PI);
-				hz->unused7 = incidence;
-				hn->unused7 = incidence;
-				he->unused7 = incidence;
 			}
+			needsave = 1;
 			break;
 
 		case 'F':	// Filter on/off
@@ -545,8 +608,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 				free(ef);
 				ef = e;
 				filteris = OFF;
-				fh = 0.0;
-				fl = 0.0;
+				fh = SAC_HEADER_FLOAT_UNDEFINED;
+				fl = SAC_HEADER_FLOAT_UNDEFINED;
 
 				if (rotated == ON) {
 					zf = malloc(sizeof(float) * hz->npts);
@@ -564,6 +627,7 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 							 180.0) * M_PI / 180.0);
 				}
 			}
+			needsave = 1;
 			break;
 
 		case 'L':	// Read time
@@ -618,7 +682,7 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 				float mtime = ax;
 				while (1) {
 					mark = lerint("Which mark 0 to 10?");
-					if (mark < 0 || mark >= 10)
+					if (mark < 0 || mark >= nm)
 						continue;
 					break;
 				}
@@ -626,6 +690,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 				marks[mark].set = 1;
 				marks[mark].time = mtime;
 				lerchar("Phase name?", marks[mark].name, 5);
+
+				needsave = 1;
 			}
 			break;
 
@@ -633,6 +699,8 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 			if (yesno("Clear all marks?")) {
 				for (i = 0; i < nm; i++)
 					marks[i].set = 0;
+
+				needsave = 1;
 			}
 			break;
 
@@ -681,12 +749,38 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 				}
 			}
 			break;
+			
 		case 'S':
-			needsave = !needsave;
+			hz->unused6 = hn->unused6 = he->unused6 = azimuth;
+			hz->unused7 = hn->unused7 = he->unused7 = incidence;
+			hz->unused8 = hn->unused8 = he->unused8 = t1;
+			hz->unused9 = hn->unused9 = he->unused9 = t2;
+			hz->unused10 = hn->unused10 = he->unused10 = fh;
+			hz->unused11 = hn->unused11 = he->unused11 = fl;
+			hz->unused15 = hn->unused15 = he->unused15 = inct;
+
+			savemark(&marks[0],  hz, hn, he, "f", "kf");
+			savemark(&marks[1],  hz, hn, he, "a", "ka");
+			savemark(&marks[2],  hz, hn, he, "t0", "kt0");
+			savemark(&marks[3],  hz, hn, he, "t1", "kt1");
+			savemark(&marks[4],  hz, hn, he, "t2", "kt2");
+			savemark(&marks[5],  hz, hn, he, "t3", "kt3");
+			savemark(&marks[6],  hz, hn, he, "t4", "kt4");
+			savemark(&marks[7],  hz, hn, he, "t5", "kt5");
+			savemark(&marks[8],  hz, hn, he, "t6", "kt6");
+			savemark(&marks[9],  hz, hn, he, "t7", "kt7");
+			savemark(&marks[10], hz, hn, he, "t8", "kt8");
+			savemark(&marks[11], hz, hn, he, "t9", "kt9");
+			
+
+			io_writeSacHead(zfilename, hz);
+			io_writeSacHead(nfilename, hn);
+			io_writeSacHead(efilename, he);
+			needsave = 0;
 			break;
 
 		case 'Q': {
-			if (!needsave && (azimuth != -999. || incidence != -999.)) {
+			if (needsave) {
 				int yn = yesno("File will not be saved, edits will be lost, really quit?");
 				ch = (yn == 1) ? ch : ' ';
 			}
@@ -699,7 +793,7 @@ interact(float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he)
 		}
 	}
 	
-	return needsave;
+	return;
 }
 
 int main(int argc, char **argv)
@@ -790,15 +884,7 @@ int main(int argc, char **argv)
 		
 		if (z == NULL)
 			fprintf(stderr, "OILA");
-		needsave = interact(z, hz, n, hn, e, he);
-	}
-	
-	if (needsave) {
-		fprintf(stderr, "**           Saving files headers             **\n");
-		fprintf(stderr,"    Azimuth is UNUSED6 / Incidence is UNUSED7    \n");
-		io_writeSacHead(zfilename, hz);
-		io_writeSacHead(nfilename, hn);
-		io_writeSacHead(efilename, he);
+		interact(zfilename, z, hz, nfilename, n, hn, efilename, e, he);
 	}
 	
 	if (z != NULL) {
