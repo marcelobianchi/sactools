@@ -1,4 +1,10 @@
 #include <inspect.h>
+
+#include <borders.h>
+#include <continents.h>
+#include <plates.h>
+
+
 #include <collector.h>
 #include <math.h>
 #include <gr.h>
@@ -61,6 +67,53 @@ pick * addLabel(g_ctl *label, pick *ppick, stations *ss, int stationId) {
 	}
 
 	return ppick;
+}
+
+void addmapitems(int level) {
+	int i;
+
+	if (level > 0) {
+		cpgsci(2);
+		cpgslw(1);
+		for(i=0; i < ncontinentes; i++) {
+			if (continentes[i][0] == -999 && continentes[i][1] == 999 ) {
+				i++;
+				cpgmove(continentes[i][0], continentes[i][1]);
+				continue;
+			}
+			cpgdraw(continentes[i][0], continentes[i][1]);
+		}
+	}
+
+	if (level > 1) {
+		cpgsci(15);
+		cpgslw(1);
+		for(i=0; i < nborders; i++) {
+			if (borders[i][0] == -999 && borders[i][1] == 999 ) {
+				i++;
+				cpgmove(borders[i][0], borders[i][1]);
+				continue;
+			}
+			cpgdraw(borders[i][0], borders[i][1]);
+		}
+	}
+
+	if (level > 2) {
+		cpgsci(3);
+		cpgslw(3);
+		for(i=0; i < nplates; i++) {
+			if (plates[i][0] == -999 && plates[i][1] == 999 ) {
+				i++;
+				cpgmove(plates[i][0], plates[i][1]);
+				continue;
+			}
+			if (fabs(plates[i][0] - plates[i-1][0]) > 180) {
+				cpgmove(plates[i][0], plates[i][1]);
+			}
+			cpgdraw(plates[i][0], plates[i][1]);
+		}
+	}
+
 }
 
 void addLegend(g_ctl * legend) {
@@ -156,12 +209,14 @@ void drawMap(g_ctl *map, int eventid, stations * ss, events *evs) {
 
 		cpgsci(1);
 	}
+
+	addmapitems(10);
 }
 
 void MAP_process(glob_t * glb)
 {
 	// Helpers
-	int i;
+	int i, world;
 	float lonmin = 999.0, lonmax = -999.0, latmin = 999.0, latmax = -999.0;
 	char aux[2048];
 
@@ -185,6 +240,11 @@ void MAP_process(glob_t * glb)
 	pick *ppick = NULL;
 	stations *ss = NULL;
 	events *evs = NULL;
+
+	// Bug fix to wrap borders
+	for(i=0; i < nborders; i++)
+			if (borders[i][0] != -999 && borders[i][0] > 180)
+					borders[i][0] = borders[i][0] - 360.0;
 
 	// Load Data
 	ss = newStationList(glb);
@@ -219,6 +279,8 @@ void MAP_process(glob_t * glb)
 	ctl_axismap(mapArea);
 	ctl_xreset_mm(mapArea, lonmin, lonmax);
 	ctl_yreset_mm(mapArea, latmin, latmax);
+	world = 0;
+
 	// End of Mapping coordinates setup
 
 	// Label ctl
@@ -307,6 +369,17 @@ void MAP_process(glob_t * glb)
 			break;
 		}
 
+		case('W'): {
+			if (world == 1) {
+				ctl_xreset_mm(mapArea, lonmin, lonmax);
+				ctl_yreset_mm(mapArea, latmin, latmax);
+				world = 0;
+			} else {
+				ctl_xreset_mm(mapArea, -180, 180);
+				ctl_yreset_mm(mapArea, -90, 90);
+				world = 1;
+			}
+		}
 		// Quit
 		case('q'): break;
 		}

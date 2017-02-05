@@ -1,4 +1,6 @@
 #include <collector.h>
+#include <inspect.h>
+
 #include <sac.h>
 #include <globers.h>
 #include <libgen.h>
@@ -55,7 +57,7 @@ stations *newStationList(glob_t *glb)
 
 	/* Prepare stations table */
 	for (j = 0; j < glb->gl_pathc; j++) {
-		glob_t *glbs = filelist(glb->gl_pathv[j], "*Z.SAC");
+		glob_t *glbs = filelist(glb->gl_pathv[j], getConfigAsString(config, NAME_Z, DEFAULT_Z));
 
 		for (file = 0; file < glbs->gl_pathc; file++) {
 			station *s = loadStation(glbs->gl_pathv[file]);
@@ -254,7 +256,7 @@ events *newEventList(glob_t *glb, stations * ss)
 
 	/* Make event list */
 	for (j = 0; j < glb->gl_pathc; j++) {
-		glob_t *glbs = filelist(glb->gl_pathv[j],"*Z.SAC");
+		glob_t *glbs = filelist(glb->gl_pathv[j], getConfigAsString(config, NAME_Z, DEFAULT_Z));
 
 		if (collectorVerbose)
 			fprintf(stdout, "%s: [ ] [   ] ", glb->gl_pathv[j]);
@@ -459,7 +461,7 @@ long writeoutevent(events * evs, stations * ss, float minStd, float maxStd)
 pick *killPick(pick * p)
 {
 	if (p == NULL)
-		return;
+		return NULL;
 	
 	p->ev = NULL;
 	free(p);
