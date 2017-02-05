@@ -1070,15 +1070,16 @@ void PK_process(glob_t * glb)
 	tffree(d->files, d->nfiles);
 	killCTL(&d->ctl, d->max);
 
-	d->pickRules[0] = killpicker(d->pickRules[0]);
-	d->pickRules[1] = killpicker(d->pickRules[1]);
-	d->pickRules[2] = killpicker(d->pickRules[2]);
+	d->pickRules[None] = killpicker(d->pickRules[None]);
+	d->pickRules[P] = killpicker(d->pickRules[P]);
+	d->pickRules[S] = killpicker(d->pickRules[S]);
+	
 	free(d->pickRules);
 	d->pickRules = NULL;
-
+	
 	if (d != NULL) free(d);
 	d = NULL;
-
+	
 	cpgclos();
 
 	return;

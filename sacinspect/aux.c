@@ -34,9 +34,12 @@ void filtertf(tf * f, defs * d);
 
 /* Picker handling methods */
 pdefs *killpicker(pdefs *pick) {
+	if (pick == NULL) return NULL;
+	
 	strcpy(pick->pickLabel, "");
 	strcpy(pick->destinationPhase, "");
 	strcpy(pick->referencePhase, "");
+	
 	if (pick->markPhase != NULL) {
 		for (;pick->nPhase > 0; pick->nPhase --) {
 			free(pick->markPhase[pick->nPhase - 1 ]);
