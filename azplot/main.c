@@ -798,11 +798,11 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 
 int main(int argc, char **argv)
 {
-	int needsave;
+	int needsave, force = 0;
 	SACHEAD *hz, *hn, *he;
 	float *z, *n, *e;
 	int stop = 0;
-	char zfilename[2048], nfilename[2048], efilename[2048];
+	char zfilename[2048] = "", nfilename[2048] = "", efilename[2048] = "";
 	
 	if (argc < 2) {
 		fprintf(stderr, "Invalid number of traces.\n");
@@ -812,31 +812,55 @@ int main(int argc, char **argv)
 	hz = hn = he = NULL;
 	z = n = e = NULL;
 	needsave = 0;
+
+	int i = 1;
 	
-	if ( argc == 2)
-		sprintf(zfilename,"%s.z",argv[1]);
-	else
-		sprintf(zfilename,"%s",argv[1]);
+	while (i<argc) {
+		if (strncmp(argv[i], "-f",2)==0) {
+			force = 1;
+			i++;
+			continue;
+		}
+
+		if (strlen(zfilename) == 0) {
+			sprintf(zfilename, "%s",argv[i]);
+		} else if (strlen(nfilename) == 0) {
+			sprintf(nfilename, "%s",argv[i]);
+		} else if (strlen(efilename) == 0) {
+			sprintf(efilename, "%s",argv[i]);
+		}
+		
+		i++;
+	}
+	
+	if (strlen(zfilename) == 0) {
+		fprintf(stderr, "Error, no file was provided.\n");
+		return -1;
+	}
+	
+	if ((strlen(efilename) == 0) && (strlen(efilename) == 0)) {
+		sprintf(zfilename, "%s.z",zfilename);
+		sprintf(nfilename, "%s.n",nfilename);
+		sprintf(efilename, "%s.e",efilename);
+	}
+	
+	if ((strlen(efilename) == 0) || (strlen(efilename) == 0)) {
+		fprintf(stderr, "Error, no one base filename, or 3 (ZNE) files in order.\n");
+		return -1;
+	}
+		
 	z = io_readSac(zfilename, &hz);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading z file: %s\n", zfilename);
 		stop = 1;
 	}
 	
-	if (argc == 2)
-		sprintf(nfilename,"%s.n",argv[1]);
-	else
-		sprintf(nfilename,"%s",argv[2]);
 	n = io_readSac(nfilename, &hn);
 	if (n == NULL) {
 		fprintf(stderr, "Error reading n file: %s\n", nfilename);
 		stop = 1;
 	}
 	
-	if (argc == 2)
-		sprintf(efilename,"%s.e",argv[1]);
-	else
-		sprintf(efilename,"%s",argv[3]);
 	e = io_readSac(efilename, &he);
 	if (e == NULL) {
 		fprintf(stderr, "Error reading e file: %s\n", efilename);
@@ -846,7 +870,7 @@ int main(int argc, char **argv)
 	/* check that files reference and sps match ! */
 	if (hz->cmpinc != 0.0 || hn->cmpaz != 0.0 || he->cmpaz != 90.0) {
 		fprintf(stderr, "Components orientation do not match.\n");
-		stop = 1;
+		if (!force) stop = 1;
 	}
 	
 	if (!stop) {
