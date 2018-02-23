@@ -7,7 +7,9 @@ glob_t *filelist(char *folder, char *fpattern) {
 	
 	pattern = malloc(sizeof(char) * (strlen(folder) + 1 + strlen(fpattern) + 1));
 	sprintf(pattern, "%s/%s",folder, fpattern);
-	
+/*	fprintf(stdout, "%s/%s \n",folder, fpattern);*/
+/*	fprintf(stdout,"%s",pattern);*/
+
 	glb = malloc(sizeof(glob_t));
 	glb->gl_pathc = 0;
 	glob(pattern, 0, NULL, glb);

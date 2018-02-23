@@ -394,7 +394,7 @@ void multitraceplot(defs * d)
 		color = 14;				// Default trace color
 		if (thistrace->selected == 1)
 			color = 2;			// If event Selected Color = Red
-		// if (thistrace->current->head->unused25 != 1) color = 14; // If we are in the restricted mode and trace is locked Color = Gray
+		// if (thistrace->current->head->d>unused25 != 1) color = 14; // If we are in the restricted mode and trace is locked Color = Gray
 		if (d->overlay)
 			color = j + 1;
 
@@ -486,26 +486,32 @@ void multitraceplot(defs * d)
 	if (d->nfiles > 0) {
 		cpgsci((d->files[0].z != NULL)?3:2);
 		cpgsch(1.);
-		cpgmtxt("B",1.25, -0.045, 1.0, (d->zne == 0)?"Z":"Z");
+		cpgmtxt("B",1.25, -0.05, 1.0, (d->zne == 0)?"Z":"Z");
 		
 		cpgsci((d->has3 && d->files[0].n != NULL)?3:(d->has3)?2:14);
-		cpgmtxt("B",1.25, -0.03, 1.0, (d->zne == 1)?"N":"N");
+		cpgmtxt("B",1.25, -0.04, 1.0, (d->zne == 1)?"N":"N");
 		
 		cpgsci((d->has3 && d->files[0].e != NULL)?3:(d->has3)?2:14);
-		cpgmtxt("B",1.25, -0.015, 1.0, (d->zne == 2)?"E":"E");
+		cpgmtxt("B",1.25, -0.03, 1.0, (d->zne == 2)?"E":"E");
+
+		cpgsci((d->has3 && d->files[0].r != NULL)?3:(d->has3)?2:14);
+		cpgmtxt("B",1.25, -0.02, 1.0, (d->zne == 3)?"R":"R");
+		
+		cpgsci((d->has3 && d->files[0].t != NULL)?3:(d->has3)?2:14);
+		cpgmtxt("B",1.25, -0.01, 1.0, (d->zne == 4)?"T":"T");
 
 		cpgsci(1);
 
 		cpgsch(.65);
 		int phaseid = (int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK);
 		cpgsci((phaseid == 1)?1:14);
-		cpgmtxt("B", 1.25, -0.07, 1.0, PickTypesNames[1]);
+		cpgmtxt("B", 1.25, -0.065, 1.0, PickTypesNames[1]);
 		cpgsci((phaseid == 2)?1:14);
-		cpgmtxt("B", 2.35, -0.07, 1.0, PickTypesNames[2]);
+		cpgmtxt("B", 2.35, -0.065, 1.0, PickTypesNames[2]);
 
 		cpgsch(1.);
 		cpgsci(1);
-		cpgmtxt("B", 2.0, -0.045 + d->zne * 0.015, 1.75, "\\m17");
+		cpgmtxt("B", 2.0, -0.05 + d->zne * 0.01, 1.75, "\\m17");
 
 		// Reset to leave
 		cpgsch(0.65);
@@ -515,6 +521,9 @@ void multitraceplot(defs * d)
 			d->offset + 1, d->offset + d->max, d->nfiles,
 			(d->filter) ? "ON" : "OFF", d->hp, d->lp);
 	cpgmtxt("B", 2.5, 0.0, 0.0, string);
+
+	sprintf(string, "Mag = %.1f", d->files->current->head->mag);
+	cpgmtxt("B", 2.5, 0.22, 0.0, string);
 
 	sprintf(string, "[%c] [PSw: %.1f ISw: %.1f Tr/S: %d] [%s]", aligChar,
 			d->searchsize, d->insetsearchsize, d->max,
@@ -543,6 +552,17 @@ void multitraceplot(defs * d)
 	}
 
 	cpgmtxt("T", 1.0, 0.5, 0.5, string);
+
+	//plot if the traces are correlated(green) or not (red)
+	sprintf(string, "Correlated");
+	if (d->files->current->head->unused26 == 1){
+		cpgsci(3);
+	} else{
+		cpgsci(2);
+	}
+
+	cpgmtxt("T", 1.0, 0.1, 0.5, string);
+
 	cpgsci(1);
 }
 
@@ -579,8 +599,18 @@ void writeout(tf * files, defs * d)
 	for (j = 0; j < d->nfiles; j++) {
 		f = &files[j];
 		if (f != NULL && f->current->head != NULL && f->current->filename != NULL) {
-			f->current->head->unused11 = d->lp;
-			f->current->head->unused12 = d->hp;
+			//Phase P
+			if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) == P){
+/*				fprintf(stdout,"saving P filters");*/
+				f->current->head->unused11 = d->lp;
+				f->current->head->unused12 = d->hp;
+			}
+			else { //Phase S
+				f->current->head->unused6 = d->lp;
+				f->current->head->unused7 = d->hp;
+/*				fprintf(stdout," %f %f %f %f \n",f->current->head->unused6,f->current->head->unused7,d->lp,d->hp);*/
+			}
+
 			io_writeSacHead(f->current->filename, f->current->head);
 		}
 	}
@@ -681,6 +711,25 @@ void synch(tf * f, int nfiles)
 				(t->e->head->nzmsec - ref->e->head->nzmsec) / 1000.0 + t->e->head->b;
 			t->e->reference = val;
 		}
+		// R
+		if ( (ref->r != NULL ) && (t->r != NULL) && (t->r != NULL && ref->r->head->nzyear == t->r->head->nzyear)) {
+			double val = (t->r->head->nzjday - ref->r->head->nzjday) * 24 * 60 * 60 +
+				(t->r->head->nzhour - ref->r->head->nzhour) * 60 * 60 +
+				(t->r->head->nzmin  - ref->r->head->nzmin) * 60 +
+				(t->r->head->nzsec  - ref->r->head->nzsec) +
+				(t->r->head->nzmsec - ref->r->head->nzmsec) / 1000.0 + t->r->head->b;
+			t->r->reference = val;
+		}
+		// T
+		if ( (ref->t != NULL ) && (t->t != NULL) && (t->t != NULL && ref->t->head->nzyear == t->t->head->nzyear)) {
+			double val = (t->t->head->nzjday - ref->t->head->nzjday) * 24 * 60 * 60 +
+				(t->t->head->nzhour - ref->t->head->nzhour) * 60 * 60 +
+				(t->t->head->nzmin  - ref->t->head->nzmin) * 60 +
+				(t->t->head->nzsec  - ref->t->head->nzsec) +
+				(t->t->head->nzmsec - ref->t->head->nzmsec) / 1000.0 + t->t->head->b;
+			t->n->reference = val;
+		}
+
 	}
 }
 
@@ -782,6 +831,8 @@ void tffree(tf * tf, int n)
 		tf[i].z = otffree(tf[i].z);
 		tf[i].n = otffree(tf[i].n);
 		tf[i].e = otffree(tf[i].e);
+		tf[i].r = otffree(tf[i].r);
+		tf[i].t = otffree(tf[i].t);
 	}
 
 	free(tf);

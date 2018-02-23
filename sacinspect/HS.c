@@ -197,9 +197,9 @@ void EXHIST_process(glob_t * glb)
 	while (ch != 'q') {
 		float sigma = 3.0;
 		cpgsch(2.5);
-		cpgsubp(10, 8);
+		cpgsubp(10, 12);
 		long totaln = 0;
-		int max = 80;
+		int max = 120;
 		for (panel = 0;
 			 ((panel < max)) && ((panel + offset)) < ss->n;
 			 panel++) {
@@ -223,8 +223,8 @@ void EXHIST_process(glob_t * glb)
 				if (panel % 10 == 0)
 					cpgmtxt("L", 2.5, 0.5, 0.5, "Count");
 
-				if (panel >= 50)
-					cpgmtxt("B", 3.0, 0.5, 0.5, "Res");
+				//if (panel >= 50)
+				cpgmtxt("B", 3.0, 0.5, 0.5, "Res");
 
 				cpgsch(4);
 				cpgmtxt("T", 0.65, 0.5, 0.5, ss->slist[sta]->name);
@@ -240,12 +240,12 @@ void EXHIST_process(glob_t * glb)
 		cpgsubp(1, 1);
 		cpgsch(1.0);
 		cpgsvp(0.0, 1.0, 0.0, 1.0);
-		cpgswin(0.0, 10.0, 0.0, 8.0);
+		cpgswin(0.0, 10.0, 0.0, 12.0);
 		ch = getonechar(&ax, &ay);
 
 		if (ch != 'q') {
 			int col = (int) ax;
-			int line = 7 - (int) ay;
+			int line = 11 - (int) ay;
 			sta = (line * 10 + col);
 			pick **plist =
 				collectpicksbystation(evs, ss, sta, &n, 0, sigma);

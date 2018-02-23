@@ -222,6 +222,18 @@ void Config(defs * d)
 							"Pattern used to search for files for the E component:",
 							DEFAULT_E);
 
+		k = valueoptionchar(getConfigAsString
+							(config, NAME_R, DEFAULT_R), k,
+							"4",
+							"Pattern used to search for files for the R component:",
+							DEFAULT_R);
+
+		k = valueoptionchar(getConfigAsString
+							(config, NAME_T, DEFAULT_T), k,
+							"5",
+							"Pattern used to search for files for the T component:",
+							DEFAULT_T);
+
 		// Jump a line
 		k--;
 
@@ -305,6 +317,19 @@ void Config(defs * d)
 			reloadTraces = 1;
 			break;
 		}
+		case ('4'): {
+			lerchar("Enter a new file pattern?", aux, 200);
+			setConfigString(config, NAME_R, (strlen(aux)>0)?aux:DEFAULT_R);
+			reloadTraces = 1;
+			break;
+		}
+			
+		case ('5'): {
+			lerchar("Enter a new file pattern?", aux, 200);
+			setConfigString(config, NAME_T, (strlen(aux)>0)?aux:DEFAULT_T);
+			reloadTraces = 1;
+			break;
+		}
 			
 		case ('c'): {
 			value = (getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) ? 0 : 1 ;
@@ -377,8 +402,8 @@ float correlate(defs * d, int reference) {
 		
 		TrMark  = pickR(pick, ts->current->head);
 		TfMark = pickD(pick, ts->current->head);
-		int t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 2 * d->insetsearchsize);
-		int t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 2 * d->searchsize) - t_jstart + 1;
+        int t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 1 * d->insetsearchsize);
+        int t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 1 * d->searchsize) - t_jstart + 1;
 		
 		float dif_coef, max_coef;
 		int problem, n_index, index;
@@ -962,6 +987,10 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			sprintf(d->lastaction,
 					"Average correction was %.2f s", avgcorr);
 
+		//mark as correlated
+		for  (j = 0; j < d->nfiles; j++)
+			d->files[j].current->head->unused26 = 1;
+
 		break;
 	}
 
@@ -978,10 +1007,10 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		else
 			d->zne--;
 		
-		if (d->zne >= 3) d->zne = 0;
-		if (d->zne < 0) d->zne = 2;
+		if (d->zne >= 5) d->zne = 0;
+		if (d->zne < 0) d->zne = 4;
 		if (io_AdjustCurrent(d) == 0) {
-			sprintf(d->lastaction, "Switched components to %s", (d->zne == 0)?"Z":(d->zne == 1)?"N":"E");
+			sprintf(d->lastaction, "Switched components to %s", (d->zne == 0)?"Z":(d->zne == 1)?"N":(d->zne == 2)?"E":(d->zne == 3)?"R":"T");
 		} else {
 			sprintf(d->lastaction, "Failed to switch, try reloading the event.");
 			d->zne = currentid;
