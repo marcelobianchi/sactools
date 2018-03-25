@@ -90,13 +90,6 @@ int main(int argc, char **argv)
 	stop = 0;
 	initConfig();
 	for (i = 1; i < argc; i++) {
-		if ((j = strncmp(argv[i], "-v", 2)) == 0) {
-			fprintf(stderr,
-					"Version: %s\n         %s\n         %s\n	 %s\n",
-					version, io_version, hd_version, hdu_version);
-			return 0;
-		}
-
 		if ((j = strncmp(argv[i], "-i", 2)) == 0 && i < argc - 1) {
 			config.ninfo++;
 			config.info =
@@ -120,7 +113,14 @@ int main(int argc, char **argv)
 			config.normalize = 1;
 			continue;
 		}
-
+		
+		if ((j = strncmp(argv[i], "-v", 2)) == 0) {
+			fprintf(stderr,
+					"Version: %s\n         %s\n         %s\n	 %s\n",
+					version, io_version, hd_version, hdu_version);
+			return 0;
+		}
+		
 		if ((j = strncmp(argv[i], "-jh", 3)) == 0) {
 			config.justheader = 1;
 			continue;
@@ -144,19 +144,20 @@ int main(int argc, char **argv)
 			i++;
 			continue;
 		}
-
-		if ((j = strncmp(argv[i], "-d", 2)) == 0 && i < argc - 1) {
-			ftw(argv[i + 1], preprocess, 20);
-			i++;
-			continue;
-		}
-
+		
 		if ((j = strncmp(argv[i], "-e", 2)) == 0 && i < argc - 1) {
 			config.fileend = argv[i + 1];
 			i++;
 			continue;
 		}
+	}
 
+	for (i = 1; i < argc; i++) {
+		if ((j = strncmp(argv[i], "-d", 2)) == 0 && i < argc - 1) {
+			ftw(argv[i + 1], preprocess, 20);
+			i++;
+			continue;
+		}
 		if ((j = strncmp(argv[i], "-f", 2)) == 0 && i < argc - 1) {
 			char *path = NULL;
 			path = malloc(sizeof(char) * (strlen(argv[i + 1]) + 1));

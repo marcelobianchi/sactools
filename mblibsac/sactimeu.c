@@ -27,6 +27,7 @@
 #include <sachead.h>
 #include <timeu.h>
 #include <math.h>
+#include <ctype.h>
 
 int julday(int year, int mon, int day);
 int calday(int year, int yearday, int *mon, int *day);
