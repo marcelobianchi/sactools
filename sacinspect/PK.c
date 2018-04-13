@@ -975,7 +975,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 		for  (j = 0; j < d->nfiles; j++) {
 			if (( (d->files[j].current->head->delta - d->files[referencetrace].current->head->delta) / d->files[j].current->head->delta ) > 0.01) {
-				sprintf(message,"Traces have different dt! %s : %.3f e %s :qq %.3f", d->files[j].current->head->kstnm, d->files[j].current->head->delta, d->files[referencetrace].current->head->kstnm, d->files[referencetrace].current->head->delta);
+				sprintf(message,"Traces have different dt! %s : %.3f e %s : %.3f", d->files[j].current->head->kstnm, d->files[j].current->head->delta, d->files[referencetrace].current->head->kstnm, d->files[referencetrace].current->head->delta);
 				alert(ERROR);
 				break;
 			}
