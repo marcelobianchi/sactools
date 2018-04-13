@@ -549,7 +549,7 @@ glob_t * io_loadEv(defs *d) {
 	// Set HAS to 0
 	d->has = findHas(glb);
 
-	//posicao original
+	//original postion of fildfilter
 /*	// Find the filters in use for this event*/ 
 /*	d->filter = findFilters(glb, &d->lp, &d->hp);*/
 

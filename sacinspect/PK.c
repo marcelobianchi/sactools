@@ -402,8 +402,8 @@ float correlate(defs * d, int reference) {
 		
 		TrMark  = pickR(pick, ts->current->head);
 		TfMark = pickD(pick, ts->current->head);
-        int t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 1 * d->insetsearchsize);
-        int t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 1 * d->searchsize) - t_jstart + 1;
+		int t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 2 * d->insetsearchsize);
+		int t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 2 * d->searchsize) - t_jstart + 1;
 		
 		float dif_coef, max_coef;
 		int problem, n_index, index;
@@ -975,7 +975,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 		for  (j = 0; j < d->nfiles; j++) {
 			if (( (d->files[j].current->head->delta - d->files[referencetrace].current->head->delta) / d->files[j].current->head->delta ) > 0.01) {
-				strcpy(message,"Traces have different dt!");
+				sprintf(message,"Traces have different dt! %s : %.3f e %s :qq %.3f", d->files[j].current->head->kstnm, d->files[j].current->head->delta, d->files[referencetrace].current->head->kstnm, d->files[referencetrace].current->head->delta);
 				alert(ERROR);
 				break;
 			}

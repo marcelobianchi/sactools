@@ -522,9 +522,6 @@ void multitraceplot(defs * d)
 			(d->filter) ? "ON" : "OFF", d->hp, d->lp);
 	cpgmtxt("B", 2.5, 0.0, 0.0, string);
 
-	sprintf(string, "Mag = %.1f", d->files->current->head->mag);
-	cpgmtxt("B", 2.5, 0.22, 0.0, string);
-
 	sprintf(string, "[%c] [PSw: %.1f ISw: %.1f Tr/S: %d] [%s]", aligChar,
 			d->searchsize, d->insetsearchsize, d->max,
 			(d->sortmode == 0) ? "DZ" : "BAZ");
@@ -564,6 +561,9 @@ void multitraceplot(defs * d)
 	cpgmtxt("T", 1.0, 0.1, 0.5, string);
 
 	cpgsci(1);
+
+	sprintf(string, "Mag = %.1f", d->files->current->head->mag);
+	cpgmtxt("T", 1.0, 0.9, 0.5, string);
 }
 
 /* Other io help methods */
@@ -601,14 +601,12 @@ void writeout(tf * files, defs * d)
 		if (f != NULL && f->current->head != NULL && f->current->filename != NULL) {
 			//Phase P
 			if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) == P){
-/*				fprintf(stdout,"saving P filters");*/
 				f->current->head->unused11 = d->lp;
 				f->current->head->unused12 = d->hp;
 			}
 			else { //Phase S
 				f->current->head->unused6 = d->lp;
 				f->current->head->unused7 = d->hp;
-/*				fprintf(stdout," %f %f %f %f \n",f->current->head->unused6,f->current->head->unused7,d->lp,d->hp);*/
 			}
 
 			io_writeSacHead(f->current->filename, f->current->head);
