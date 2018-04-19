@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/sacchhdr.dir/sacchhdr.c.o  -o sacchhdr -rdynamic ../mblibsac/libmblibsac.a -lm 

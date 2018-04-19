@@ -56,8 +56,8 @@
 #define DEFAULT_ZOOMGAIN 3.0
 #define DEFAULT_LP 2.0
 #define DEFAULT_HP 0.5
-#define DEFAULT_PRE 5.0
-#define DEFAULT_POST 5.0
+#define DEFAULT_PRE 2.0
+#define DEFAULT_POST 2.0
 #define DEFAULT_Z "*[HB]HZ*"
 #define DEFAULT_N "*[HB]H[N1]*"
 #define DEFAULT_E "*[HB]H[E2]*"

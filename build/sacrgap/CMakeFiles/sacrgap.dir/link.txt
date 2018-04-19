@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/sacrgap.dir/sacrgap.c.o  -o sacrgap -rdynamic ../mblibsac/libmblibsac.a -lm 

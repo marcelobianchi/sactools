@@ -381,7 +381,7 @@ void dump(char *name, float *data, int npts) {
 float correlate(defs * d, int reference) {
 	int   j;
 	float TfMark; /* Target f mark */
-	float TrMark; /* Target referente mark */
+	float TrMark; /* Target reference (A) mark */
 	float MfMark; /* Master f mark */
 	float xmax, ymax;
 	float avgcorr;
@@ -391,19 +391,36 @@ float correlate(defs * d, int reference) {
 	pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
 	MfMark = pickD(pick, tsreference->current->head);
 
-	int ref_jstart = hdu_getNptsFromSeconds(tsreference->current->head, MfMark - d->insetsearchsize);
-	int ref_npts   = hdu_getNptsFromSeconds(tsreference->current->head, MfMark + d->searchsize) - ref_jstart + 1;
+	int ref_jstart = hdu_getNptsFromSeconds(tsreference->current->head, MfMark - d->insetsearchsize/2);
+	int ref_npts   = hdu_getNptsFromSeconds(tsreference->current->head, MfMark + d->searchsize/2) - ref_jstart + 1;
+/*    fprintf(stderr,"%d %d ", ref_jstart, ref_npts);*/
 	
 	avgcorr = 0.0;
 	ncorr = 0;
 	for (j = 0; j < d->nfiles; j++) {
 		if (j == reference) continue;
 		tf *ts = &d->files[j];
-		
+
+		int t_jstart=0,t_npts=0;
+		float check_dt = ((d->files[j].current->head->delta - d->files[reference].current->head->delta) / d->files[j].current->head->delta );
+
+		if (check_dt > 0.01) {
+			sprintf(d->lastaction, "station %s has different dt, trace don't correlated ",d->files[j].current->head->kstnm);
+			continue;
+		}
+
 		TrMark  = pickR(pick, ts->current->head);
 		TfMark = pickD(pick, ts->current->head);
-		int t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 2 * d->insetsearchsize);
-		int t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 2 * d->searchsize) - t_jstart + 1;
+
+		if (TfMark != -12345.0) {
+			t_jstart = hdu_getNptsFromSeconds(ts->current->head, TfMark - d->insetsearchsize/2);
+			t_npts   = hdu_getNptsFromSeconds(ts->current->head, TfMark + d->searchsize/2) - t_jstart + 1;
+		} else {
+			t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 2*d->insetsearchsize);
+			t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 2*d->searchsize) - t_jstart + 1;
+		}
+
+/*        fprintf(stderr,"%s %f %d %d\n", d->files[j].current->head->kstnm, TfMark, t_jstart, t_npts);*/
 		
 		float dif_coef, max_coef;
 		int problem, n_index, index;
@@ -414,10 +431,17 @@ float correlate(defs * d, int reference) {
 					ref_npts,
 					t_npts,
 					&max_coef, &index, &dif_coef, &problem, &n_index);
+
+/*		fprintf(stderr,"%s lags %f ",d->files[j].current->head->kstnm, *lags);*/
+
 		float corr = hdu_getSecondsFromNPTS(ts->current->head, t_jstart + index) + 
 				(MfMark - hdu_getSecondsFromNPTS(tsreference->current->head, ref_jstart));
 
+
 		parabola(lags, n_index, index, corr, ts->current->head->delta, &xmax, &ymax);
+
+/*		fprintf(stderr," ni %d i %d  xmax  %f\n",n_index, index, xmax);*/
+
 		if (lags) free(lags);
 		setPick(pick, ts->current->head, xmax);
 
@@ -747,15 +771,13 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 	case ('s'): {
 		d->searchsize =
-			fabs(lerfloat
-				 ("How many seconds post A mark to considerer in Min-Max search ?"));
+			lerfloat("How many seconds post A mark to considerer in Min-Max search ?");
 		break;
 	}
 
 	case ('i'): {
 		d->insetsearchsize =
-			fabs(lerfloat
-				 ("How many seconds pre A mark to considerer in Min-Max search ?"));
+			lerfloat("How many seconds pre A mark to considerer in Min-Max search ?");
 		break;
 	}
 
@@ -973,13 +995,13 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 			}
 		}
 
-		for  (j = 0; j < d->nfiles; j++) {
-			if (( (d->files[j].current->head->delta - d->files[referencetrace].current->head->delta) / d->files[j].current->head->delta ) > 0.01) {
-				sprintf(message,"Traces have different dt! %s : %.3f e %s : %.3f", d->files[j].current->head->kstnm, d->files[j].current->head->delta, d->files[referencetrace].current->head->kstnm, d->files[referencetrace].current->head->delta);
-				alert(ERROR);
-				break;
-			}
-		}
+/*		for  (j = 0; j < d->nfiles; j++) {*/
+/*			if (( (d->files[j].current->head->delta - d->files[referencetrace].current->head->delta) / d->files[j].current->head->delta ) > 0.01) {*/
+/*				sprintf(message,"Traces have different dt! %s : %.3f e %s : %.3f", d->files[j].current->head->kstnm, d->files[j].current->head->delta, d->files[referencetrace].current->head->kstnm, d->files[referencetrace].current->head->delta);*/
+/*				alert(ERROR);*/
+/*				break;*/
+/*			}*/
+/*		}*/
 
 		float avgcorr = correlate(d, referencetrace);
 
@@ -990,6 +1012,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		//mark as correlated
 		for  (j = 0; j < d->nfiles; j++)
 			d->files[j].current->head->unused26 = 1;
+
+		//mark files as not saved
+		d->needsave = 1;
 
 		break;
 	}

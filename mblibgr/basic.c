@@ -56,7 +56,7 @@ void resizemax(float scale)
 {
 	Display *disp;
 	float ax, ay;
-	int X, Y;
+	int X, Y, screenNo;
 
 	/* Xlib code */
 	disp = XOpenDisplay(NULL);
@@ -64,8 +64,9 @@ void resizemax(float scale)
 		fprintf(stderr, "No Display.\n");
 		exit(-1);
 	} else {
+		screenNo = ScreenCount(disp);
 		Y = XDisplayHeightMM(disp, 0);
-		X = XDisplayWidthMM(disp, 0) / 1.8;
+		X = XDisplayWidthMM(disp, 0) / (0.9*screenNo);
 	}
 	XCloseDisplay(disp);
 	/* End of Xlib code */

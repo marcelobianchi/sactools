@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/sacrename.dir/diskwork.c.o CMakeFiles/sacrename.dir/filelist.c.o CMakeFiles/sacrename.dir/sacrename.c.o  -o sacrename -rdynamic ../mblibsac/libmblibsac.a -lm 

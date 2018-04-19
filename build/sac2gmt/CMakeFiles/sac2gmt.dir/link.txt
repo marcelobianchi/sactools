@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/sac2gmt.dir/sac2gmt.c.o  -o sac2gmt -rdynamic ../mblibsac/libmblibsac.a -lm 

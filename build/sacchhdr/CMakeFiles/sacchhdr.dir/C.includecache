@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../sacchhdr/../mblibsac/head.h
+stdio.h
+-
+stdlib.h
+-
+sachead.h
+-
+
+../sacchhdr/../mblibsac/sachead.h
+
+../sacchhdr/../mblibsac/sacio.h
+sachead.h
+-
+
+/home_ad/israel/sactools/sacchhdr/sacchhdr.c
+stdio.h
+-
+stdlib.h
+-
+stddef.h
+-
+string.h
+-
+head.h
+-
+sacio.h
+-
+ftw.h
+-
+

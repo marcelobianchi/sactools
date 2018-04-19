@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../mblibgr/./basic.h
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+cpgplot.h
+-
+ctype.h
+-
+math.h
+-
+
+/home_ad/israel/sactools/mblibgr/basic.c
+basic.h
+-
+X11/Xlib.h
+-
+
