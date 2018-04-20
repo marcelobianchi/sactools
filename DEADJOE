@@ -1,0 +1,264 @@
+
+*** These modified files were found in JOE when it aborted on Thu Apr 19 21:19:11 2018
+*** JOE was aborted because the terminal closed
+
+*** File '/home_ad/israel/sactools/.git/COMMIT_EDITMSG'
+VISUAL:
+   -correct screen resolution, now the code cat the number of screens and fix the program scren size by itself
+   -magnitude position was corrected
+CORRELATION:
+   -was inserted a var to mark if the trace was correlated
+   -if one trace has different dt the code didn't broke anymore, the correlation code skip this trace and warn how station is
+   -Both size of reference trace (rt) and target trace(tt) was changed, and if the 'f' mark is set the reference to correlate window is taken
+    from it and the size is defined as half of the distance to the green markers.
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date:      Thu Apr 19 20:49:07 2018 -0300
+#
+# On branch master
+# Your branch is ahead of 'origin/master' by 1 commit.
+#   (use "git push" to publish your local commits)
+#
+# Changes to be committed:
+#	new file:   build/CMakeCache.txt
+#	new file:   build/CMakeFiles/3.0.2/CMakeCCompiler.cmake
+#	new file:   build/CMakeFiles/3.0.2/CMakeCXXCompiler.cmake
+#	new file:   build/CMakeFiles/3.0.2/CMakeDetermineCompilerABI_C.bin
+#	new file:   build/CMakeFiles/3.0.2/CMakeDetermineCompilerABI_CXX.bin
+#	new file:   build/CMakeFiles/3.0.2/CMakeSystem.cmake
+#	new file:   build/CMakeFiles/3.0.2/CompilerIdC/CMakeCCompilerId.c
+#	new file:   build/CMakeFiles/3.0.2/CompilerIdC/a.out
+#	new file:   build/CMakeFiles/3.0.2/CompilerIdCXX/CMakeCXXCompilerId.cpp
+#	new file:   build/CMakeFiles/3.0.2/CompilerIdCXX/a.out
+#	new file:   build/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/CMakeFiles/CMakeOutput.log
+#	new file:   build/CMakeFiles/Makefile.cmake
+#	new file:   build/CMakeFiles/Makefile2
+#	new file:   build/CMakeFiles/TargetDirectories.txt
+#	new file:   build/CMakeFiles/cmake.check_cache
+#	new file:   build/CMakeFiles/progress.marks
+#	new file:   build/Makefile
+#	new file:   build/azplot/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/azplot/CMakeFiles/azplot.dir/C.includecache
+#	new file:   build/azplot/CMakeFiles/azplot.dir/DependInfo.cmake
+#	new file:   build/azplot/CMakeFiles/azplot.dir/build.make
+#	new file:   build/azplot/CMakeFiles/azplot.dir/cmake_clean.cmake
+#	new file:   build/azplot/CMakeFiles/azplot.dir/depend.internal
+#	new file:   build/azplot/CMakeFiles/azplot.dir/depend.make
+#	new file:   build/azplot/CMakeFiles/azplot.dir/flags.make
+#	new file:   build/azplot/CMakeFiles/azplot.dir/link.txt
+#	new file:   build/azplot/CMakeFiles/azplot.dir/main.c.o
+#	new file:   build/azplot/CMakeFiles/azplot.dir/progress.make
+#	new file:   build/azplot/CMakeFiles/progress.marks
+#	new file:   build/azplot/Makefile
+#	new file:   build/azplot/azplot
+#	new file:   build/azplot/cmake_install.cmake
+#	new file:   build/cmake_install.cmake
+#	new file:   build/mblibgr/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/C.includecache
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/DependInfo.cmake
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/basic.c.o
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/build.make
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/cfg.c.o
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/cmake_clean.cmake
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/cmake_clean_target.cmake
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/ctl.c.o
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/depend.internal
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/depend.make
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/flags.make
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/interaction.c.o
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/link.txt
+#	new file:   build/mblibgr/CMakeFiles/mblibgr.dir/progress.make
+#	new file:   build/mblibgr/CMakeFiles/progress.marks
+#	new file:   build/mblibgr/Makefile
+#	new file:   build/mblibgr/cmake_install.cmake
+#	new file:   build/mblibgr/libmblibgr.a
+#	new file:   build/mblibsac/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/C.includecache
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/DependInfo.cmake
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/build.make
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/cmake_clean.cmake
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/cmake_clean_target.cmake
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/depend.internal
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/depend.make
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/flags.make
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/head.c.o
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/headutils.c.o
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/iir.c.o
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/link.txt
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/progress.make
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/sacio.c.o
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/sactimeu.c.o
+#	new file:   build/mblibsac/CMakeFiles/mblibsac.dir/yutils.c.o
+#	new file:   build/mblibsac/CMakeFiles/progress.marks
+#	new file:   build/mblibsac/Makefile
+#	new file:   build/mblibsac/cmake_install.cmake
+#	new file:   build/mblibsac/libmblibsac.a
+#	new file:   build/sac2gmt/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/sac2gmt/CMakeFiles/progress.marks
+#	new file:   build/sac2gmt/CMakeFiles/sac2gmt.dir/C.includecache
+#	new file:   build/sac2gmt/CMakeFiles/sac2gmt.dir/DependInfo.cmake
+#	new file:   build/sac2gmt/CMakeFiles/sac2gmt.dir/build.make
+#	new file:   build/sac2gmt/CMakeFiles/sac2gmt.dir/cmake_clean.cmake
+#	new file:   build/sac2gmt/CMakeFiles/sac2gmt.dir/depend.internal
+#	new file:   build/sac2gmt/CMakeFiles/sac2gmt.dir/depend.make
+#	new file:   build/sac2gmt/CMakeFiles/sac2gmt.dir/flags.make
+#	new file:   build/sac2gmt/CMakeFiles/sac2gmt.dir/link.txt
+#	new file:   build/sac2gmt/CMakeFiles/sac2gmt.dir/progress.make
+#	new file:   build/sac2gmt/CMakeFiles/sac2gmt.dir/sac2gmt.c.o
+#	new file:   build/sac2gmt/Makefile
+#	new file:   build/sac2gmt/cmake_install.cmake
+#	new file:   build/sac2gmt/sac2gmt
+#	new file:   build/sacchhdr/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/sacchhdr/CMakeFiles/progress.marks
+#	new file:   build/sacchhdr/CMakeFiles/sacchhdr.dir/C.includecache
+#	new file:   build/sacchhdr/CMakeFiles/sacchhdr.dir/DependInfo.cmake
+#	new file:   build/sacchhdr/CMakeFiles/sacchhdr.dir/build.make
+#	new file:   build/sacchhdr/CMakeFiles/sacchhdr.dir/cmake_clean.cmake
+#	new file:   build/sacchhdr/CMakeFiles/sacchhdr.dir/depend.internal
+#	new file:   build/sacchhdr/CMakeFiles/sacchhdr.dir/depend.make
+#	new file:   build/sacchhdr/CMakeFiles/sacchhdr.dir/flags.make
+#	new file:   build/sacchhdr/CMakeFiles/sacchhdr.dir/link.txt
+#	new file:   build/sacchhdr/CMakeFiles/sacchhdr.dir/progress.make
+#	new file:   build/sacchhdr/CMakeFiles/sacchhdr.dir/sacchhdr.c.o
+#	new file:   build/sacchhdr/Makefile
+#	new file:   build/sacchhdr/cmake_install.cmake
+#	new file:   build/sacchhdr/sacchhdr
+#	new file:   build/sachinfo/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/sachinfo/CMakeFiles/progress.marks
+#	new file:   build/sachinfo/CMakeFiles/sachinfo.dir/C.includecache
+#	new file:   build/sachinfo/CMakeFiles/sachinfo.dir/DependInfo.cmake
+#	new file:   build/sachinfo/CMakeFiles/sachinfo.dir/build.make
+#	new file:   build/sachinfo/CMakeFiles/sachinfo.dir/cmake_clean.cmake
+#	new file:   build/sachinfo/CMakeFiles/sachinfo.dir/depend.internal
+#	new file:   build/sachinfo/CMakeFiles/sachinfo.dir/depend.make
+#	new file:   build/sachinfo/CMakeFiles/sachinfo.dir/flags.make
+#	new file:   build/sachinfo/CMakeFiles/sachinfo.dir/link.txt
+#	new file:   build/sachinfo/CMakeFiles/sachinfo.dir/progress.make
+#	new file:   build/sachinfo/CMakeFiles/sachinfo.dir/sachinfo.c.o
+#	new file:   build/sachinfo/Makefile
+#	new file:   build/sachinfo/cmake_install.cmake
+#	new file:   build/sachinfo/sachinfo
+#	new file:   build/sacinspect/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/sacinspect/CMakeFiles/progress.marks
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/C.includecache
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/DependInfo.cmake
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/EX.c.o
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/HS.c.o
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/MAP.c.o
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/PK.c.o
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/aux.c.o
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/build.make
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/cmake_clean.cmake
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/collector.c.o
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/correl.c.o
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/depend.internal
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/depend.make
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/edit_tf.c.o
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/flags.make
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/globers.c.o
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/io.c.o
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/link.txt
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/progress.make
+#	new file:   build/sacinspect/CMakeFiles/sacinspect.dir/sacinspect.c.o
+#	new file:   build/sacinspect/Makefile
+#	new file:   build/sacinspect/cmake_install.cmake
+#	new file:   build/sacinspect/sacinspect
+#	new file:   build/sacpickmax/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/sacpickmax/CMakeFiles/progress.marks
+#	new file:   build/sacpickmax/CMakeFiles/sacpickmax.dir/C.includecache
+#	new file:   build/sacpickmax/CMakeFiles/sacpickmax.dir/DependInfo.cmake
+#	new file:   build/sacpickmax/CMakeFiles/sacpickmax.dir/build.make
+#	new file:   build/sacpickmax/CMakeFiles/sacpickmax.dir/cmake_clean.cmake
+#	new file:   build/sacpickmax/CMakeFiles/sacpickmax.dir/depend.internal
+#	new file:   build/sacpickmax/CMakeFiles/sacpickmax.dir/depend.make
+#	new file:   build/sacpickmax/CMakeFiles/sacpickmax.dir/flags.make
+#	new file:   build/sacpickmax/CMakeFiles/sacpickmax.dir/link.txt
+#	new file:   build/sacpickmax/CMakeFiles/sacpickmax.dir/progress.make
+#	new file:   build/sacpickmax/CMakeFiles/sacpickmax.dir/sacpickmax.c.o
+#	new file:   build/sacpickmax/Makefile
+#	new file:   build/sacpickmax/cmake_install.cmake
+#	new file:   build/sacpickmax/sacpickmax
+#	new file:   build/sacrename/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/sacrename/CMakeFiles/progress.marks
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/C.includecache
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/DependInfo.cmake
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/build.make
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/cmake_clean.cmake
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/depend.internal
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/depend.make
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/diskwork.c.o
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/filelist.c.o
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/flags.make
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/link.txt
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/progress.make
+#	new file:   build/sacrename/CMakeFiles/sacrename.dir/sacrename.c.o
+#	new file:   build/sacrename/Makefile
+#	new file:   build/sacrename/cmake_install.cmake
+#	new file:   build/sacrename/sacrename
+#	new file:   build/sacrgap/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/sacrgap/CMakeFiles/progress.marks
+#	new file:   build/sacrgap/CMakeFiles/sacrgap.dir/C.includecache
+#	new file:   build/sacrgap/CMakeFiles/sacrgap.dir/DependInfo.cmake
+#	new file:   build/sacrgap/CMakeFiles/sacrgap.dir/build.make
+#	new file:   build/sacrgap/CMakeFiles/sacrgap.dir/cmake_clean.cmake
+#	new file:   build/sacrgap/CMakeFiles/sacrgap.dir/depend.internal
+#	new file:   build/sacrgap/CMakeFiles/sacrgap.dir/depend.make
+#	new file:   build/sacrgap/CMakeFiles/sacrgap.dir/flags.make
+#	new file:   build/sacrgap/CMakeFiles/sacrgap.dir/link.txt
+#	new file:   build/sacrgap/CMakeFiles/sacrgap.dir/progress.make
+#	new file:   build/sacrgap/CMakeFiles/sacrgap.dir/sacrgap.c.o
+#	new file:   build/sacrgap/Makefile
+#	new file:   build/sacrgap/cmake_install.cmake
+#	new file:   build/sacrgap/sacrgap
+#	new file:   build/sacrms/CMakeFiles/CMakeDirectoryInformation.cmake
+#	new file:   build/sacrms/CMakeFiles/progress.marks
+#	new file:   build/sacrms/CMakeFiles/sacrms.dir/C.includecache
+#	new file:   build/sacrms/CMakeFiles/sacrms.dir/DependInfo.cmake
+#	new file:   build/sacrms/CMakeFiles/sacrms.dir/build.make
+#	new file:   build/sacrms/CMakeFiles/sacrms.dir/cmake_clean.cmake
+#	new file:   build/sacrms/CMakeFiles/sacrms.dir/depend.internal
+#	new file:   build/sacrms/CMakeFiles/sacrms.dir/depend.make
+#	new file:   build/sacrms/CMakeFiles/sacrms.dir/flags.make
+#	new file:   build/sacrms/CMakeFiles/sacrms.dir/link.txt
+#	new file:   build/sacrms/CMakeFiles/sacrms.dir/progress.make
+#	new file:   build/sacrms/CMakeFiles/sacrms.dir/sacrms.c.o
+#	new file:   build/sacrms/Makefile
+#	new file:   build/sacrms/cmake_install.cmake
+#	new file:   build/sacrms/sacrms
+#	modified:   mblibgr/basic.c
+#	modified:   sacinspect/PK.c
+#	modified:   sacinspect/correl.c
+#	modified:   sacinspect/inspect.h
+#
+
+*** File '(Unnamed)'
+150
+250
+
+*** File '(Unnamed)'
+90
+150
+anorm
+plotray
+sethor
+TMP
+igr
+igr
+orient
+sinal
+
+*** File '(Unnamed)'
+cleancatalog.sh
+cleancatalog.sh
+cleancatalog.sh
+SHELL/master.sh
+plotindividual.sh
+convertcatalog.py
+convertcatalog.py
+/home_ad/israel/.bashrc
+/home_ad/israel/.sacinspectrc
+/home_ad/israel/sactools/.git/COMMIT_EDITMSG
+/home_ad/israel/sactools/.git/COMMIT_EDITMSG

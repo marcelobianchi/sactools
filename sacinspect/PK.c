@@ -405,7 +405,8 @@ float correlate(defs * d, int reference) {
 		float check_dt = ((d->files[j].current->head->delta - d->files[reference].current->head->delta) / d->files[j].current->head->delta );
 
 		if (check_dt > 0.01) {
-			sprintf(d->lastaction, "station %s has different dt, trace don't correlated ",d->files[j].current->head->kstnm);
+			sprintf(message, "   station %s has different dt, this trace wasn't correlated ",d->files[j].current->head->kstnm);
+			alert(WARNING);
 			continue;
 		}
 

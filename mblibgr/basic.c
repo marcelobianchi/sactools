@@ -65,6 +65,7 @@ void resizemax(float scale)
 		exit(-1);
 	} else {
 		screenNo = ScreenCount(disp);
+/*		fprintf(stderr,"\nscreen numbers %d\n",screenNo);*/
 		Y = XDisplayHeightMM(disp, 0);
 		X = XDisplayWidthMM(disp, 0) / (0.9*screenNo);
 	}
