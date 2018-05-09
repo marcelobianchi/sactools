@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/sachinfo.dir/sachinfo.c.o  -o sachinfo -rdynamic ../mblibsac/libmblibsac.a -lm 

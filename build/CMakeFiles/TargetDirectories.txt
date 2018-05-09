@@ -1,0 +1,11 @@
+/home_ad/israel/sactools/build/azplot/CMakeFiles/azplot.dir
+/home_ad/israel/sactools/build/mblibgr/CMakeFiles/mblibgr.dir
+/home_ad/israel/sactools/build/mblibsac/CMakeFiles/mblibsac.dir
+/home_ad/israel/sactools/build/sac2gmt/CMakeFiles/sac2gmt.dir
+/home_ad/israel/sactools/build/sacchhdr/CMakeFiles/sacchhdr.dir
+/home_ad/israel/sactools/build/sachinfo/CMakeFiles/sachinfo.dir
+/home_ad/israel/sactools/build/sacinspect/CMakeFiles/sacinspect.dir
+/home_ad/israel/sactools/build/sacpickmax/CMakeFiles/sacpickmax.dir
+/home_ad/israel/sactools/build/sacrename/CMakeFiles/sacrename.dir
+/home_ad/israel/sactools/build/sacrgap/CMakeFiles/sacrgap.dir
+/home_ad/israel/sactools/build/sacrms/CMakeFiles/sacrms.dir

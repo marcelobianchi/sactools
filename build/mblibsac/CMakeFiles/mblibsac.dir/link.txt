@@ -1,0 +1,2 @@
+/usr/bin/ar cr libmblibsac.a  CMakeFiles/mblibsac.dir/head.c.o CMakeFiles/mblibsac.dir/headutils.c.o CMakeFiles/mblibsac.dir/iir.c.o CMakeFiles/mblibsac.dir/sacio.c.o CMakeFiles/mblibsac.dir/sactimeu.c.o CMakeFiles/mblibsac.dir/yutils.c.o
+/usr/bin/ranlib libmblibsac.a

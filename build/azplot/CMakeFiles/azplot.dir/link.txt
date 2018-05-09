@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/azplot.dir/main.c.o  -o azplot -rdynamic ../mblibsac/libmblibsac.a ../mblibgr/libmblibgr.a -lm -lSM -lICE -lX11 -lXext -lcpgplot 

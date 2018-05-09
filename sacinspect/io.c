@@ -12,10 +12,12 @@
  * T1 - Pick S                                  (read & Write)
  *
  * Fixed -- Hard Coded
- * unused11 - Low Pass Filter                   (read & Write)
- * unused12 - High Pass Filter                  (read & Write)
- * unused27 - File was already visited          (read & Write)
- *
+ * unused11 - Low Pass Filter P                   (read & Write)
+ * unused12 - High Pass Filter P                  (read & Write)
+ * unused6  - Low Pass Filter S                   (read & Write)
+ * unused7 - High Pass Filter S                   (read & Write)
+ * unused27 - File was already visited            (read & Write)
+ * unused26 - Picks were correlated ?             (read & Write)
  */
 
 
@@ -35,16 +37,33 @@ int findFilters(glob_t *glb, float *lp, float *hp) {
 	SACHEAD *head = io_readSacHead(glb->gl_pathv[0]);
 	if (head == NULL)
 		return state;
-	
-	if (head->unused11 != -12345.0 && head->unused12 != -12345.0 && head->unused11 > head->unused12) {
-		*lp = head->unused11;
-		*hp = head->unused12;
-		state = (head->unused11 > head->unused12);
+
+	//P phase
+	if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) == P){
+/*		fprintf(stdout,"Pphase !! %f %f\n",head->unused11,head->unused12);*/
+		if (head->unused11 != -12345.0 && head->unused12 != -12345.0 && head->unused11 > head->unused12) {
+/*			fprintf(stdout,"Pphase filter already set !!\n");*/
+			*lp = head->unused11;
+			*hp = head->unused12;
+			state = (head->unused11 > head->unused12);
+		}
 	}
+	//Phase S
+	else{
+/*		fprintf(stdout,"Sphase !! %f %f\n",head->unused6,head->unused7);*/
+		if (head->unused6 != -12345.0 && head->unused7 != -12345.0 && head->unused6 > head->unused7) {
+/*			fprintf(stdout,"Sphase filter already set !!\n");*/
+			*lp = head->unused6;
+			*hp = head->unused7;
+			state = (head->unused6 > head->unused7);
+		}
+	}
+
 	head = io_freeData(head);
 
 	return state;
 }
+
 
 int findHas(glob_t *glb) {
 	int has = 0;
@@ -120,6 +139,12 @@ int io_AdjustCurrent(defs *d) {
 		else if (d->zne == 2 && d->has3)
 			d->files[i].current = d->files[i].e;
 		
+		else if (d->zne == 3 && d->has3)
+			d->files[i].current = d->files[i].r;
+		
+		else if (d->zne == 4 && d->has3)
+			d->files[i].current = d->files[i].t;
+		
 		else // Default is Z, for safety
 			d->files[i].current = d->files[i].z;
 	}
@@ -168,6 +193,9 @@ tf * io_loadZ (glob_t *glb, int *pnfiles) {
 		files[nfiles].z = NULL;
 		files[nfiles].n = NULL;
 		files[nfiles].e = NULL;
+		files[nfiles].t = NULL;
+		files[nfiles].r = NULL;
+
 		
 		// Allocated space for Z
 		files[nfiles].z = malloc(sizeof(otf));
@@ -310,9 +338,9 @@ void io_loadE (glob_t *glb, tf *files, int nfiles){
 			continue;
 		}
 		
-		// Check that this is a N file
+		// Check that this is a E file
 		if (head->cmpinc != 90.0 && head->cmpaz != 90.0) {
-			fprintf(stderr,"Error loading file: %s (not N component)", argv[i]);
+			fprintf(stderr,"Error loading file: %s (not E component)", argv[i]);
 			continue;
 		}
 		
@@ -362,6 +390,147 @@ void io_loadE (glob_t *glb, tf *files, int nfiles){
 	}
 }
 
+void io_loadT (glob_t *glb, tf *files, int nfiles){
+	int argc = glb->gl_pathc;
+	char **argv = glb->gl_pathv;
+	int i;
+	
+	// Loop thru all and load
+	for (i = 0; i < argc; i++) {
+		SACHEAD *head = NULL;
+		float * data = NULL;
+		
+		// Load SAC
+		data = io_readSac(argv[i], &head);
+		
+		// Check that is loaded
+		if (head == NULL || data == NULL) {
+			fprintf(stderr,"Error loading file: %s", argv[i]);
+			continue;
+		}
+
+		// Search for the correct Z component file
+		int j = findpair(files, nfiles, head);
+/*		fprintf(stdout,"i = %d, j = %d, argc = %d \n",i,j,argc);*/
+		if (j == -1) {
+			head = io_freeData(head);
+			data = io_freeData(data);
+			head = NULL;
+			data = NULL; 
+			fprintf(stderr,"File %s not paired.", argv[i]);
+			continue;
+		}
+		
+/*		fprintf(stdout,"hello \n");*/
+		// Check that we can assign a new data to component r
+		if (files[j].t != NULL) {
+			head = io_freeData(head);
+			data = io_freeData(data);
+			head = NULL;
+			data = NULL; 
+			fprintf(stderr,"Trace already assigned.");
+			continue;
+		}
+/*		j=i;*/
+		// Prepare space for new otf
+		files[j].t = malloc(sizeof(otf));
+		if (files[j].t == NULL){
+			fprintf(stderr,"Failed to allocate more memory");
+			continue;
+		}
+		
+		// We mark this file as visited on load
+		head->unused27 = 1;
+		
+		// Attach Data
+		files[j].t->data = data;
+		
+		// Attach Head
+		files[j].t->head= head;
+		
+		// Clear filter data space
+		files[j].t->dataf = NULL;
+		
+		// Save a copy of the filename
+		files[j].t->filename = malloc(sizeof(char) * (strlen(argv[i]) + 1));
+		strcpy(files[j].t->filename, argv[i]);
+	}
+}
+
+
+void io_loadR (glob_t *glb, tf *files, int nfiles){
+	int argc = glb->gl_pathc;
+	char **argv = glb->gl_pathv;
+	int i;
+	
+	// Loop thru all and load
+	for (i = 0; i < argc; i++) {
+		SACHEAD *head = NULL;
+		float * data = NULL;
+		
+		// Load SAC
+		data = io_readSac(argv[i], &head);
+		
+		// Check that is loaded
+		if (head == NULL || data == NULL) {
+			fprintf(stderr,"Error loading file: %s", argv[i]);
+			continue;
+		}
+		
+/*		// Check that this is a N file*/
+/*		if (head->cmpinc != 90.0 && head->cmpaz != 90.0) {*/
+/*			fprintf(stderr,"Error loading file: %s (not N component)", argv[i]);*/
+/*			continue;*/
+/*		}*/
+		
+		// Search for the correct Z component file
+		int j = findpair(files, nfiles, head);
+		if (j == -1) {
+			head = io_freeData(head);
+			data = io_freeData(data);
+			head = NULL;
+			data = NULL; 
+			fprintf(stderr,"File %s not paired.", argv[i]);
+			continue;
+		}
+		
+		// Check that we can assign a new data to component r
+		if (files[j].r != NULL) {
+			head = io_freeData(head);
+			data = io_freeData(data);
+			head = NULL;
+			data = NULL; 
+			fprintf(stderr,"Trace already assigned.");
+			continue;
+		}
+		
+		// Prepare space for new otf
+		files[j].r = malloc(sizeof(otf));
+		if (files[j].r == NULL){
+			fprintf(stderr,"Failed to allocate more memory");
+			continue;
+		}
+		
+		// We mark this file as visited on load
+		head->unused27 = 1;
+		
+		// Attach Data
+		files[j].r->data = data;
+		
+		// Attach Head
+		files[j].r->head= head;
+		
+		// Clear filter data space
+		files[j].r->dataf = NULL;
+		
+		// Save a copy of the filename
+		files[j].r->filename = malloc(sizeof(char) * (strlen(argv[i]) + 1));
+		strcpy(files[j].r->filename, argv[i]);
+	}
+}
+
+
+
 glob_t * io_loadEv(defs *d) {
 	// If data is loaded free it up
 	if (d->nfiles != 0) {
@@ -379,14 +548,15 @@ glob_t * io_loadEv(defs *d) {
 
 	// Set HAS to 0
 	d->has = findHas(glb);
-	
-	// Find the filters in use for this event
-	d->filter = findFilters(glb, &d->lp, &d->hp);
+
+	//original postion of fildfilter
+/*	// Find the filters in use for this event*/ 
+/*	d->filter = findFilters(glb, &d->lp, &d->hp);*/
 
 	// Load the Z components
 	int nfiles = 0;
 	tf *files = io_loadZ(glb, &nfiles);
-	killGlob(glb);
+/*	killGlob(glb);*/
 
 	if (getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) {
 		// Load N components
@@ -398,9 +568,35 @@ glob_t * io_loadEv(defs *d) {
 		glob_t *glbe = filelist(path, getConfigAsString(config, NAME_E, DEFAULT_E));
 		io_loadE(glbe, files, nfiles);
 		killGlob(glbe);
+
+		// Load R components
+		glob_t *glbr = filelist(path, getConfigAsString(config, NAME_R, DEFAULT_R));
+		io_loadR(glbr, files, nfiles);
+		killGlob(glbr);
+			
+		// Load T
+		glob_t *glbt = filelist(path, getConfigAsString(config, NAME_T, DEFAULT_T));
+		io_loadT(glbt, files, nfiles);
+/*		killGlob(glbt);*/
 		
 		d->has3 = 1;
+
+	// Find the filters in use for this event
+		if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) == P)
+			d->filter = findFilters(glb, &d->lp, &d->hp);
+		else
+			d->filter = findFilters(glbt, &d->lp, &d->hp);
+
+		killGlob(glb);
+		killGlob(glbt);
 	}
+
+	// Find the filters in use for this event
+	else{
+		d->filter = findFilters(glb, &d->lp, &d->hp);
+		killGlob(glb);
+	}
+
 
 	// Check the files
 	if (nfiles != 0) {

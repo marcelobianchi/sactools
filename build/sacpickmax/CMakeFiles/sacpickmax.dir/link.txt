@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/sacpickmax.dir/sacpickmax.c.o  -o sacpickmax -rdynamic ../mblibsac/libmblibsac.a -lm 

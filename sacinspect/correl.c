@@ -30,6 +30,7 @@ void parabola(float *lags, int n_lags, int index, float best_lag, float dt, floa
 
     *xmax = -bb / (2*aa);
     *ymax = (4*aa*cc - bb*bb ) / (4*aa);
+/*    fprintf(stderr,"parabola ok ");*/
     
     return;
 }
@@ -96,6 +97,7 @@ float *correl (float *tra, float *trb, int len_a, int len_b, float *max_coef, in
     }
 
     *dif_coef = fir_max - sec_max;
+/*    fprintf(stderr,"correl ok ");*/
 
     return lags;
 }

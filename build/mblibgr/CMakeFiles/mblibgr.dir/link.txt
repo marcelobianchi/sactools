@@ -1,0 +1,2 @@
+/usr/bin/ar cr libmblibgr.a  CMakeFiles/mblibgr.dir/basic.c.o CMakeFiles/mblibgr.dir/ctl.c.o CMakeFiles/mblibgr.dir/interaction.c.o CMakeFiles/mblibgr.dir/cfg.c.o
+/usr/bin/ranlib libmblibgr.a

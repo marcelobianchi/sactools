@@ -1,0 +1,1 @@
+/usr/bin/cc      CMakeFiles/sacrms.dir/sacrms.c.o  -o sacrms -rdynamic ../mblibsac/libmblibsac.a -lm 
