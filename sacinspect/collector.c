@@ -433,12 +433,13 @@ long writeoutevent(events * evs, stations * ss, float minStd, float maxStd)
 
 		for (p = 0; p < ev->n; p++) {
 			pick *pk = ev->picks[p];
+			float nStd_signal = (pk->difference - ev->resMean) / ev->resStd;
 			float nStd = fabs(pk->difference - ev->resMean) / ev->resStd;
 			if (((nStd >= minStd) && (nStd <= maxStd))
 				|| (minStd == maxStd)) {
 				fprintf(out, "%d\t%d\t%f\t%f\t%s Res/Std: %.2f\n",
 						pk->phase, pk->station + 1, pk->tobs, pk->tref,
-						ss->slist[pk->station]->name, nStd);
+						ss->slist[pk->station]->name, nStd_signal);
 			} else {
 				if (collectorVerbose)
 					fprintf(stderr, "%s %s %.2f\n", ev->Id,
