@@ -247,9 +247,9 @@ typedef struct sac_head {
 	float yminimum;
 	/// XYZ Y maximum value
 	float ymaximum;
-	/// Low pass filter S
+	/// reserved for future use
 	float unused6;
-	/// High pass filter S
+	/// reserved for future use
 	float unused7;
 	/// reserved for future use
 	float unused8;
@@ -257,9 +257,9 @@ typedef struct sac_head {
 	float unused9;
 	/// reserved for future use
 	float unused10;
-	/// Low pass filter P
+	/// reserved for future use
 	float unused11;
-	/// High pass filter P
+	/// reserved for future use
 	float unused12;
 	/// zero time of file, yr
 	int nzyear;
@@ -329,7 +329,7 @@ typedef struct sac_head {
 	int unused24;
 	/// reserved for future use
 	int unused25;
-	/// Pics were already correlated? 
+	/// reserved for future use
 	int unused26;
 	///  RA data-evenly-spaced flag
 	int leven;
@@ -339,7 +339,7 @@ typedef struct sac_head {
 	int lovrok;
 	/// calc distance, azimuth 
 	int lcalda;
-	/// File was already visited ?
+	/// reserved for future use
 	int unused27;
 	/// F station name 
 	char kstnm[8];

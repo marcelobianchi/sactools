@@ -15,7 +15,7 @@
  * unused11 - Low Pass Filter P                   (read & Write)
  * unused12 - High Pass Filter P                  (read & Write)
  * unused6  - Low Pass Filter S                   (read & Write)
- * unused7 - High Pass Filter S                   (read & Write)
+ * unused7 -  High Pass Filter S                  (read & Write)
  * unused27 - File was already visited            (read & Write)
  * unused26 - Picks were correlated ?             (read & Write)
  */
@@ -40,24 +40,22 @@ int findFilters(glob_t *glb, float *lp, float *hp) {
 
 	//P phase
 	if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) == P){
-/*		fprintf(stdout,"Pphase !! %f %f\n",head->unused11,head->unused12);*/
 		if (head->unused11 != -12345.0 && head->unused12 != -12345.0 && head->unused11 > head->unused12) {
-/*			fprintf(stdout,"Pphase filter already set !!\n");*/
 			*lp = head->unused11;
 			*hp = head->unused12;
 			state = (head->unused11 > head->unused12);
 		}
-	}
-	//Phase S
-	else{
-/*		fprintf(stdout,"Sphase !! %f %f\n",head->unused6,head->unused7);*/
+
+	} else if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) == S){ //Phase S
 		if (head->unused6 != -12345.0 && head->unused7 != -12345.0 && head->unused6 > head->unused7) {
-/*			fprintf(stdout,"Sphase filter already set !!\n");*/
 			*lp = head->unused6;
 			*hp = head->unused7;
 			state = (head->unused6 > head->unused7);
 		}
-	}
+
+	} else
+		sprintf(message,"Something is not right\n");
+
 
 	head = io_freeData(head);
 
@@ -310,7 +308,7 @@ void io_loadN (glob_t *glb, tf *files, int nfiles){
 		// Attach Head
 		files[j].n->head = head;
 		
-		// Clean filer
+		// Clean filter
 		files[j].n->dataf = NULL;
 		
 		// Save a copy of the filename
@@ -411,7 +409,6 @@ void io_loadT (glob_t *glb, tf *files, int nfiles){
 
 		// Search for the correct Z component file
 		int j = findpair(files, nfiles, head);
-/*		fprintf(stdout,"i = %d, j = %d, argc = %d \n",i,j,argc);*/
 		if (j == -1) {
 			head = io_freeData(head);
 			data = io_freeData(data);
@@ -421,7 +418,6 @@ void io_loadT (glob_t *glb, tf *files, int nfiles){
 			continue;
 		}
 		
-/*		fprintf(stdout,"hello \n");*/
 		// Check that we can assign a new data to component r
 		if (files[j].t != NULL) {
 			head = io_freeData(head);
@@ -431,7 +427,6 @@ void io_loadT (glob_t *glb, tf *files, int nfiles){
 			fprintf(stderr,"Trace already assigned.");
 			continue;
 		}
-/*		j=i;*/
 		// Prepare space for new otf
 		files[j].t = malloc(sizeof(otf));
 		if (files[j].t == NULL){
@@ -476,13 +471,7 @@ void io_loadR (glob_t *glb, tf *files, int nfiles){
 			fprintf(stderr,"Error loading file: %s", argv[i]);
 			continue;
 		}
-		
-/*		// Check that this is a N file*/
-/*		if (head->cmpinc != 90.0 && head->cmpaz != 90.0) {*/
-/*			fprintf(stderr,"Error loading file: %s (not N component)", argv[i]);*/
-/*			continue;*/
-/*		}*/
-		
+
 		// Search for the correct Z component file
 		int j = findpair(files, nfiles, head);
 		if (j == -1) {
@@ -545,18 +534,14 @@ glob_t * io_loadEv(defs *d) {
 
 	// Prepare a new glob
 	glob_t *glb = filelist(path, getConfigAsString(config, NAME_Z, DEFAULT_Z));
+	glob_t *glbt =filelist(path, getConfigAsString(config, NAME_T, DEFAULT_T));
 
 	// Set HAS to 0
 	d->has = findHas(glb);
 
-	//original postion of fildfilter
-/*	// Find the filters in use for this event*/ 
-/*	d->filter = findFilters(glb, &d->lp, &d->hp);*/
-
 	// Load the Z components
 	int nfiles = 0;
 	tf *files = io_loadZ(glb, &nfiles);
-/*	killGlob(glb);*/
 
 	if (getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) {
 		// Load N components
@@ -577,25 +562,25 @@ glob_t * io_loadEv(defs *d) {
 		// Load T
 		glob_t *glbt = filelist(path, getConfigAsString(config, NAME_T, DEFAULT_T));
 		io_loadT(glbt, files, nfiles);
-/*		killGlob(glbt);*/
 		
 		d->has3 = 1;
-
-	// Find the filters in use for this event
-		if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) == P)
-			d->filter = findFilters(glb, &d->lp, &d->hp);
-		else
-			d->filter = findFilters(glbt, &d->lp, &d->hp);
-
-		killGlob(glb);
-		killGlob(glbt);
 	}
 
 	// Find the filters in use for this event
-	else{
+	if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) == P) 
 		d->filter = findFilters(glb, &d->lp, &d->hp);
-		killGlob(glb);
+
+	else if (getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK) == S)
+		d->filter = findFilters(glbt, &d->lp, &d->hp);
+
+	else {
+		sprintf(message, " filters used couldn't be loaded ");
+		alert(WARNING);
 	}
+
+	//kill globs
+	killGlob(glb);
+	killGlob(glbt);
 
 
 	// Check the files

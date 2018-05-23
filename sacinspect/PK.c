@@ -393,7 +393,6 @@ float correlate(defs * d, int reference) {
 
 	int ref_jstart = hdu_getNptsFromSeconds(tsreference->current->head, MfMark - d->insetsearchsize/2);
 	int ref_npts   = hdu_getNptsFromSeconds(tsreference->current->head, MfMark + d->searchsize/2) - ref_jstart + 1;
-/*    fprintf(stderr,"%d %d ", ref_jstart, ref_npts);*/
 	
 	avgcorr = 0.0;
 	ncorr = 0;
@@ -404,8 +403,8 @@ float correlate(defs * d, int reference) {
 		int t_jstart=0,t_npts=0;
 		float check_dt = ((d->files[j].current->head->delta - d->files[reference].current->head->delta) / d->files[j].current->head->delta );
 
-		if (check_dt > 0.01) {
-			sprintf(message, "   station %s has different dt, this trace wasn't correlated ",d->files[j].current->head->kstnm);
+		if (fabs(check_dt) > 0.01) {
+			sprintf(message, "   station %s has different dt, this trace can't be correlated ",d->files[j].current->head->kstnm);
 			alert(WARNING);
 			continue;
 		}
@@ -421,19 +420,16 @@ float correlate(defs * d, int reference) {
 			t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 2*d->searchsize) - t_jstart + 1;
 		}
 
-/*        fprintf(stderr,"%s %f %d %d\n", d->files[j].current->head->kstnm, TfMark, t_jstart, t_npts);*/
 		
 		float dif_coef, max_coef;
 		int problem, n_index, index;
 		
 		float * lags = correl(
 					(d->filter) ? &tsreference->current->dataf[ref_jstart] : &tsreference->current->data[ref_jstart] ,
-					(d->filter) ? &ts->current->dataf[t_jstart] : &ts->current->data[t_jstart],
+					(d->filter && ts->current->dataf != NULL) ? &ts->current->dataf[t_jstart] : &ts->current->data[t_jstart],
 					ref_npts,
 					t_npts,
 					&max_coef, &index, &dif_coef, &problem, &n_index);
-
-/*		fprintf(stderr,"%s lags %f ",d->files[j].current->head->kstnm, *lags);*/
 
 		float corr = hdu_getSecondsFromNPTS(ts->current->head, t_jstart + index) + 
 				(MfMark - hdu_getSecondsFromNPTS(tsreference->current->head, ref_jstart));
@@ -441,7 +437,6 @@ float correlate(defs * d, int reference) {
 
 		parabola(lags, n_index, index, corr, ts->current->head->delta, &xmax, &ymax);
 
-/*		fprintf(stderr," ni %d i %d  xmax  %f\n",n_index, index, xmax);*/
 
 		if (lags) free(lags);
 		setPick(pick, ts->current->head, xmax);
@@ -450,6 +445,10 @@ float correlate(defs * d, int reference) {
 			avgcorr += fabs(TfMark - xmax);
 			ncorr++;
 		}
+
+		//set as correlated
+		d->files[j].current->head->unused26 = 1;
+
 	}
 	
 	if (ncorr > 0)
@@ -989,30 +988,18 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		}
 
 		int referencetrace = -1;
-		for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
+		for (j = 0; j < d->nfiles; j++) {
 			if (ctl_checkhit(d->ctl[j], ax, ay)) {
 				referencetrace = j+d->offset;
 				break;
 			}
 		}
 
-/*		for  (j = 0; j < d->nfiles; j++) {*/
-/*			if (( (d->files[j].current->head->delta - d->files[referencetrace].current->head->delta) / d->files[j].current->head->delta ) > 0.01) {*/
-/*				sprintf(message,"Traces have different dt! %s : %.3f e %s : %.3f", d->files[j].current->head->kstnm, d->files[j].current->head->delta, d->files[referencetrace].current->head->kstnm, d->files[referencetrace].current->head->delta);*/
-/*				alert(ERROR);*/
-/*				break;*/
-/*			}*/
-/*		}*/
-
 		float avgcorr = correlate(d, referencetrace);
 
 		if (avgcorr != -12345.0)
 			sprintf(d->lastaction,
 					"Average correction was %.2f s", avgcorr);
-
-		//mark as correlated
-		for  (j = 0; j < d->nfiles; j++)
-			d->files[j].current->head->unused26 = 1;
 
 		//mark files as not saved
 		d->needsave = 1;
