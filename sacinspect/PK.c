@@ -416,8 +416,8 @@ float correlate(defs * d, int reference) {
 			t_jstart = hdu_getNptsFromSeconds(ts->current->head, TfMark - d->insetsearchsize/2);
 			t_npts   = hdu_getNptsFromSeconds(ts->current->head, TfMark + d->searchsize/2) - t_jstart + 1;
 		} else {
-			t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 2*d->insetsearchsize);
-			t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 2*d->searchsize) - t_jstart + 1;
+			t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 1*d->insetsearchsize);
+			t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 1*d->searchsize) - t_jstart + 1;
 		}
 
 		
