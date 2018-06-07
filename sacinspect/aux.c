@@ -595,7 +595,8 @@ void writeout(tf * files, defs * d)
 {
 	tf *f;
 	int j;
-
+	int anyerr = 0;
+	
 	for (j = 0; j < d->nfiles; j++) {
 		f = &files[j];
 		if (f != NULL && f->current->head != NULL && f->current->filename != NULL) {
@@ -609,10 +610,20 @@ void writeout(tf * files, defs * d)
 				f->current->head->unused7 = d->hp;
 			}
 
-			io_writeSacHead(f->current->filename, f->current->head);
+			int err = io_writeSacHead(f->current->filename, f->current->head);
+			if (err != 0) {
+				anyerr ++;
+				fprintf(stderr, "Failed to write file: %s\n", f->current->filename);
+			}
 		}
 	}
-	d->needsave = 0;
+	
+	if (anyerr > 0) {
+		sprintf(message, "Something wrong saving the %d files, please check the terminal window!.", anyerr);
+		alert(WARNING);
+	}
+	
+	d->needsave = (anyerr == 0 ) ? 0 : 1;
 }
 
 void getminmax(float *data, SACHEAD * hdr, float start, float end,
