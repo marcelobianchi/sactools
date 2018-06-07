@@ -222,6 +222,18 @@ void Config(defs * d)
 							"Pattern used to search for files for the E component:",
 							DEFAULT_E);
 
+		k = valueoptionchar(getConfigAsString
+							(config, NAME_R, DEFAULT_R), k,
+							"4",
+							"Pattern used to search for files for the R component:",
+							DEFAULT_R);
+
+		k = valueoptionchar(getConfigAsString
+							(config, NAME_T, DEFAULT_T), k,
+							"5",
+							"Pattern used to search for files for the T component:",
+							DEFAULT_T);
+
 		// Jump a line
 		k--;
 
@@ -305,6 +317,19 @@ void Config(defs * d)
 			reloadTraces = 1;
 			break;
 		}
+		case ('4'): {
+			lerchar("Enter a new file pattern?", aux, 200);
+			setConfigString(config, NAME_R, (strlen(aux)>0)?aux:DEFAULT_R);
+			reloadTraces = 1;
+			break;
+		}
+			
+		case ('5'): {
+			lerchar("Enter a new file pattern?", aux, 200);
+			setConfigString(config, NAME_T, (strlen(aux)>0)?aux:DEFAULT_T);
+			reloadTraces = 1;
+			break;
+		}
 			
 		case ('c'): {
 			value = (getConfigAsBoolean(config, NAME_LOAD, DEFAULT_LOAD)) ? 0 : 1 ;
@@ -356,7 +381,7 @@ void dump(char *name, float *data, int npts) {
 float correlate(defs * d, int reference) {
 	int   j;
 	float TfMark; /* Target f mark */
-	float TrMark; /* Target referente mark */
+	float TrMark; /* Target reference (A) mark */
 	float MfMark; /* Master f mark */
 	float xmax, ymax;
 	float avgcorr;
@@ -366,33 +391,53 @@ float correlate(defs * d, int reference) {
 	pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
 	MfMark = pickD(pick, tsreference->current->head);
 
-	int ref_jstart = hdu_getNptsFromSeconds(tsreference->current->head, MfMark - d->insetsearchsize);
-	int ref_npts   = hdu_getNptsFromSeconds(tsreference->current->head, MfMark + d->searchsize) - ref_jstart + 1;
+	int ref_jstart = hdu_getNptsFromSeconds(tsreference->current->head, MfMark - d->insetsearchsize/2);
+	int ref_npts   = hdu_getNptsFromSeconds(tsreference->current->head, MfMark + d->searchsize/2) - ref_jstart + 1;
 	
 	avgcorr = 0.0;
 	ncorr = 0;
 	for (j = 0; j < d->nfiles; j++) {
 		if (j == reference) continue;
 		tf *ts = &d->files[j];
-		
+
+		int t_jstart=0,t_npts=0;
+		float check_dt = ((d->files[j].current->head->delta - d->files[reference].current->head->delta) / d->files[j].current->head->delta );
+
+		if (fabs(check_dt) > 0.01) {
+			sprintf(message, "   station %s has different dt, this trace can't be correlated ",d->files[j].current->head->kstnm);
+			alert(WARNING);
+			continue;
+		}
+
 		TrMark  = pickR(pick, ts->current->head);
 		TfMark = pickD(pick, ts->current->head);
-		int t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 2 * d->insetsearchsize);
-		int t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 2 * d->searchsize) - t_jstart + 1;
+
+		if (TfMark != -12345.0) {
+			t_jstart = hdu_getNptsFromSeconds(ts->current->head, TfMark - d->insetsearchsize/2);
+			t_npts   = hdu_getNptsFromSeconds(ts->current->head, TfMark + d->searchsize/2) - t_jstart + 1;
+		} else {
+			t_jstart = hdu_getNptsFromSeconds(ts->current->head, TrMark - 1*d->insetsearchsize);
+			t_npts   = hdu_getNptsFromSeconds(ts->current->head, TrMark + 1*d->searchsize) - t_jstart + 1;
+		}
+
 		
 		float dif_coef, max_coef;
 		int problem, n_index, index;
 		
 		float * lags = correl(
 					(d->filter) ? &tsreference->current->dataf[ref_jstart] : &tsreference->current->data[ref_jstart] ,
-					(d->filter) ? &ts->current->dataf[t_jstart] : &ts->current->data[t_jstart],
+					(d->filter && ts->current->dataf != NULL) ? &ts->current->dataf[t_jstart] : &ts->current->data[t_jstart],
 					ref_npts,
 					t_npts,
 					&max_coef, &index, &dif_coef, &problem, &n_index);
+
 		float corr = hdu_getSecondsFromNPTS(ts->current->head, t_jstart + index) + 
 				(MfMark - hdu_getSecondsFromNPTS(tsreference->current->head, ref_jstart));
 
+
 		parabola(lags, n_index, index, corr, ts->current->head->delta, &xmax, &ymax);
+
+
 		if (lags) free(lags);
 		setPick(pick, ts->current->head, xmax);
 
@@ -400,6 +445,10 @@ float correlate(defs * d, int reference) {
 			avgcorr += fabs(TfMark - xmax);
 			ncorr++;
 		}
+
+		//set as correlated
+		d->files[j].current->head->unused26 = 1;
+
 	}
 	
 	if (ncorr > 0)
@@ -722,15 +771,13 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 	case ('s'): {
 		d->searchsize =
-			fabs(lerfloat
-				 ("How many seconds post A mark to considerer in Min-Max search ?"));
+			lerfloat("How many seconds post A mark to considerer in Min-Max search ?");
 		break;
 	}
 
 	case ('i'): {
 		d->insetsearchsize =
-			fabs(lerfloat
-				 ("How many seconds pre A mark to considerer in Min-Max search ?"));
+			lerfloat("How many seconds pre A mark to considerer in Min-Max search ?");
 		break;
 	}
 
@@ -941,17 +988,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		}
 
 		int referencetrace = -1;
-		for (j = 0; j < d->max && (j + d->offset < d->nfiles); j++) {
+		for (j = 0; j < d->nfiles; j++) {
 			if (ctl_checkhit(d->ctl[j], ax, ay)) {
 				referencetrace = j+d->offset;
-				break;
-			}
-		}
-
-		for  (j = 0; j < d->nfiles; j++) {
-			if (( (d->files[j].current->head->delta - d->files[referencetrace].current->head->delta) / d->files[j].current->head->delta ) > 0.01) {
-				strcpy(message,"Traces have different dt!");
-				alert(ERROR);
 				break;
 			}
 		}
@@ -961,6 +1000,9 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		if (avgcorr != -12345.0)
 			sprintf(d->lastaction,
 					"Average correction was %.2f s", avgcorr);
+
+		//mark files as not saved
+		d->needsave = 1;
 
 		break;
 	}
@@ -978,10 +1020,10 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 		else
 			d->zne--;
 		
-		if (d->zne >= 3) d->zne = 0;
-		if (d->zne < 0) d->zne = 2;
+		if (d->zne >= 5) d->zne = 0;
+		if (d->zne < 0) d->zne = 4;
 		if (io_AdjustCurrent(d) == 0) {
-			sprintf(d->lastaction, "Switched components to %s", (d->zne == 0)?"Z":(d->zne == 1)?"N":"E");
+			sprintf(d->lastaction, "Switched components to %s", (d->zne == 0)?"Z":(d->zne == 1)?"N":(d->zne == 2)?"E":(d->zne == 3)?"R":"T");
 		} else {
 			sprintf(d->lastaction, "Failed to switch, try reloading the event.");
 			d->zne = currentid;

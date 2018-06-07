@@ -65,7 +65,7 @@ void resizemax(float scale)
 		exit(-1);
 	} else {
 		Y = XDisplayHeightMM(disp, 0);
-		X = XDisplayWidthMM(disp, 0);
+		X = XDisplayWidthMM(disp, 0) / (0.9);
 	}
 	XCloseDisplay(disp);
 	/* End of Xlib code */
