@@ -15,9 +15,10 @@
  * unused11 - Low Pass Filter P                   (read & Write)
  * unused12 - High Pass Filter P                  (read & Write)
  * unused6  - Low Pass Filter S                   (read & Write)
- * unused7 -  High Pass Filter S                  (read & Write)
+ * unused7  -  High Pass Filter S                 (read & Write)
  * unused27 - File was already visited            (read & Write)
  * unused26 - Picks were correlated ?             (read & Write)
+ * unused8  - Average signal correlation          (read)
  */
 
 

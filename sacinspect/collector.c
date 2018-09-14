@@ -11,6 +11,8 @@ void calculateResiduals(events * evs);
 
 void calculateEventMean(events * evs);
 
+void calculateMeanEventCorrelation(events * evs);
+
 /*****************************************************************************************/
 /* Station information                                                                   */
 /*****************************************************************************************/
@@ -295,6 +297,7 @@ events *newEventList(glob_t *glb, stations * ss)
 
 	calculateEventMean(evs);
 	calculateResiduals(evs);
+	calculateMeanEventCorrelation(evs);
 
 	return evs;
 }
@@ -525,7 +528,8 @@ pick *loadPick(char *filename, stations * ss)
 	p->tref = h->a - h->o;
 	p->difference = p->tobs - p->tref;
 	p->residual = -999.9;
-
+	p->tcorr = h->unused8;
+	
 	p->gcarc = h->gcarc;
 	p->baz = h->baz;
 
@@ -589,6 +593,24 @@ void calculateEventMean(events * evs)
 		// fprintf(stderr,"%f %f\n", ev->resMean, ev->resStd);
 	}
 
+	return;
+}
+
+void calculateMeanEventCorrelation(events * evs) {
+	int i, j;
+	for (i = 0; i < evs->n; i++) {
+		double m = 0.0;
+		for (j = 0 ; j < evs->elist[i]->n; j++) {
+			pick *p = evs->elist[i]->picks[j];
+			if (p->tcorr == SAC_HEADER_FLOAT_UNDEFINED) {
+				m = SAC_HEADER_FLOAT_UNDEFINED;
+				break;
+			}
+			m = m + p->tcorr;
+		}
+		if (m != SAC_HEADER_FLOAT_UNDEFINED) m = m / evs->elist[i]->n;
+		evs->elist[i]->ecorr = m;
+	}
 	return;
 }
 

@@ -65,10 +65,11 @@ pick *getPick(event *ev, int station) {
 	return NULL;
 }
 
-void writePicks(events *evs, stations *ss) {
+void writePicks(events *evs, stations *ss, float mme, float mms) {
 	int ie, is; 
 	FILE *sai;
 	
+	fprintf(stderr, "%f %f\n",mme, mms);
 	sai = fopen(EXr_NAMEPICKS, "w");
 	if (sai == NULL) return;
 	fprintf(sai, "1\n");
@@ -77,9 +78,17 @@ void writePicks(events *evs, stations *ss) {
 		for(is = 0; is < ss->n; is++) {
 			pick *pp = getPick(evs->elist[ie], is);
 			if (pp == NULL) {
-				fprintf(sai, "%d %10.6f %6.3f %s %s\n",0,-9.99,1.0,evs->elist[ie]->Id,ss->slist[is]->name);
+				fprintf(sai, "%d %10.6f %6.3f %s %5s %.2f %.2f\n",
+						0,-9.99,1.0,evs->elist[ie]->Id,ss->slist[is]->name, evs->elist[ie]->ecorr, 0.0);
+			} else if (mme != SAC_HEADER_FLOAT_UNDEFINED && evs->elist[ie]->ecorr < mme) {
+				fprintf(sai, "%d %10.6f %6.3f %s %5s %.2f %.2f\n",
+						0,pp->tobs,1.0,evs->elist[ie]->Id,ss->slist[is]->name, evs->elist[ie]->ecorr, pp->tcorr);
+			} else if (mms != SAC_HEADER_FLOAT_UNDEFINED && pp->tcorr < mms) {
+				fprintf(sai, "%d %10.6f %6.3f %s %5s %.2f %.2f\n",
+						0,pp->tobs,1.0,evs->elist[ie]->Id,ss->slist[is]->name, evs->elist[ie]->ecorr, pp->tcorr);
 			} else {
-				fprintf(sai, "%d %10.6f %6.3f %s %s\n",1,pp->tobs,1.0,evs->elist[ie]->Id,ss->slist[is]->name);
+				fprintf(sai, "%d %10.6f %6.3f %s %5s %.2f %.2f\n",
+						1,pp->tobs,1.0,evs->elist[ie]->Id,ss->slist[is]->name,evs->elist[ie]->ecorr, pp->tcorr);
 			}
 		}
 	}
@@ -88,7 +97,7 @@ void writePicks(events *evs, stations *ss) {
 	return;
 }
 
-void EXr_process(glob_t * glb) {
+void EXr_process(glob_t * glb, float mme, float mms) {
 	defs *d;
 	long pCount = 0;
 	int evi;
@@ -108,7 +117,7 @@ void EXr_process(glob_t * glb) {
 	
 	writeSources(evs);
 	writeReceivers(ss);
-	writePicks(evs, ss);
+	writePicks(evs, ss, mme, mms);
 	
 	fprintf(stderr, "Total of %d Stations collected.\n", ss->n);
 	fprintf(stderr, "Total of %d Events collected.\n", evs->n);
