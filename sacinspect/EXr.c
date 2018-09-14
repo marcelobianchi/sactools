@@ -9,11 +9,15 @@
  * It has fixed weights.
  */
 
+#define EXr_NAMESOURCES "sources.dat"
+#define EXr_NAMERECEIVERS "receivers.dat"
+#define EXr_NAMEPICKS "otimes.dat"
+
 void writeSources(events *evs) {
 	int i;
 	FILE *sai;
 	
-	sai = fopen("sources.dat", "w");
+	sai = fopen(EXr_NAMESOURCES, "w");
 	
 	fprintf(sai, "1\n");
 	fprintf(sai, "%d\n",evs->n);
@@ -34,7 +38,7 @@ void writeReceivers(stations *ss) {
 	int i;
 	FILE *sai;
 	
-	sai = fopen("receivers.dat", "w");
+	sai = fopen(EXr_NAMERECEIVERS, "w");
 	if (sai == NULL) return;
 	
 	fprintf(sai, "1\n");
@@ -65,7 +69,7 @@ void writePicks(events *evs, stations *ss) {
 	int ie, is; 
 	FILE *sai;
 	
-	sai = fopen("picks.dat", "w");
+	sai = fopen(EXr_NAMEPICKS, "w");
 	if (sai == NULL) return;
 	fprintf(sai, "1\n");
 	fprintf(sai, "%d\n", evs->n*ss->n);
