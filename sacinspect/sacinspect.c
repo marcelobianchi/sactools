@@ -29,6 +29,7 @@
 #include <EX.h>
 #include <HS.h>
 #include <MAP.h>
+#include <EXr.h>
 
 CFG *config;
 
@@ -88,7 +89,11 @@ int main(int argc, char **argv)
 		if (glb->gl_pathc > 0) {
 			EX_process(glb, oldlist);
 		}
-
+	} else if ((compare = strncmp(argv[1], "-rexport", 8))== 0) {
+		glb = (argc >= 3) ? dirlist(argv[2]) : dirlist(pathPattern);
+		if (glb->gl_pathc > 0) {
+			EXr_process(glb);
+		}
 	} else if ((compare = strncmp(argv[1], "-onedir", 7)) == 0) {
 		glb = malloc(sizeof(glob_t));
 		glb->gl_pathv = malloc(sizeof(char *));

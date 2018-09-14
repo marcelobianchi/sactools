@@ -282,12 +282,12 @@ events *newEventList(glob_t *glb, stations * ss)
 		}
 
 
-		if (ev->n != 0) {
+		if (ev != NULL && ev->n != 0) {
 			addev(evs, ev);
 			if (collectorVerbose) fprintf(stdout, "\r%s: [A] [%03d] \n", glb->gl_pathv[j], ev->n);
 		} else {
 			killEvent(ev);
-			if (collectorVerbose) fprintf(stdout, "\r%s: [D] [%03d] \n", glb->gl_pathv[j], ev->n);
+			if (collectorVerbose) fprintf(stdout, "\r%s: [D] [%03d] \n", glb->gl_pathv[j], 0);
 		}
 		
 		glbs = killGlob(glbs);
