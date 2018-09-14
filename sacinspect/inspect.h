@@ -46,6 +46,8 @@
 #define NAME_Z "zfilePattern"
 #define NAME_N "nfilePattern"
 #define NAME_E "efilePattern"
+#define NAME_R "rfilePattern"
+#define NAME_T "tfilePattern"
 #define NAME_LOAD "loadAll"
 
 // Config default values
@@ -54,11 +56,13 @@
 #define DEFAULT_ZOOMGAIN 3.0
 #define DEFAULT_LP 2.0
 #define DEFAULT_HP 0.5
-#define DEFAULT_PRE 5.0
-#define DEFAULT_POST 20.0
-#define DEFAULT_Z "*Z.SAC"
-#define DEFAULT_N "*N.SAC"
-#define DEFAULT_E "*E.SAC"
+#define DEFAULT_PRE 2.0
+#define DEFAULT_POST 2.0
+#define DEFAULT_Z "*[HB]HZ*"
+#define DEFAULT_N "*[HB]H[N1]*"
+#define DEFAULT_E "*[HB]H[E2]*"
+#define DEFAULT_R "*HHR*"
+#define DEFAULT_T "*HHT*"
 #define DEFAULT_LOAD 0
 
 typedef enum {
@@ -104,6 +108,8 @@ typedef struct timefile {
 	otf *z;
 	otf *n;
 	otf *e;
+	otf *t;
+	otf *r;
 	
 	otf *current;
 	
@@ -153,7 +159,6 @@ typedef struct {
 	// Processing parameters
 	float searchsize;
 	float insetsearchsize;
-
 	int needsave;
 } defs;
 

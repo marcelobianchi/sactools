@@ -31,6 +31,7 @@ typedef struct {
 	float tref;
 	float difference;
 	float residual;				/* ( tobs - tref ) / (mean event difference) */
+	float tcorr; /* Trace correlation */
 	void *ev;
 } pick;
 
@@ -45,6 +46,7 @@ typedef struct {
 	int hasMean;
 	int n;
 	pick **picks;
+	float ecorr; /* Event Mean Correlation */
 } event;
 
 typedef struct {

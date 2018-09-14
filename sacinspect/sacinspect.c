@@ -24,13 +24,29 @@
 #include <inspect.h>
 #include <aux.h>
 #include <globers.h>
+#include <string.h>
 
 #include <PK.h>
 #include <EX.h>
 #include <HS.h>
 #include <MAP.h>
+#include <EXr.h>
 
 CFG *config;
+
+float getFoption(int argc, char **argv, char *opt, float dvalue) {
+	int i;
+	for(i = 1; i < argc; i++)
+		if (strncmp(opt, argv[i], strlen(opt)) == 0) return atof(argv[i+1]);
+	return dvalue;
+}
+
+char *getSoption(int argc, char **argv, char *opt, char *dvalue) {
+	int i;
+	for(i = 1; i < argc; i++)
+		if (strncmp(opt, argv[i], strlen(opt)) == 0) return argv[++i];
+	return dvalue;
+}
 
 int main(int argc, char **argv)
 {
@@ -88,7 +104,15 @@ int main(int argc, char **argv)
 		if (glb->gl_pathc > 0) {
 			EX_process(glb, oldlist);
 		}
-
+	} else if ((compare = strncmp(argv[1], "-rexport", 8))== 0) {
+		float mme = getFoption(argc, argv, "-mme", SAC_HEADER_FLOAT_UNDEFINED);
+		float mms = getFoption(argc, argv, "-mms", SAC_HEADER_FLOAT_UNDEFINED);
+		
+		glb = dirlist(getSoption(argc, argv, "-dirpattern", pathPattern));
+		
+		if (glb->gl_pathc > 0) {
+			EXr_process(glb, mme, mms);
+		}
 	} else if ((compare = strncmp(argv[1], "-onedir", 7)) == 0) {
 		glb = malloc(sizeof(glob_t));
 		glb->gl_pathv = malloc(sizeof(char *));
