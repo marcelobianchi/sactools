@@ -11,7 +11,7 @@
 
 #define EXr_NAMESOURCES "sources.dat"
 #define EXr_NAMERECEIVERS "receivers.dat"
-#define EXr_NAMEPICKS "otimes.dat"
+#define EXr_NAMEPICKS "observed.dat"
 
 void writeSources(events *evs) {
 	int i;
@@ -44,10 +44,10 @@ void writeReceivers(stations *ss) {
 	fprintf(sai, "1\n");
 	fprintf(sai, "%d\n", ss->n);
 	for(i = 0; i < ss->n; i++) {
-		fprintf(sai, "%10.6f %11.6f %8.4f %s\n", 
+		fprintf(sai, "%8.4f %11.6f %10.6f %s\n", 
+				-1 * ss->slist[i]->el, 
 				ss->slist[i]->lat, 
 				ss->slist[i]->lon, 
-				-1 * ss->slist[i]->el, 
 				ss->slist[i]->name);
 	}
 	fclose(sai);
@@ -72,8 +72,6 @@ void writePicks(events *evs, stations *ss, float mme, float mms) {
 	fprintf(stderr, "%f %f\n",mme, mms);
 	sai = fopen(EXr_NAMEPICKS, "w");
 	if (sai == NULL) return;
-	fprintf(sai, "1\n");
-	fprintf(sai, "%d\n", evs->n*ss->n);
 	for(ie = 0; ie < evs->n; ie++) {
 		for(is = 0; is < ss->n; is++) {
 			pick *pp = getPick(evs->elist[ie], is);
@@ -107,7 +105,7 @@ void EXr_process(glob_t * glb, float mme, float mms) {
 	events *evs;
 
 	ss = newStationList(glb);
-	evs = newEventList(glb, ss);
+	evs = newEventList(glb, ss, mms);
 
 	for (evi = 0; evi < evs->n; evi++)
 		pCount += evs->elist[evi]->n;
