@@ -30,7 +30,9 @@
 #include <EX.h>
 #include <HS.h>
 #include <MAP.h>
+#include <EXf.h>
 #include <EXr.h>
+
 
 CFG *config;
 
@@ -103,6 +105,15 @@ int main(int argc, char **argv)
 
 		if (glb->gl_pathc > 0) {
 			EX_process(glb, oldlist);
+		}
+	} else if ((compare = strncmp(argv[1], "-fexport", 8))== 0) {
+		float mme = getFoption(argc, argv, "-mme", SAC_HEADER_FLOAT_UNDEFINED);
+		float mms = getFoption(argc, argv, "-mms", SAC_HEADER_FLOAT_UNDEFINED);
+		
+		glb = dirlist(getSoption(argc, argv, "-dirpattern", pathPattern));
+
+		if (glb->gl_pathc > 0) {
+			EXf_process(glb, mme, mms);
 		}
 	} else if ((compare = strncmp(argv[1], "-rexport", 8))== 0) {
 		float mme = getFoption(argc, argv, "-mme", SAC_HEADER_FLOAT_UNDEFINED);
