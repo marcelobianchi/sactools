@@ -77,7 +77,7 @@ station *killStation(station * s);
 // Event
 void addev(events * evs, event * ev);
 long writeoutevent(events * evs, stations * ss, float minStd, float maxStd);
-events *newEventList(glob_t *glb, stations * ss);
+events *newEventList(glob_t *glb, stations * ss, float mms);
 event *loadEvent(char *sacFilename);
 event *killEvent(event * ev);
 events *killEvents(events * evs);

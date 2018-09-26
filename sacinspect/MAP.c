@@ -253,7 +253,7 @@ void MAP_process(glob_t * glb)
 		return;
 	}
 
-	evs = newEventList(glb, ss);
+	evs = newEventList(glb, ss, 0);
 	if (evs == NULL) {
 		fprintf(stderr,"No Events found.\n");
 		return;

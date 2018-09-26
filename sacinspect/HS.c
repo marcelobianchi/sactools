@@ -179,7 +179,7 @@ void EXHIST_process(glob_t * glb)
 	char ch = '-';
 
 	ss = newStationList(glb);
-	evs = newEventList(glb, ss);
+	evs = newEventList(glb, ss, 0);
 
 	for (n = 0; n < evs->n; n++)
 		pCount += evs->elist[n]->n;

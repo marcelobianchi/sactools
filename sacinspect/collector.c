@@ -11,7 +11,7 @@ void calculateResiduals(events * evs);
 
 void calculateEventMean(events * evs);
 
-void calculateMeanEventCorrelation(events * evs);
+void calculateMeanEventCorrelation(events * evs, float mms);
 
 /*****************************************************************************************/
 /* Station information                                                                   */
@@ -247,7 +247,7 @@ void writeoutstation(stations * ss)
 /*****************************************************************************************/
 
 // New event list from a glob
-events *newEventList(glob_t *glb, stations * ss)
+events *newEventList(glob_t *glb, stations * ss, float mms)
 {
 	events *evs;
 	int j, file;
@@ -297,7 +297,7 @@ events *newEventList(glob_t *glb, stations * ss)
 
 	calculateEventMean(evs);
 	calculateResiduals(evs);
-	calculateMeanEventCorrelation(evs);
+	calculateMeanEventCorrelation(evs, mms);
 
 	return evs;
 }
@@ -596,19 +596,23 @@ void calculateEventMean(events * evs)
 	return;
 }
 
-void calculateMeanEventCorrelation(events * evs) {
+void calculateMeanEventCorrelation(events * evs, float mms) {
 	int i, j;
 	for (i = 0; i < evs->n; i++) {
 		double m = 0.0;
+		int cnt = 0;
 		for (j = 0 ; j < evs->elist[i]->n; j++) {
 			pick *p = evs->elist[i]->picks[j];
 			if (p->tcorr == SAC_HEADER_FLOAT_UNDEFINED) {
 				m = SAC_HEADER_FLOAT_UNDEFINED;
 				break;
-			}
-			m = m + p->tcorr;
+
+			}else if (p->tcorr >= mms){
+        			m = m + p->tcorr;
+                                cnt++;
+                        }
 		}
-		if (m != SAC_HEADER_FLOAT_UNDEFINED) m = m / evs->elist[i]->n;
+		if (m != SAC_HEADER_FLOAT_UNDEFINED) m = m / cnt;
 		evs->elist[i]->ecorr = m;
 	}
 	return;

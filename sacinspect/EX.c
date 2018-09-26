@@ -38,7 +38,7 @@ void EX_process(glob_t * glb, char *oldstationlist)
 	else
 		ss = readStationList(oldstationlist);
 
-	evs = newEventList(glb, ss);
+	evs = newEventList(glb, ss, 0);
 
 	for (evi = 0; evi < evs->n; evi++)
 		pCount += evs->elist[evi]->n;
