@@ -608,9 +608,9 @@ void calculateMeanEventCorrelation(events * evs, float mms) {
 				break;
 
 			}else if (p->tcorr >= mms){
-        			m = m + p->tcorr;
-                                cnt++;
-                        }
+				m = m + p->tcorr;
+				cnt++;
+			}
 		}
 		if (m != SAC_HEADER_FLOAT_UNDEFINED) m = m / cnt;
 		evs->elist[i]->ecorr = m;
