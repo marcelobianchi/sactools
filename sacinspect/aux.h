@@ -25,6 +25,8 @@ void multitraceplot(defs * d);
 void getminmax(float *data, SACHEAD * hdr, float start, float end,
 			   float *rmin, float *rmax);
 void filtertf(tf * f, defs * d);
+void writecurtmp(tf * files, defs * d, float inset, float length, 
+				 float maxs, float delta);
 void writeout(tf * f, defs * d);
 void synch(tf * f, int nfiles);
 void killCTL(g_ctl *** c, int n);

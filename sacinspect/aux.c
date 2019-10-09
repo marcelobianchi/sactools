@@ -27,6 +27,7 @@
 #include<edit_tf.h>
 
 #include<timeu.h>
+#include <libgen.h>
 
 /* Some internal definition of methods */
 void filtertf(tf * f, defs * d);
@@ -330,12 +331,13 @@ void multitraceplot(defs * d)
 		if (thistrace->current == NULL) {
 			continue;
 		}
+
+	if (d->overlay && thistrace->current->head->f == SAC_HEADER_FLOAT_UNDEFINED) {
+			continue;
+		}
+
 		if (d->onlyselected && !thistrace->selected)
 			continue;
-
-		if (d->filter && d->needfilter) {
-			filtertf(thistrace, d);
-		}
 
 		float Fmark = pickD(pick, thistrace->current->head);
 		float Amark = pickR(pick, thistrace->current->head);
@@ -579,8 +581,8 @@ void filtertf(tf * f, defs * d)
 	if (d->filter) {
 		yu_rtrend(f->current->data, f->current->head->npts);
 		f->current->dataf = iir(f->current->data, f->current->head->npts, f->current->head->delta,
-					(d->hp > 0.0) ? 2 : 0, d->hp, (d->lp > 0.0) ? 2 : 0,
-					d->lp);
+					(d->hp > 0.0) ? 2 : 0, (double)d->hp, (d->lp > 0.0) ? 2 : 0,
+					(double)d->lp);
 
 		if (f->current->dataf == NULL) {
 			sprintf(message, "Something wrong with the filter %f %f.", d->hp, d->lp);
@@ -588,6 +590,97 @@ void filtertf(tf * f, defs * d)
 		}
 	}
 
+	return;
+}
+
+void writecurtmp(tf * files, defs * d, float inset, float length, 
+				 float maxs, float delta) {
+	int j = 0;
+	tf *f;
+	char cmd[4096];
+	char fullpath[2096];
+	strcpy(fullpath, "/tmp/kkk.XXXXXX");
+	mkdtemp(fullpath);
+	
+	/*
+	 * Write files to temp folder
+	 */
+	for (j = 0; j < d->nfiles; j++) {
+		fullpath[15] = '\0';
+		char status[3] = "  ";
+		f = &files[j];
+		
+		char *net = hd_showValueFromChar(f->current->head, "KNETWK", "%s", NULL, NULL);
+		char *sta = hd_showValueFromChar(f->current->head, "KSTNM", "%s", NULL, NULL);
+		char *evn = hd_showValueFromChar(f->current->head, "KEVNM", "%s", NULL, NULL);
+		strcat(fullpath, "/"); strcat(fullpath, net); strcat(fullpath, "."); strcat(fullpath, sta); strcat(fullpath, "."); strcat(fullpath, evn); strcat(fullpath, ".sac");
+		free(net); free(sta); free(evn);
+		
+		if (f->current->head->f == SAC_HEADER_FLOAT_UNDEFINED) {
+			strcpy(status, "S-");
+			fprintf(stderr, "%s\t[%s]\n", fullpath, status);
+			continue;
+		}
+		status[0] = 'O';
+		
+		float *ydata = f->current->data;
+		status[1] = 'R';
+		if (d->filter && f->current->dataf != NULL) {
+			status[1] = 'F';
+			ydata = f->current->dataf;
+		}
+		
+		fprintf(stderr, "%s\t[%s]\n",fullpath, status);
+		io_writeSac(fullpath, f->current->head, ydata);
+		
+	}
+	
+	/*
+	 * Run SAC Macro
+	 */
+	fullpath[15] = '\0';
+	sprintf(cmd, "cd %s; sac mcpcc_prep.m INSET %f LENGTH %f MAXS %f DELTA %f RUN 1", fullpath, inset, length, maxs, delta);
+	system(cmd);
+	
+	/*
+	 * Load Values again
+	 */
+	for (j = 0; j < d->nfiles; j++) {
+		fullpath[15] = '\0';
+		f = &files[j];
+		
+		if (f->current->head->f == SAC_HEADER_FLOAT_UNDEFINED) {
+			continue;
+		}
+		
+		char *net = hd_showValueFromChar(f->current->head, "KNETWK", "%s", NULL, NULL);
+		char *sta = hd_showValueFromChar(f->current->head, "KSTNM", "%s", NULL, NULL);
+		char *evn = hd_showValueFromChar(f->current->head, "KEVNM", "%s", NULL, NULL);
+		strcat(fullpath, "/"); strcat(fullpath, net); strcat(fullpath, "."); strcat(fullpath, sta); strcat(fullpath, "."); strcat(fullpath, evn); strcat(fullpath, ".sac");
+		free(net); free(sta); free(evn);
+		
+		SACHEAD *h = io_readSacHead(fullpath);
+		if (h == NULL) {
+			fprintf(stderr, "Failed to read data back from mcpcc.\n");
+			continue;
+		}
+		// fprintf(stderr, "New time is %f old was %f / %f\n",h->t8, h->f, f->current->head->f);
+		f->current->head->f = h->t8;
+		free(h);
+		h = NULL;
+	}
+	
+	/*
+	 * Remove the temporary folder
+	 * 
+	 * This is UGLY as HELL ! FIX ME !!
+	 */
+	fullpath[15] = '\0';
+	sprintf(cmd, "rm -rf %s", fullpath);
+	system(cmd);
+	
+	d->needsave = 1;
+	
 	return;
 }
 
@@ -922,6 +1015,7 @@ defs *newdefs(glob_t * glb)
 	d->ctl = NULL;
 	d->files = NULL;
 	d->needsave = 0;
+	d->needfilter = 0;
 
 	return d;
 }

@@ -252,6 +252,30 @@ void Config(defs * d)
 							"Pick Mode:",
 							PickTypesNames[DEFAULT_PICK]);
 
+		// Jump a line
+		k--;
+
+		k = valueoption(getConfigAsNumber
+						(config, MCPCC_INSET, DEFAULT_MCPCC_INSET), k, "*",
+						"MCPCC Inset Value:",
+						DEFAULT_MCPCC_INSET);
+
+		k = valueoption(getConfigAsNumber
+						(config, MCPCC_LENGTH, DEFAULT_MCPCC_LENGTH), k, "/",
+						"MCPCC Length Value:",
+						DEFAULT_MCPCC_LENGTH);
+
+		k = valueoption(getConfigAsNumber
+						(config, MCPCC_MAXS, DEFAULT_MCPCC_MAXS), k, "=",
+						"MCPCC Max Shift Value:",
+						DEFAULT_MCPCC_MAXS);
+
+		k = valueoption(getConfigAsNumber
+						(config, MCPCC_DELTA, DEFAULT_MCPCC_DELTA), k, "%",
+						"MCPCC Delta Value:",
+						DEFAULT_MCPCC_DELTA);
+
+		
 		k -= 12;
 		k = titleoption("Q - To Return !", k);
 
@@ -344,6 +368,33 @@ void Config(defs * d)
 			} else {
 				setConfigNumber(config, NAME_PICK, P);
 			}
+			break;
+		}
+			
+		/*
+		 * MCPCC
+		 */
+		case('*'): {
+			value = lerfloat("Enter a new value MCPCC INSET?");
+			setConfigNumber(config, MCPCC_INSET, value);
+			break;
+		}
+			
+		case('/'): {
+			value = lerfloat("Enter a new value MCPCC LENGTH?");
+			setConfigNumber(config, MCPCC_LENGTH, value);
+			break;
+		}
+			
+		case('='): {
+			value = lerfloat("Enter a new value MCPCC SHIFT?");
+			setConfigNumber(config, MCPCC_MAXS, value);
+			break;
+		}
+			
+		case('%'): {
+			value = lerfloat("Enter a new value MCPCC DELTA?");
+			setConfigNumber(config, MCPCC_MAXS, value);
 			break;
 		}
 			
@@ -465,6 +516,18 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 	float vmin, vmax, aux;
 
 	switch (ch) {
+
+	case ('k'): { // Run MCPCC on the current event
+		float inset, length, maxs, delta;
+		
+		inset  = getConfigAsNumber(config, MCPCC_INSET, DEFAULT_MCPCC_INSET);
+		length = getConfigAsNumber(config, MCPCC_LENGTH, DEFAULT_MCPCC_LENGTH);
+		maxs   = getConfigAsNumber(config, MCPCC_MAXS, DEFAULT_MCPCC_MAXS);
+		delta  = getConfigAsNumber(config, MCPCC_DELTA, DEFAULT_MCPCC_DELTA);
+		
+		writecurtmp(d->files, d, inset, length, maxs, delta);
+		break;
+	}
 
 	case ('0'): {
 		d->sortmode++;
@@ -937,7 +1000,7 @@ void PK_checkoption(defs * d, char ch, float ax, float ay)
 
 	case ('f'): {
 		d->filter = !d->filter;
-		d->needfilter = 1;
+		if (d->filter) d->needfilter = 1;
 		sprintf(d->lastaction, "Switch filter %s",
 				(d->filter) ? "ON" : "OFF");
 		break;
@@ -1055,6 +1118,20 @@ char PK_waitloop(defs * d)
 	return ch;
 }
 
+void doFilter(defs * d) {
+	if (!d->needfilter) return;
+	
+	for (int j = 0; j < d->nfiles; j++) {
+		tf *thistrace = &d->files[j];
+		
+		if (d->filter && d->needfilter) {
+			filtertf(thistrace, d);
+		}
+	}
+	
+	d->needfilter = 0;
+}
+
 /* Main Module method */
 void PK_process(glob_t * glb)
 {
@@ -1102,6 +1179,9 @@ void PK_process(glob_t * glb)
 	
 	/* Main Loop */
 	while (ch != 'Q') {
+		/* Check Filter */
+		doFilter(d);
+		
 		/* Plot Data */
 		multitraceplot(d);
 

@@ -49,6 +49,11 @@
 #define NAME_R "rfilePattern"
 #define NAME_T "tfilePattern"
 #define NAME_LOAD "loadAll"
+#define MCPCC_INSET "mcpccInset"
+#define MCPCC_LENGTH "mcpccLength"
+#define MCPCC_MAXS "mcpccMaxs"
+#define MCPCC_DELTA "mcpccDelta"
+
 
 // Config default values
 #define DEFAULT_PICK 1
@@ -64,6 +69,10 @@
 #define DEFAULT_R "*HHR*"
 #define DEFAULT_T "*HHT*"
 #define DEFAULT_LOAD 0
+#define DEFAULT_MCPCC_INSET 1.5
+#define DEFAULT_MCPCC_LENGTH 3.0
+#define DEFAULT_MCPCC_MAXS 0.5
+#define DEFAULT_MCPCC_DELTA 0.01
 
 typedef enum {
 	None,
