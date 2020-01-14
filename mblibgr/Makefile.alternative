@@ -1,0 +1,9 @@
+OBJ = basic.o cfg.o ctl.o interaction.o
+
+CFLAGS=-I. -Wall
+all: $(OBJ)
+	ar rcs libmblibgr.a $(OBJ)
+	@echo "\nDone $(shell pwd)\n"
+
+clean:
+	rm -f $(OBJ) libmblibgr.a

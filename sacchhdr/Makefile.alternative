@@ -1,0 +1,12 @@
+OBJ = sacchhdr.o
+LIBS = -lmblibsac -lm 
+BIN = ../bin/sacchhdr
+
+CFLAGS=-I. -I../mblibgr/ -I../mblibsac/ -Wall -L../mblibsac -L../mblibgr
+
+all: $(OBJ)
+	$(CC) -o $(BIN) $(CFLAGS) $(OBJ) $(LIBS)
+	@echo "\nDone $(shell pwd)\n"
+
+clean:
+	rm -f $(OBJ) $(BIN)

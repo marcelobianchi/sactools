@@ -1,0 +1,33 @@
+all: binfolder
+	@make -C mblibgr -f Makefile.alternative
+	@make -C mblibsac -f Makefile.alternative
+	@make -C sac2gmt -f Makefile.alternative
+	@make -C sacchhdr -f Makefile.alternative
+	@make -C sachinfo -f Makefile.alternative
+	@make -C sacinspect -f Makefile.alternative
+	@make -C sacpickmax -f Makefile.alternative
+	@make -C sacrename -f Makefile.alternative
+	@make -C sacrgap -f Makefile.alternative
+	@make -C sacrms -f Makefile.alternative
+	@echo "\n\n\n\n\n\n\n\n\n\n"
+	@echo "********************************************************************"
+	@echo "* All files were compiled and are in folder bin/                   *"
+	@echo "* Copy them to your bin folder like ~/bin/ or even /usr/local/bin/ *"
+	@echo "********************************************************************"
+	@echo ""
+	@ls -l bin/
+
+binfolder:
+	mkdir -p bin/
+
+clean:
+	@make -C mblibgr -f Makefile.alternative clean
+	@make -C mblibsac -f Makefile.alternative clean
+	@make -C sac2gmt -f Makefile.alternative clean
+	@make -C sacchhdr -f Makefile.alternative clean
+	@make -C sachinfo -f Makefile.alternative clean
+	@make -C sacinspect -f Makefile.alternative clean
+	@make -C sacpickmax -f Makefile.alternative clean
+	@make -C sacrename -f Makefile.alternative clean
+	@make -C sacrgap -f Makefile.alternative clean
+	@make -C sacrms -f Makefile.alternative clean
