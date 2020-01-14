@@ -52,6 +52,7 @@ typedef struct ConfigModel {
 
 	int normalize;
 	int justheader;
+	int isotime;
 
 	FILELIST *list;
 	int nlist;
@@ -90,6 +91,11 @@ int main(int argc, char **argv)
 	stop = 0;
 	initConfig();
 	for (i = 1; i < argc; i++) {
+		if ((j = strncmp(argv[i], "--iso", 5)) == 0) {
+			config.isotime = 1;
+			continue;
+		}
+
 		if ((j = strncmp(argv[i], "-i", 2)) == 0 && i < argc - 1) {
 			config.ninfo++;
 			config.info =
@@ -346,7 +352,17 @@ int process(FILELIST * f)
 	if (config.justheader == 0)
 		for (i = 0; i < hdr->npts; i++) {
 			float time = i * hdr->delta + hdr->b - ref;
-			fprintf(stdout, "%f %f %f\n", time, value, data[i]);
+			if (config.isotime == 1) {
+				SACTIME *st = getTimeStructFromSAC(hdr);
+				sumation(st, time);
+				char *texttime = print_time(st, TIME_ISO);
+				
+				fprintf(stdout, "%s %f %f\n", texttime, value, data[i]);
+				free(texttime);
+				free(st);
+			} else {
+				fprintf(stdout, "%f %f %f\n", time, value, data[i]);
+			}
 		}
 
 	//  offset++;
@@ -374,6 +390,7 @@ void showHelp()
 	fprintf(stderr,
 			"\t-r) Use header variable as time origin on conversion\n");
 	fprintf(stderr, "\t-s) Sort traces by this header variable\n");
+	fprintf(stderr, "\t--iso) Output ISO dates as first column\n");
 	fprintf(stderr,
 			"\t-i) Add this variable on the info line, line begging with '>' (use more than one to get more variables in)\n");
 	fprintf(stderr, "\t-u) Use sort variable as Second coordinate axis\n");
@@ -394,6 +411,7 @@ void initConfig(void)
 	config.offset = 0;
 	config.hasoffset = 0;
 	config.normalize = 0;
+	config.isotime = 0;
 	config.counter = 1;
 	config.processCounter = 1;
 	config.list = NULL;
