@@ -215,10 +215,10 @@ void tag(SACHEAD * h, int needsave)
 	char *net = hd_showValueFromChar(h, "knetwk", NULL, NULL, NULL);
 	char *sta = hd_showValueFromChar(h, "kstnm", NULL, NULL, NULL);
 	char *ev = hd_showValueFromChar(h, "kevnm", NULL, NULL, NULL);
-    if (strncmp(sta, "-12345", 6) == 0) strcpy(sta, " - ");
-    if (strncmp(net, "-12345", 6) == 0) strcpy(net, " - ");
-    if (strncmp(ev,"-12345", 6) == 0)
-        strcpy(ev, " - ");
+	if (strncmp(sta, "-12345", 6) == 0) strcpy(sta, " - ");
+	if (strncmp(net, "-12345", 6) == 0) strcpy(net, " - ");
+	if (strncmp(ev,"-12345", 6) == 0)
+		strcpy(ev, " - ");
 	sprintf(texto,
 		"%s.%s: %04d-%03d/%02d:%02d:%02d (Event Id: %s)",
 		net, sta, h->nzyear, h->nzjday, h->nzhour, h->nzmin, h->nzsec,
@@ -317,9 +317,9 @@ void savemark(M *m, SACHEAD *hz, SACHEAD *hn, SACHEAD *he, char *header, char *l
 		hdu_changeValueFromChar(hn, header, &m->time, NULL, NULL);
 		hdu_changeValueFromChar(he, header, &m->time, NULL, NULL);
 
-		hdu_changeValueFromChar(hz, lheader, NULL, NULL, lheader);
-		hdu_changeValueFromChar(hn, lheader, NULL, NULL, lheader);
-		hdu_changeValueFromChar(he, lheader, NULL, NULL, lheader);
+		hdu_changeValueFromChar(hz, lheader, NULL, NULL, &m->name);
+		hdu_changeValueFromChar(hn, lheader, NULL, NULL, &m->name);
+		hdu_changeValueFromChar(he, lheader, NULL, NULL, &m->name);
 	} else {
 		float v = SAC_HEADER_FLOAT_UNDEFINED;
 		hdu_changeValueFromChar(hz, header, &v, NULL, NULL);
@@ -431,8 +431,8 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 	azimuth   = (hz->unused6 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused6 : SAC_HEADER_FLOAT_UNDEFINED;
 	t1   = (hz->unused8 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused8 : 0.0;
 	t2   = (hz->unused9 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused9 : 0.0;
-	fh   = (hz->unused10 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused10 : SAC_HEADER_FLOAT_UNDEFINED;
-	fl   = (hz->unused11 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused11 : SAC_HEADER_FLOAT_UNDEFINED;
+	fh   = (hz->unused10 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused10 : 5.;
+	fl   = (hz->unused11 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused11 : 25.;
 	inct = (hz->unused15 != SAC_HEADER_INT_UNDEFINED) ? hz->unused15 : ZE;
 	
 	if ( (fh != SAC_HEADER_FLOAT_UNDEFINED) && (SAC_HEADER_FLOAT_UNDEFINED != fl)) {
@@ -446,7 +446,6 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 	}
 	
 	i = 0;
-	if (hz->f != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "f", "kf");
 	if (hz->a != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "a", "ka");
 	if (hz->t0 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t0", "kt0");
 	if (hz->t1 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t1", "kt1");
@@ -458,7 +457,8 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 	if (hz->t7 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t7", "kt7");
 	if (hz->t8 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t8", "kt8");
 	if (hz->t9 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t9", "kt9");
-	
+	if (hz->f != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "f", "kf");
+
 	float *hitdata;
 	SACHEAD *hithead;
 	while (ch != 'Q') {
@@ -627,9 +627,18 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 							 180.0) * M_PI / 180.0);
 				}
 			}
-			needsave = 1;
+			needsave = 0;
 			break;
-
+		case '1': // Mark P @ 0
+			marks[0].set = 1;
+			marks[0].time = ax;
+			strcpy(marks[0].name, "P");
+			break;
+		case '2': // Mark S @ 1
+			marks[1].set = 1;
+			marks[1].time = ax;
+			strcpy(marks[1].name, "S");
+			break;
 		case 'L':	// Read time
 			if (mode == ZOOM) {
 				SACTIME *t = getTimeStructFromSAC(hithead);
@@ -759,19 +768,18 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 			hz->unused11 = hn->unused11 = he->unused11 = fl;
 			hz->unused15 = hn->unused15 = he->unused15 = inct;
 
-			savemark(&marks[0],  hz, hn, he, "f", "kf");
-			savemark(&marks[1],  hz, hn, he, "a", "ka");
-			savemark(&marks[2],  hz, hn, he, "t0", "kt0");
-			savemark(&marks[3],  hz, hn, he, "t1", "kt1");
-			savemark(&marks[4],  hz, hn, he, "t2", "kt2");
-			savemark(&marks[5],  hz, hn, he, "t3", "kt3");
-			savemark(&marks[6],  hz, hn, he, "t4", "kt4");
-			savemark(&marks[7],  hz, hn, he, "t5", "kt5");
-			savemark(&marks[8],  hz, hn, he, "t6", "kt6");
-			savemark(&marks[9],  hz, hn, he, "t7", "kt7");
-			savemark(&marks[10], hz, hn, he, "t8", "kt8");
-			savemark(&marks[11], hz, hn, he, "t9", "kt9");
-			
+			savemark(&marks[0],  hz, hn, he, "a", "ka");
+			savemark(&marks[1],  hz, hn, he, "t0", "kt0");
+			savemark(&marks[2],  hz, hn, he, "t1", "kt1");
+			savemark(&marks[3],  hz, hn, he, "t2", "kt2");
+			savemark(&marks[4],  hz, hn, he, "t3", "kt3");
+			savemark(&marks[5],  hz, hn, he, "t4", "kt4");
+			savemark(&marks[6],  hz, hn, he, "t5", "kt5");
+			savemark(&marks[7],  hz, hn, he, "t6", "kt6");
+			savemark(&marks[8],  hz, hn, he, "t7", "kt7");
+			savemark(&marks[9],  hz, hn, he, "t8", "kt8");
+			savemark(&marks[10], hz, hn, he, "t9", "kt9");
+			savemark(&marks[11], hz, hn, he, "f", "kf");
 
 			io_writeSacHead(zfilename, hz);
 			io_writeSacHead(nfilename, hn);
@@ -839,9 +847,9 @@ int main(int argc, char **argv)
 	}
 	
 	if ((strlen(efilename) == 0) && (strlen(efilename) == 0)) {
+		sprintf(nfilename, "%s.n",zfilename);
+		sprintf(efilename, "%s.e",zfilename);
 		sprintf(zfilename, "%s.z",zfilename);
-		sprintf(nfilename, "%s.n",nfilename);
-		sprintf(efilename, "%s.e",efilename);
 	}
 	
 	if ((strlen(efilename) == 0) || (strlen(efilename) == 0)) {
