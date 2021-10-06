@@ -510,12 +510,29 @@ float correlate(defs * d, int reference) {
 	return avgcorr;
 }
 
+float aic(float *data, SACHEAD * hdr, float start, float end) {
+	// É aqui que tem que acontecer a mágica!
+}
+
 void PK_checkoption(defs * d, char ch, float ax, float ay)
 {
 	int j, i;
 	float vmin, vmax, aux;
 
 	switch (ch) {
+
+	case (';'): { // Run the AIC on one or all traces
+		pdefs *pick = d->pickRules[(int)getConfigAsNumber(config, NAME_PICK, DEFAULT_PICK)];
+		for (j = 0; j < d->nfiles; j++) {
+			tf *ts = &d->files[j];
+			float AMark = pickR(pick, ts->current->head);
+			float pos = aic((d->filter
+					   && ts->current->dataf != NULL) ? ts->current->dataf : ts->current->data, ts->current->head,
+					  AMark - d->insetsearchsize,
+					  AMark + d->searchsize);
+			setPick(pick, ts->current->head, pos);
+		}
+	}
 
 	case ('k'): { // Run MCPCC on the current event
 		float inset, length, maxs, delta;
