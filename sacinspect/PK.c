@@ -511,7 +511,20 @@ float correlate(defs * d, int reference) {
 }
 
 float aic(float *data, SACHEAD * hdr, float start, float end) {
-	// É aqui que tem que acontecer a mágica!
+	int istart, iend;
+	float *aic;
+	istart = hdu_roundNPTS(hdr, hdu_getNptsFromSeconds(hdr, start));
+	iend   = hdu_roundNPTS(hdr, hdu_getNptsFromSeconds(hdr, end));
+	
+	for(int i=istart-100; i<iend+100; i++){
+		// aic
+	}
+	
+	// Find min
+	float min, max; 
+	getminmax(aic, hdr, start, end, &min, &max);
+	
+	return min;
 }
 
 void PK_checkoption(defs * d, char ch, float ax, float ay)
