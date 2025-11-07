@@ -12,6 +12,8 @@
 #include <interaction.h>
 #include <timeu.h>
 
+#include "model.h"
+
 #define ZN 0
 #define ZE 1
 #define ZOOM 2
@@ -787,7 +789,52 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 			needsave = 0;
 			break;
 
-		case 'Q': {
+        case 'H': {
+            if (!marks[0].set || !marks[1].set){
+                sprintf(message, "Need P and S marked (use '1' and '2' keys).");
+                alert(0);
+                break;
+            }
+
+            if (azimuth == SAC_HEADER_FLOAT_UNDEFINED) {
+                sprintf(message, "Need a valid azimuth estimated.");
+                alert(0);
+                break;
+            }
+
+            if (hz->stla == SAC_HEADER_FLOAT_UNDEFINED || hz->stlo == SAC_HEADER_FLOAT_UNDEFINED){
+                sprintf(message, "SAC data must have station coordinates.");
+                alert(0);
+                break;
+            }
+
+            float sp=marks[1].time - marks[0].time;
+            float distance = time2distance(sp);
+            if (distance == -999.0) {
+                sprintf(message, "S-P time is not in table.");
+                alert(0);
+                break;
+            }
+
+            float elon, elat;
+            model_locate(hz->stlo, hz->stla, distance, azimuth, &elon, &elat);
+
+            hz->evla = hn->evla = he->evla = elat;
+            hz->evlo = hn->evlo = he->evlo = elon;
+            hz->evdp = hn->evdp = he->evdp = 0.0;
+            hz->dist = hn->dist = he->dist = distance;
+            hz->gcarc = hn->gcarc = he->gcarc = distance / 111.32;
+            hz->baz   = hn->baz   = he->baz  = azimuth;
+            hz->lcalda = hn->lcalda = he->lcalda = SAC_FALSE;
+
+            if (yesno("Open Google to show location?") == 1) {
+                char cmd_line[10500];
+                sprintf(cmd_line, "x-www-browser 'http://www.google.com/maps/place/%.4f,%.4f/@%.4f,%.4f'",elat,elon,elat,elon);
+                system(cmd_line);
+            }
+        }
+
+        case 'Q': {
 			if (needsave) {
 				int yn = yesno("File will not be saved, edits will be lost, really quit?");
 				ch = (yn == 1) ? ch : ' ';
@@ -806,7 +853,7 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 
 int main(int argc, char **argv)
 {
-	int needsave, force = 0;
+    int needsave, force = 0;
 	SACHEAD *hz, *hn, *he;
 	float *z, *n, *e;
 	int stop = 0;
