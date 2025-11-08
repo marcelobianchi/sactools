@@ -829,7 +829,7 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 
             if (yesno("Open Google to show location?") == 1) {
                 char cmd_line[10500];
-                sprintf(cmd_line, "x-www-browser 'http://www.google.com/maps/place/%.4f,%.4f/@%.4f,%.4f'",elat,elon,elat,elon);
+                sprintf(cmd_line, "xdg-open 'http://www.google.com/maps/place/%.4f,%.4f/@%.4f,%.4f'",elat,elon,elat,elon);
                 system(cmd_line);
             }
         }
