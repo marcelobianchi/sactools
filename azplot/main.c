@@ -319,9 +319,9 @@ void savemark(M *m, SACHEAD *hz, SACHEAD *hn, SACHEAD *he, char *header, char *l
 		hdu_changeValueFromChar(hn, header, &m->time, NULL, NULL);
 		hdu_changeValueFromChar(he, header, &m->time, NULL, NULL);
 
-		hdu_changeValueFromChar(hz, lheader, NULL, NULL, &m->name);
-		hdu_changeValueFromChar(hn, lheader, NULL, NULL, &m->name);
-		hdu_changeValueFromChar(he, lheader, NULL, NULL, &m->name);
+        hdu_changeValueFromChar(hz, lheader, NULL, NULL, (char*)&m->name);
+        hdu_changeValueFromChar(hn, lheader, NULL, NULL, (char*)&m->name);
+        hdu_changeValueFromChar(he, lheader, NULL, NULL, (char*)&m->name);
 	} else {
 		float v = SAC_HEADER_FLOAT_UNDEFINED;
 		hdu_changeValueFromChar(hz, header, &v, NULL, NULL);
