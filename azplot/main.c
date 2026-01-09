@@ -39,8 +39,7 @@ typedef struct m {
 
 M marks[nm];
 
-void rotateNE2RT(int n, float *E, float *N, float azimuth)
-{
+void rotateNE2RT(int n, float *E, float *N, float azimuth) {
 	int i;
 	float ntmp, etmp;
 
@@ -53,8 +52,7 @@ void rotateNE2RT(int n, float *E, float *N, float azimuth)
 	}
 }
 
-void line(g_ctl * ctl, float xmin, int color)
-{
+void line(g_ctl * ctl, float xmin, int color) {
 	if (xmin > ctl->xmax || xmin < ctl->xmin)
 		return;
 	cpgsci(color);
@@ -63,8 +61,7 @@ void line(g_ctl * ctl, float xmin, int color)
 	cpgsci(1);
 }
 
-void markazimuth(g_ctl * ctl, float mangle)
-{
+void markazimuth(g_ctl * ctl, float mangle) {
 	if (mangle > SAC_HEADER_FLOAT_UNDEFINED) {
 		float xc = (ctl->xmin + ctl->xmax) / 2.0;
 		float yc = (ctl->xmin + ctl->xmax) / 2.0;
@@ -87,8 +84,7 @@ void markazimuth(g_ctl * ctl, float mangle)
 	}
 }
 
-void markincidence(g_ctl * ctl, float mangle)
-{
+void markincidence(g_ctl * ctl, float mangle) {
 	if (mangle > SAC_HEADER_FLOAT_UNDEFINED) {
 		float xc = (ctl->xmin + ctl->xmax) / 2.0;
 		float yc = (ctl->xmin + ctl->xmax) / 2.0;
@@ -111,8 +107,7 @@ void markincidence(g_ctl * ctl, float mangle)
 	}
 }
 
-void d_angle(g_ctl * ctl, float *xdata, float *ydata, int npts, float mangle)
-{
+void d_angle(g_ctl * ctl, float *xdata, float *ydata, int npts, float mangle) {
 	float xmin, xmax;
 	float ymin, ymax;
 	char title[128] = "";
@@ -146,8 +141,7 @@ void d_angle(g_ctl * ctl, float *xdata, float *ydata, int npts, float mangle)
 	cpgline(npts, xdata, ydata);
 }
 
-void d_time(g_ctl * ctl, float *data, SACHEAD * h)
-{
+void d_time(g_ctl * ctl, float *data, SACHEAD * h) {
 	int i;
 
 	ctl_yupdate_ndb(ctl, data, h->npts, h->delta, h->b);
@@ -198,8 +192,7 @@ void d_time(g_ctl * ctl, float *data, SACHEAD * h)
 	free(x);
 }
 
-char *getf(float v, char *fmt)
-{
+char *getf(float v, char *fmt) {
 	static char temp[256];
 	if (v == -12345.0)
 		return " - ";
@@ -207,8 +200,7 @@ char *getf(float v, char *fmt)
 	return temp;
 }
 
-void tag(SACHEAD * h, int needsave)
-{
+void tag(SACHEAD * h, int needsave) {
 	char texto[2048];
 
 	g_ctl *zc = ctl_newctl(0.05, 0.05, 0.90, 0.90);
@@ -259,11 +251,9 @@ void tag(SACHEAD * h, int needsave)
 	free(zc);
 }
 
-void
-d(g_ctl * zc, g_ctl * nc, g_ctl * ec, g_ctl * azc, g_ctl * inc,
+void d(g_ctl * zc, g_ctl * nc, g_ctl * ec, g_ctl * azc, g_ctl * inc,
   float *z, SACHEAD * hz, float *n, SACHEAD * hn, float *e, SACHEAD * he,
-  float xmin, float xmax, float azimuth, float incidence, int inct, int needsave)
-{
+  float xmin, float xmax, float azimuth, float incidence, int inct, int needsave) {
 	cpgeras();
 
 	/* Ts + times */
@@ -334,8 +324,7 @@ void savemark(M *m, SACHEAD *hz, SACHEAD *hn, SACHEAD *he, char *header, char *l
 	}
 }
 
-void
-loadmark(M *m, SACHEAD *h, char *header, char *lheader) {
+void loadmark(M *m, SACHEAD *h, char *header, char *lheader) {
 	char *name = NULL;
 	
 	m->set = 1;
@@ -349,9 +338,7 @@ loadmark(M *m, SACHEAD *h, char *header, char *lheader) {
 	return;
 }
 
-void
-interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SACHEAD * hn, char *efilename, float *e, SACHEAD * he)
-{
+void interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SACHEAD * hn, char *efilename, float *e, SACHEAD * he) {
 	int i;
 
 	float *zf = z;
@@ -900,7 +887,7 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 		}
 
 		default: {
-			printf("Oops, invalid command.\n");
+			fprintf(stderr, "Oops, invalid command.\n");
 		}
 		break;
 
@@ -910,8 +897,49 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 	return;
 }
 
-int main(int argc, char **argv)
-{
+int check_filename(char *base, char *ext) {
+	FILE *ent = NULL;
+	int base_size = strlen(base);
+
+	// Assembly name
+	if (ext != NULL) strncat(base, ext, 2048 - base_size - 1);
+
+	// Test
+	ent = fopen(base, "r");
+	if (ent) {
+		fclose(ent);
+		return 1;
+	}
+
+	base[base_size] = '\0';
+	return 0;
+}
+
+void derive_name(char *dest, char *src) {
+	if (strlen(dest) != 0) return;
+
+	strcat(dest, src);
+
+	if (strncmp(&dest[strlen(dest)-2], ".z", 2) == 0) {
+		dest[strlen(dest)-2] = '\0';
+		return;
+	}
+
+	if (strncmp(&dest[strlen(dest)-5], "Z.sac", 5) == 0) {
+		dest[strlen(dest)-5] = '\0';
+		return;
+	}
+
+	if (strncmp(&dest[strlen(dest)-5], "Z.SAC", 5) == 0) {
+		dest[strlen(dest)-5] = '\0';
+		return;
+	}
+
+	return;
+}
+
+
+int main(int argc, char **argv) {
 	int needsave, force = 0;
 	SACHEAD *hz, *hn, *he;
 	float *z, *n, *e;
@@ -928,7 +956,7 @@ int main(int argc, char **argv)
 	needsave = 0;
 
 	int i = 1;
-	
+
 	while (i<argc) {
 		if (strncmp(argv[i], "-f",2)==0) {
 			force = 1;
@@ -937,32 +965,65 @@ int main(int argc, char **argv)
 		}
 
 		if (strlen(zfilename) == 0) {
-			sprintf(zfilename, "%s",argv[i]);
+			strncat(zfilename, argv[i], 2047);
 		} else if (strlen(nfilename) == 0) {
-			sprintf(nfilename, "%s",argv[i]);
+			strncat(nfilename, argv[i], 2047);
 		} else if (strlen(efilename) == 0) {
-			sprintf(efilename, "%s",argv[i]);
+			strncat(efilename, argv[i], 2047);
 		}
 		
 		i++;
 	}
-	
+
+	/*
+	 * Find correct filenames
+	 */
+
 	if (strlen(zfilename) == 0) {
 		fprintf(stderr, "Error, no file was provided.\n");
 		return -1;
 	}
-	
-	if ((strlen(efilename) == 0) && (strlen(efilename) == 0)) {
-		sprintf(nfilename, "%s.n",zfilename);
-		sprintf(efilename, "%s.e",zfilename);
-		sprintf(zfilename, "%s.z",zfilename);
+
+	if (!check_filename(zfilename, NULL)) {
+		if (!check_filename(zfilename, ".z")) {
+			if (!check_filename(zfilename, "Z.sac")) {
+				if (!check_filename(zfilename, "Z.SAC")) {
+					fprintf(stderr, "Falied to find Z file!\n");
+					return -1;
+				}
+			}
+		}
 	}
-	
-	if ((strlen(efilename) == 0) || (strlen(efilename) == 0)) {
-		fprintf(stderr, "Error, no one base filename, or 3 (ZNE) files in order.\n");
-		return -1;
+
+	derive_name(nfilename, zfilename);
+	if (!check_filename(nfilename, NULL)) {
+		if (!check_filename(nfilename, ".n")) {
+			if (!check_filename(nfilename, "N.sac")) {
+				if (!check_filename(nfilename, "N.SAC")) {
+					fprintf(stderr, "Falied to find N file!\n");
+					return -1;
+				}
+			}
+		}
 	}
-		
+
+	derive_name(efilename, zfilename);
+	if (!check_filename(efilename, NULL)) {
+		if (!check_filename(efilename, ".e")) {
+			if (!check_filename(efilename, "E.sac")) {
+				if (!check_filename(efilename, "E.SAC")) {
+					fprintf(stderr, "Falied to find E file!\n");
+					return -1;
+				}
+			}
+		}
+	}
+
+	fprintf(stderr, "Loading: %s %s %s\n", zfilename, nfilename, efilename);
+
+	/*
+	 * Read
+	 */
 	z = io_readSac(zfilename, &hz);
 	if (z == NULL) {
 		fprintf(stderr, "Error reading z file: %s\n", zfilename);
