@@ -30,6 +30,49 @@ float time2distance(float target) {
     return (target-isp)*(m_dist[ii]-m_dist[i])/(iisp - isp) + m_dist[i];
 }
 
+
+float distance2ptime(float distance) {
+    int i, ii;
+    
+    if (distance > m_dist[m_len-1]) {
+        return -1.0;
+    }
+    
+    for(i=0, ii=1; i < (m_len-1); i++, ii++) {
+        if (distance > m_dist[ii]) continue;
+        
+        break;
+    }
+    
+    float value = m_tp[i] + (distance - m_dist[i]) * (m_tp[ii] - m_tp[i]) / (m_dist[ii] - m_dist[i]);
+    
+    //~ printf("%f %f %f %f \n", distance, m_dist[i], m_dist[ii], value);
+    
+    return value;
+}
+
+
+float distance2stime(float distance) {
+    int i, ii;
+    
+    if (distance > m_dist[m_len-1]) {
+        return -1.0;
+    }
+    
+    for(i=0, ii=1; i < (m_len-1); i++, ii++) {
+        if (distance > m_dist[ii]) continue;
+        
+        break;
+    }
+    
+    float value = m_ts[i] + (distance - m_dist[i]) * (m_ts[ii] - m_ts[i]) / (m_dist[ii] - m_dist[i]);
+    
+    //~ printf("%f %f %f %f \n", distance, m_dist[i], m_dist[ii], value);
+    
+    return value;
+}
+
+
 int model_locate(float slon, float slat, float distance, float azimuth, float *elon, float *elat) {
     /*
      * Computations relies on https://github.com/geographiclib/geographiclib-c

@@ -26,7 +26,7 @@
 
 float fh, fl;			// Filter values
 int filteris = OFF;		// Filter status
-char statusline[256];	// Message to display on status
+char statusline[256];		// Message to display on status
 
 int rotated = OFF;		// Is rotated trace?
 
@@ -81,7 +81,7 @@ void markazimuth(g_ctl * ctl, float mangle)
 				-1 * (yc +
 				      (ctl->xmin -
 				       xc) * tan((mangle -
-						  90) * M_PI / 180.0)));
+				       90) * M_PI / 180.0)));
 		cpgsci(1);
 		cpgslw(1);
 	}
@@ -229,12 +229,12 @@ void tag(SACHEAD * h, int needsave)
 	free(sta);
 	free(ev);
 
-	sprintf(texto, "%s Lon: %s%c", texto, getf(h->evlo, "%7.2f"), (char)94);
-	sprintf(texto, "%s Lat: %s%c", texto, getf(h->evla, "%6.2f"), (char)94);
-	sprintf(texto, "%s Dep: %s", texto,
+	sprintf(texto, "%s e-Lon: %s%c", texto, getf(h->evlo, "%7.2f"), (char)94);
+	sprintf(texto, "%s e-Lat: %s%c", texto, getf(h->evla, "%6.2f"), (char)94);
+	sprintf(texto, "%s e-Dep: %s", texto,
 		getf((h->evdp > 1000.0) ? h->evdp / 1000.0 : h->evdp,
 		     "%5.1f km"));
-	sprintf(texto, "%s Mag: %s", texto, getf(h->mag, "%3.1f"));
+	sprintf(texto, "%s e-Mag: %s", texto, getf(h->mag, "%3.1f"));
 	cpgmtxt("T", 1.2, 0.5, 0.5, texto);
 
 	if (needsave) {
@@ -319,9 +319,9 @@ void savemark(M *m, SACHEAD *hz, SACHEAD *hn, SACHEAD *he, char *header, char *l
 		hdu_changeValueFromChar(hn, header, &m->time, NULL, NULL);
 		hdu_changeValueFromChar(he, header, &m->time, NULL, NULL);
 
-        hdu_changeValueFromChar(hz, lheader, NULL, NULL, (char*)&m->name);
-        hdu_changeValueFromChar(hn, lheader, NULL, NULL, (char*)&m->name);
-        hdu_changeValueFromChar(he, lheader, NULL, NULL, (char*)&m->name);
+		hdu_changeValueFromChar(hz, lheader, NULL, NULL, (char*)&m->name);
+		hdu_changeValueFromChar(hn, lheader, NULL, NULL, (char*)&m->name);
+		hdu_changeValueFromChar(he, lheader, NULL, NULL, (char*)&m->name);
 	} else {
 		float v = SAC_HEADER_FLOAT_UNDEFINED;
 		hdu_changeValueFromChar(hz, header, &v, NULL, NULL);
@@ -513,13 +513,16 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 		}
 		switch (ch) {
 
-		case 'T':	// Switch Vaz mode.
+		case 'T': {
+			// Switch Vaz mode.
 			inct = (inct == ZE) ? ZN : ZE;
 			incidence = SAC_HEADER_FLOAT_UNDEFINED;
 			needsave = 1;
-			break;
+		}
+		break;
 
-		case 'X':	// Zoom trace
+		case 'X': {
+			// Zoom trace
 			if (mode != ZOOM)
 				break;
 			a1 = ax;
@@ -535,9 +538,11 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 				ctl_xreset_mm(nc, a1, a2);
 				ctl_xreset_mm(ec, a1, a2);
 			}
-			break;
+		}
+		break;
 
-		case 'A':	// Define a azimuth window
+		case 'A': {
+			// Define a azimuth window
 			if (mode == ZOOM) {
 				azimuth = SAC_HEADER_FLOAT_UNDEFINED;
 				incidence = SAC_HEADER_FLOAT_UNDEFINED;
@@ -572,9 +577,11 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 				    (atan2f(ax - a1, a2 - ay) * 180.0 / M_PI);
 			}
 			needsave = 1;
-			break;
+		}
+		break;
 
-		case 'F':	// Filter on/off
+		case 'F': {
+			// Filter on/off
 			if (filteris == OFF) {
 				fh = lerfloat
 				    ("High pass frequency (0 to cancel)?");
@@ -596,10 +603,7 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 
 				if (rotated == ON)
 					rotateNE2RT(hz->npts, ef, nf,
-						    ((azimuth >
-						      180.0) ? azimuth -
-							 180.0 : azimuth +
-						     180.0) * M_PI / 180.0);
+                                                    ((azimuth > 180.0) ? azimuth - 180.0 : azimuth + 180.0) * M_PI / 180.0);
 
 				filteris = ON;
 			} else {
@@ -623,25 +627,31 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 					memcpy(ef, e, he->npts * sizeof(float));
 
 					rotateNE2RT(hz->npts, ef, nf,
-						    ((azimuth >
-						      180.0) ? azimuth -
-							 180.0 : azimuth +
-							 180.0) * M_PI / 180.0);
+                                                    ((azimuth > 180.0) ? azimuth - 180.0 : azimuth + 180.0) * M_PI / 180.0);
 				}
 			}
 			needsave = 0;
-			break;
-		case '1': // Mark P @ 0
+		}
+		break;
+
+		case '1': {
+			// Mark P @ 0
 			marks[0].set = 1;
 			marks[0].time = ax;
 			strcpy(marks[0].name, "P");
-			break;
-		case '2': // Mark S @ 1
+		}
+		break;
+
+		case '2': {
+			// Mark S @ 1
 			marks[1].set = 1;
 			marks[1].time = ax;
 			strcpy(marks[1].name, "S");
-			break;
-		case 'L':	// Read time
+		}
+		break;
+
+		case 'L': {
+			// Read time
 			if (mode == ZOOM) {
 				SACTIME *t = getTimeStructFromSAC(hithead);
 				int namplitude = hdu_getNptsFromSeconds(hithead, ax);
@@ -649,11 +659,13 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 				sumation(t, ax);
 				char *tt = print_time(t, TIME_ISO);
 				sprintf(statusline, "Pick @ %s (rel. is %.2f), Amplitude: %f",
-					tt, ax, hitdata[namplitude]);
+				        tt, ax, hitdata[namplitude]);
 			}
-			break;
+		}
+		break;
 
-		case 'P':	// Make a print - out
+		case 'P': {
+			// Make a print - out
 			cpgclos();
 			cpgopen("azplot.ps/CPS");
 			d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2,
@@ -665,29 +677,59 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 			  azimuth, incidence, inct, needsave);
 			sprintf(message, "Print wrote to: azplot.ps");
 			alert(ANOUNCE);
-			break;
+		}
+		break;
 
-			/* Marks related */
-		case 'D':
-			{	// Dump marks
-				for (i = 0; i < nm; i++) {
-					if (marks[i].set) {
-						SACTIME *t =
-						    getTimeStructFromSAC(hz);
-						sumation(t, marks[i].time);
-						char *tt =
-						    print_time(t, TIME_ISO);
-						fprintf(stdout, "%d %s %f %s\n",
-							i, tt, marks[i].time,
-							marks[i].name);
-						free(tt);
-						free(t);
-					}
+		/*
+		 * Marks related
+		 */
+		case 'D': {
+			// Dump marks
+			char *net, *sta;
+			net = hd_showValueFromChar(hz, "knetwk", NULL, NULL, NULL);
+			sta = hd_showValueFromChar(hz, "kstnm", NULL, NULL, NULL);
+
+			for (i = 0; i < nm; i++) {
+				if (marks[i].set) {
+					SACTIME *t =
+					    getTimeStructFromSAC(hz);
+					
+					sumation(t, marks[i].time);
+					
+					char *tt = print_time(t, TIME_ISO);
+					
+					fprintf(stdout, "Pick %d %s.%s %s %f %s\n",
+						i, net, sta, tt, marks[i].time,
+						marks[i].name);
+					
+					free(tt);
+					free(t);
 				}
 			}
-			break;
 
-		case 'M':	// Mark
+			if (azimuth != SAC_HEADER_FLOAT_UNDEFINED) {
+
+				fprintf(stdout, "Azimuth %s.%s %f\n", net, sta, azimuth);
+			}
+
+			if (incidence != SAC_HEADER_FLOAT_UNDEFINED) {
+
+				fprintf(stdout, "Incidence %s.%s %f\n", net, sta, incidence);
+			}
+
+			if (hz->evla != SAC_HEADER_FLOAT_UNDEFINED) {
+				SACTIME *t = getTimeStructFromSAC(hz);
+				sumation(t, hz->o);
+				char *tt = print_time(t, TIME_ISO);
+
+				fprintf(stdout, "Origin %s.%s %s %f %f %f\n", net, sta, tt, hz->evla, hz->evlo, hz->evdp);
+			}
+
+		}
+		break;
+
+		case 'M': {
+			// Mark
 			if (mode == ZOOM) {
 				int mark = -1;
 				float mtime = ax;
@@ -704,18 +746,21 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 
 				needsave = 1;
 			}
-			break;
+		}
+		break;
 
-		case 'C':	// Clear Marks
+		case 'C':  {
+			// Clear Marks
 			if (yesno("Clear all marks?")) {
 				for (i = 0; i < nm; i++)
 					marks[i].set = 0;
 
 				needsave = 1;
 			}
-			break;
+		}
+		break;
 
-		case 'R':
+		case 'R': {
 			if (rotated == OFF) {
 				if (filteris == OFF) {
 					zf = malloc(sizeof(float) * hz->npts);
@@ -759,9 +804,10 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 						 fh, 2.0, fl);
 				}
 			}
-			break;
-			
-		case 'S':
+		}
+		break;
+
+		case 'S': {
 			hz->unused6 = hn->unused6 = he->unused6 = azimuth;
 			hz->unused7 = hn->unused7 = he->unused7 = incidence;
 			hz->unused8 = hn->unused8 = he->unused8 = t1;
@@ -787,73 +833,86 @@ interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n, SAC
 			io_writeSacHead(nfilename, hn);
 			io_writeSacHead(efilename, he);
 			needsave = 0;
-			break;
+		}
+		break;
 
-        case 'H': {
-            if (!marks[0].set || !marks[1].set){
-                sprintf(message, "Need P and S marked (use '1' and '2' keys).");
-                alert(0);
-                break;
-            }
-
-            if (azimuth == SAC_HEADER_FLOAT_UNDEFINED) {
-                sprintf(message, "Need a valid azimuth estimated.");
-                alert(0);
-                break;
-            }
-
-            if (hz->stla == SAC_HEADER_FLOAT_UNDEFINED || hz->stlo == SAC_HEADER_FLOAT_UNDEFINED){
-                sprintf(message, "SAC data must have station coordinates.");
-                alert(0);
-                break;
-            }
-
-            float sp=marks[1].time - marks[0].time;
-            float distance = time2distance(sp);
-            if (distance == -999.0) {
-                sprintf(message, "S-P time is not in table.");
-                alert(0);
-                break;
-            }
-
-            float elon, elat;
-            model_locate(hz->stlo, hz->stla, distance, azimuth, &elon, &elat);
-
-            hz->evla = hn->evla = he->evla = elat;
-            hz->evlo = hn->evlo = he->evlo = elon;
-            hz->evdp = hn->evdp = he->evdp = 0.0;
-            hz->dist = hn->dist = he->dist = distance;
-            hz->gcarc = hn->gcarc = he->gcarc = distance / 111.32;
-            hz->baz   = hn->baz   = he->baz  = azimuth;
-            hz->lcalda = hn->lcalda = he->lcalda = SAC_FALSE;
-
-            if (yesno("Open Google to show location?") == 1) {
-                char cmd_line[10500];
-                sprintf(cmd_line, "xdg-open 'http://www.google.com/maps/place/%.4f,%.4f/@%.4f,%.4f'",elat,elon,elat,elon);
-                system(cmd_line);
-            }
-        }
-
-        case 'Q': {
-			if (needsave) {
-				int yn = yesno("File will not be saved, edits will be lost, really quit?");
-				ch = (yn == 1) ? ch : ' ';
+		case 'H': {
+			if (!marks[0].set || !marks[1].set){
+				sprintf(message, "Need P and S marked (use '1' and '2' keys).");
+				alert(0);
+				break;
 			}
-			break;
+
+			if (azimuth == SAC_HEADER_FLOAT_UNDEFINED) {
+				sprintf(message, "Need a valid azimuth estimated.");
+				alert(0);
+				break;
+			}
+
+			if (hz->stla == SAC_HEADER_FLOAT_UNDEFINED || hz->stlo == SAC_HEADER_FLOAT_UNDEFINED){
+				sprintf(message, "SAC data must have station coordinates.");
+				alert(0);
+				break;
+			}
+
+			float sp=marks[1].time - marks[0].time;
+			float distance = time2distance(sp);
+			if (distance == -999.0) {
+				sprintf(message, "S-P time is not in table.");
+				alert(0);
+				break;
+			}
+
+			float elon, elat;
+
+			model_locate(hz->stlo, hz->stla, distance, azimuth, &elon, &elat);
+
+			float tp = distance2ptime(distance);
+			if (tp == -1) {
+				sprintf(message, "Error, distance > max_dist");
+				alert(0);
+				break;
+			}
+
+			hz->evla = hn->evla = he->evla       = elat;
+			hz->evlo = hn->evlo = he->evlo       = elon;
+			hz->evdp = hn->evdp = he->evdp       = 0.0;
+			hz->dist = hn->dist = he->dist       = distance;
+			hz->gcarc = hn->gcarc = he->gcarc    = distance / 111.32;
+			hz->baz   = hn->baz   = he->baz      = azimuth;
+			hz->lcalda = hn->lcalda = he->lcalda = SAC_FALSE;
+			hz->o = marks[0].time - tp;
+
+			if (yesno("Open Google to show location?") == 1) {
+				char cmd_line[10500];
+				sprintf(cmd_line, "xdg-open 'http://www.google.com/maps/place/%.4f,%.4f/@%.4f,%.4f'",elat,elon,elat,elon);
+				system(cmd_line);
+			}
+		}
+		break;
+
+		case 'Q': {
+				if (needsave) {
+					int yn = yesno("File will not be saved, edits will be lost, really quit?");
+					ch = (yn == 1) ? ch : ' ';
+				}
+				break;
 		}
 
-		default:
+		default: {
 			printf("Oops, invalid command.\n");
-			break;
+		}
+		break;
+
 		}
 	}
-	
+
 	return;
 }
 
 int main(int argc, char **argv)
 {
-    int needsave, force = 0;
+	int needsave, force = 0;
 	SACHEAD *hz, *hn, *he;
 	float *z, *n, *e;
 	int stop = 0;
