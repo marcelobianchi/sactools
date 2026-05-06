@@ -144,9 +144,9 @@ void d_angle(g_ctl * ctl, float *xdata, float *ydata, int npts, float mangle) {
 void d_time(g_ctl * ctl, float *data, SACHEAD * h) {
 	int i;
 
-	ctl_yupdate_ndb(ctl, data, h->npts, h->delta, h->b);
-	ctl_resizeview(ctl);
-	ctl_drawaxis(ctl);
+    ctl_yupdate_ndb(ctl, data, h->npts, h->delta, h->b);
+    ctl_resizeview(ctl);
+    ctl_drawaxis(ctl);
 
 	float *x = malloc(sizeof(float) * h->npts);
 	for (i = 0; i < h->npts; i++)
@@ -258,7 +258,7 @@ void d(g_ctl * zc, g_ctl * nc, g_ctl * ec, g_ctl * azc, g_ctl * inc,
 
 	/* Ts + times */
 	d_time(zc, z, hz);
-	if (xmin < xmax) {
+    if (xmin < xmax) {
 		line(zc, xmin, 3);
 		line(zc, xmax, 3);
 	}
@@ -389,7 +389,7 @@ void interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n
 	azc->ylabel_offset = 0.5;
 	inc->ylabel_offset = 0.5;
 
-	for (i = 0; i < nm; i++) {
+    for (i = 0; i < nm; i++) {
 		marks[i].set = 0;
 	}
 
@@ -413,7 +413,7 @@ void interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n
 	ctlpick = ctl_newctl(0.0, 0.0, 1.0, 1.0);
 	ctlpick->expand = 0;
 
-	/*
+    /*
 	 *  Loading parameters from hz fileheader
 	 */
 	incidence = (hz->unused7 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused7 : SAC_HEADER_FLOAT_UNDEFINED;
@@ -423,7 +423,11 @@ void interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n
 	fh   = (hz->unused10 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused10 : 5.;
 	fl   = (hz->unused11 != SAC_HEADER_FLOAT_UNDEFINED) ? hz->unused11 : 25.;
 	inct = (hz->unused15 != SAC_HEADER_INT_UNDEFINED) ? hz->unused15 : ZE;
-	
+
+	/* Avoid Nyquist on filter */
+	if ((fl > (1.0/(2.0*hz->delta))) || (fh > (1.0/(2.0*hz->delta))) || (fl < fh))
+		fh = fl = SAC_HEADER_FLOAT_UNDEFINED;
+
 	if ( (fh != SAC_HEADER_FLOAT_UNDEFINED) && (SAC_HEADER_FLOAT_UNDEFINED != fl)) {
 		zf = iir(z, hz->npts, hz->delta, 2.0, fh, 2.0,
 			 fl);
@@ -446,14 +450,14 @@ void interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n
 	if (hz->t7 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t7", "kt7");
 	if (hz->t8 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t8", "kt8");
 	if (hz->t9 != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "t9", "kt9");
-	if (hz->f != SAC_HEADER_FLOAT_UNDEFINED) loadmark(&marks[i++], hz, "f", "kf");
+    if (hz->f != SAC_HEADER_FLOAT_UNDEFINED)  loadmark(&marks[i++], hz, "f", "kf");
 
 	float *hitdata;
 	SACHEAD *hithead;
 	while (ch != 'Q') {
 		d(zc, nc, ec, azc, inc, zf, hz, nf, hn, ef, he, t1, t2, azimuth,
 		  incidence, inct, needsave);
-		{
+        {
 			hitc = NULL;
 			ctl_resizeview(ctlpick);
 
@@ -580,6 +584,11 @@ void interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n
 					break;
 				if (fh >= fl)
 					break;
+				if ((fl > (1/(2*hz->delta))) || (fh > (1/(2*hz->delta)))) {
+					sprintf(message, "Freq. > Nyquist!");
+					alert(ANOUNCE);
+					break;
+				}
 
 				zf = iir(z, hz->npts, hz->delta, 2.0, fh, 2.0,
 					 fl);
@@ -851,7 +860,6 @@ void interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n
 			}
 
 			float elon, elat;
-
 			model_locate(hz->stlo, hz->stla, distance, azimuth, &elon, &elat);
 
 			float tp = distance2ptime(distance);
@@ -869,6 +877,8 @@ void interact(char *zfilename, float *z, SACHEAD * hz, char *nfilename, float *n
 			hz->baz   = hn->baz   = he->baz      = azimuth;
 			hz->lcalda = hn->lcalda = he->lcalda = SAC_FALSE;
 			hz->o = marks[0].time - tp;
+
+			needsave = 1;
 
 			if (yesno("Open Google to show location?") == 1) {
 				char cmd_line[10500];
@@ -1080,9 +1090,9 @@ int main(int argc, char **argv) {
 		yu_rtrend(z, hz->npts);
 		yu_rtrend(n, hn->npts);
 		yu_rtrend(e, he->npts);
-		
+
 		if (z == NULL)
-			fprintf(stderr, "OILA");
+			fprintf(stderr, "Bad Z component read.");
 		interact(zfilename, z, hz, nfilename, n, hn, efilename, e, he);
 	}
 	
