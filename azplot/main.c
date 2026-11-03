@@ -11,6 +11,7 @@
 #include <ctl.h>
 #include <interaction.h>
 #include <timeu.h>
+#include <basic.h>
 
 #include "model.h"
 
@@ -112,6 +113,18 @@ void d_angle(g_ctl * ctl, float *xdata, float *ydata, int npts, float mangle) {
 	float ymin, ymax;
 	char title[128] = "";
 
+	float *x = malloc(sizeof(float) * npts);
+	float *y = malloc(sizeof(float) * npts);
+	{
+		float meanx = getmean(xdata,npts);
+		float meany = getmean(ydata,npts);
+
+		for(int i = 0; i < npts; i++) {
+			x[i] = xdata[i] - meanx;
+			y[i] = ydata[i] - meany;
+		}
+	}
+
 	if (mangle > SAC_HEADER_FLOAT_UNDEFINED) {
 		sprintf(title, "Angle is %.1f", mangle);
 		strcpy(ctl->title, title);
@@ -119,8 +132,8 @@ void d_angle(g_ctl * ctl, float *xdata, float *ydata, int npts, float mangle) {
 		strcpy(ctl->title, "");
 	}
 
-	vecminmax(xdata, npts, &xmin, &xmax, NULL, NULL);
-	vecminmax(ydata, npts, &ymin, &ymax, NULL, NULL);
+	vecminmax(x, npts, &xmin, &xmax, NULL, NULL);
+	vecminmax(y, npts, &ymin, &ymax, NULL, NULL);
 
 	if (xmin > ymin)
 		xmin = ymin;
@@ -138,7 +151,13 @@ void d_angle(g_ctl * ctl, float *xdata, float *ydata, int npts, float mangle) {
 	ctl_resizeview(ctl);
 	ctl_drawaxis(ctl);
 
-	cpgline(npts, xdata, ydata);
+	cpgline(npts, x, y);
+
+	free(x);
+	x = NULL;
+
+	free(y);
+	y = NULL;
 }
 
 void d_time(g_ctl * ctl, float *data, SACHEAD * h) {

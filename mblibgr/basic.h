@@ -125,4 +125,7 @@ void resizemax(float scale);
 
 /// Find min max and pos min / pos max of data
 void vecminmax(float *x, int npts, float *xmin, float *xmax, int *imin, int *imax);
+
+/// Find a mean value of data vector
+float getmean(float *x, int npts);
 #endif

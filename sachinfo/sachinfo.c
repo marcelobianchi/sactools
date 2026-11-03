@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 	extern char *var[];
 	extern int n;
 	extern int fullprint;
+	int header;
 
 	/* Files extension used in the search */
 	char *defaultfileend = ".sac";
@@ -71,12 +72,18 @@ int main(int argc, char **argv)
 	fullprint = 0;
 	fulltime = 0;
 	noname = 0;
+	header = 0;
 	for (i = 1; i < argc; i++) {
 		if ((j = strncmp(argv[i], "-v", 2)) == 0) {
 			fprintf(stderr,
 					"Version: %s\n         %s\n         %s\n	 %s\n",
 					version, io_version, hd_version, hdu_version);
 			return 0;
+		}
+
+		if ((j = strncmp(argv[i], "--header",8)) == 0) {
+			header = 1;
+			continue;
 		}
 
 		if ((j = strncmp(argv[i], "-h", 2)) == 0) {
@@ -142,6 +149,16 @@ int main(int argc, char **argv)
 		fullprint = 1;
 	if (n > 1)
 		fullprint = 1;
+
+	if (header) {
+		if (noname == 0) {
+			fprintf(stdout,"filename\t");
+		}
+		for(j = 0; j < n; j++) {
+			fprintf(stdout,"%s\t",var[j]);
+		}
+		fprintf(stdout, "\n");
+	}
 
 	if ((filename != NULL) && (dir == NULL))
 		process(filename);
@@ -241,6 +258,7 @@ void showHelp()
 	fprintf(stderr, "\n\t-h) Show this help.\n");
 	fprintf(stderr, "\t-v) Show program version.\n");
 	fprintf(stderr, "\t--nonames) Dont print the filenames, only variables.\n");
+	fprintf(stderr, "\t--header) Show header for columns.\n");
 	fprintf(stderr, "\t--fulltime) When the indicated variable is a mark, print its fulltime (Y M D H M S) instead of seconds from Reference.\n");
 	fprintf(stderr, "\t--vars) Show list of sac header variables.\n");
 

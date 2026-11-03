@@ -78,6 +78,16 @@ void resizemax(float scale)
     BASIC_ASPECT = ay;
 }
 
+
+/**
+ * Find a mean of a vector
+ **/
+float getmean(float *x, int npts) {
+	float mean = x[0];
+	for(int i = 1; i < npts; i++, mean += x[i]);
+	return mean/npts;
+}
+
 /**
  * Method to find the min and max of a vector of data
  *
