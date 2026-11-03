@@ -1,5 +1,4 @@
 /*
-/*
   Module for exporting picks to Koulakov/Jackovlev code filtering picks and events 
   by correlation coef.
   It write waves travel-times.

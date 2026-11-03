@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <limits.h>
 
 #include <head.h>
 #include <sacio.h>
@@ -33,8 +34,8 @@ char version[] = "sacrgaps version 0.1";
 
 /* Global vars */
 char *fileend;
-float gapval = -2147483647;
-int method = 1;
+float gapval = INT_MIN;
+int   method = 1;
 
 int removegaps(SACHEAD * h, float *y, float gapval, int method);
 int process(char *filename);
@@ -250,7 +251,7 @@ int removegaps(SACHEAD * h, float *y, float gapval, int method)
 			if (i == 0) {
 				incvalue = 0;
 				fillvalue = y[j];
-			} else if ((j == h->npts)) {
+			} else if (j == h->npts) {
 				incvalue = 0;
 				fillvalue = y[i];
 			} else {
